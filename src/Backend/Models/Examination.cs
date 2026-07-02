@@ -18,8 +18,9 @@ public class Examination
     public string? Color { get; set; }
     public string? Icon { get; set; }
     public string? Doctor { get; set;  }
-    public string? GoogleEventId { get; set; } // słuzy do synchornizacji z kalendarzem google
-
-    
+    public string? GoogleEventId { get; set; } // służy do synchornizacji z kalendarzem google
+    public User? Owner { get; set; }
+    public ICollection<Notification> Notifications { get; set; } = new List<Notification>();
+    public ICollection<ChangeRequest> ChangeRequests { get; set; } = new List<ChangeRequest>();
 }
 

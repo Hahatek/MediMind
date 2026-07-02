@@ -12,4 +12,6 @@ public class Notification
     public DateTime ScheduledAt { get; set; }
     public DateTime? SentAt { get; set; }
     public bool IsRead { get; set; } 
+    public User Owner { get; set; }
+    public Examination? Examination { get; set; }
 }

@@ -6,4 +6,5 @@ public class UserSettings
     public Guid UserId { get; set; }
     public bool DarkMode { get; set; }
     public int FontSize { get; set; }
+    public User Owner { get; set; }
 }
