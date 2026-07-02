@@ -9,4 +9,5 @@ public class ChatMessage
     public string Content { get; set; }
     public DateTime Time { get; set; }
     public AuthorChat Author { get; set; }
+    public ChatSession Session { get; set; }
 }

@@ -8,4 +8,6 @@ public class FamilyMember
     public string? Relation { get; set; }
     public bool? CanEdit { get; set; }
     public DateTime CreatedAt { get; set; }
+    public User Owner { get; set; }
+    public User Member { get; set; }
 }

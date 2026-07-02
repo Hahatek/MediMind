@@ -8,4 +8,6 @@ public class Medication
     public double Dose { get; set; }
     public DateOnly? StartDate { get; set; }
     public DateOnly? EndDate { get; set; }
+    public ICollection<MedicationSchedule> MedicationSchedules { get; set; } = new List<MedicationSchedule>();
+    public User User { get; set; }
 }
