@@ -45,13 +45,13 @@ public enum Gender
 
 public enum ExaminationsStatus
 {
-    Sudden,
-    Pending,
-    Scheduled,
-    InProgress,
-    Planned,
-    Skipped,
-    Completed,
+    Sudden, // Nagłe
+    Pending, // Oczekujące
+    Scheduled, // Umówione
+    InProgress, // W trakcie
+    Planned, // Zaplanowane
+    Skipped, // Ominięte
+    Completed, // Zakończone
 }
 
 public enum MedicationTime
