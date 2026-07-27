@@ -1,6 +1,6 @@
 namespace Backend.DTOs.ChatSession;
 
-public class ChatSessionResponseDto
+public class ResponseChatSessionDto
 {
     public Guid Id { get; set; }
     public Guid UserId { get; set; }

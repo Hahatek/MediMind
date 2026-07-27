@@ -1,14 +1,11 @@
 ﻿using Backend.Helpers;
 
-namespace Backend.Models;
+namespace Backend.DTOs.MedicationSchedule;
 
-// Informuje nas o porze brania leku 
-
-public class MedicationSchedule
+public class ResponseMedicationScheduleDto
 {
     public Guid Id { get; set; }
     public Guid MedicationId { get; set; }
     public MedicationTime TimeOfDay { get; set; }
     public TimeOnly? Time { get; set; }
-    public Medication Medication { get; set; }
 }

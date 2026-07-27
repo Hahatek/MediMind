@@ -18,7 +18,7 @@ public class UserSettingsController : ControllerBase
     }
     
     [HttpPost]
-    public async Task<ActionResult<UserSettingsResponseDto>> PostUserSetting(CreateUserSettingsDto dto)
+    public async Task<ActionResult<ResponseUserSettingsDto>> PostUserSetting(CreateUserSettingsDto dto)
     {
         var userSetting = new UserSettings()
         {
@@ -34,7 +34,7 @@ public class UserSettingsController : ControllerBase
     }
     
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<UserSettingsResponseDto>>> GetUserSettings()
+    public async Task<ActionResult<IEnumerable<ResponseUserSettingsDto>>> GetUserSettings()
     {
         var userSetting = await _context.UserSettings.ToListAsync();
 
@@ -42,7 +42,7 @@ public class UserSettingsController : ControllerBase
     }
 
     [HttpGet("{id}")]
-    public async Task<ActionResult<UserSettingsResponseDto>> GetUserSetting(Guid id)
+    public async Task<ActionResult<ResponseUserSettingsDto>> GetUserSetting(Guid id)
     {
         var userSetting = await _context.UserSettings.FindAsync(id);
         if (userSetting == null)
@@ -54,7 +54,7 @@ public class UserSettingsController : ControllerBase
     }
     
     [HttpPut("{id}")]
-    public async Task<ActionResult<UserSettingsResponseDto>> PutUserSetting(Guid id, UpdateUserSettingsDto dto)
+    public async Task<ActionResult<ResponseUserSettingsDto>> PutUserSetting(Guid id, UpdateUserSettingsDto dto)
     {
         var userSetting = await _context.UserSettings.FindAsync(id);
         if (userSetting == null)
@@ -71,7 +71,7 @@ public class UserSettingsController : ControllerBase
     }
     
     [HttpPatch("{id}")]
-    public async Task<ActionResult<UserSettingsResponseDto>> PatchUserSetting(Guid id, PatchUserSettingsDto dto)
+    public async Task<ActionResult<ResponseUserSettingsDto>> PatchUserSetting(Guid id, PatchUserSettingsDto dto)
     {
         var userSetting = await _context.UserSettings.FindAsync(id);
         if (userSetting == null)
@@ -103,9 +103,9 @@ public class UserSettingsController : ControllerBase
         return NoContent();
     }
     
-    private static UserSettingsResponseDto ToResponseDto(UserSettings us)
+    private static ResponseUserSettingsDto ToResponseDto(UserSettings us)
     {
-        return new UserSettingsResponseDto()
+        return new ResponseUserSettingsDto()
         {
             Id = us.Id,
             UserId = us.UserId,

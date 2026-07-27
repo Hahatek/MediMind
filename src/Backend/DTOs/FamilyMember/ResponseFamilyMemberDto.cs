@@ -1,6 +1,6 @@
 namespace Backend.DTOs.FamilyMember;
 
-public class FamilyMemberResponseDto
+public class ResponseFamilyMemberDto
 {
     public Guid Id { get; set; }
     public Guid OwnerId { get; set; }

@@ -18,8 +18,8 @@ public class ExaminationController : ControllerBase
         _context = context;
     }
 
-    [HttpPost]
-    public async Task<ActionResult<ExaminationResponseDto>> PostExamination(CreateExaminationDto dto)
+    [HttpPost] // CreateExamination
+    public async Task<ActionResult<ResponseExaminationDto>> PostExamination(CreateExaminationDto dto)
     {
         var examination = new Examination
         {
@@ -44,8 +44,8 @@ public class ExaminationController : ControllerBase
         return Ok(ToResponseDto(examination));
     }
 
-    [HttpGet]
-    public async Task<ActionResult<IEnumerable<ExaminationResponseDto>>> GetExaminations()
+    [HttpGet] // ResponseExamination
+    public async Task<ActionResult<IEnumerable<ResponseExaminationDto>>> GetExaminations()
     {
         var examinations = await _context.Examinations.ToListAsync();
 
@@ -53,7 +53,7 @@ public class ExaminationController : ControllerBase
     }
 
     [HttpGet("{id}")]
-    public async Task<ActionResult<ExaminationResponseDto>> GetExamination(Guid id)
+    public async Task<ActionResult<ResponseExaminationDto>> GetExamination(Guid id)
     {
         var examination = await _context.Examinations.FindAsync(id);
         if (examination == null)
@@ -64,8 +64,8 @@ public class ExaminationController : ControllerBase
         return Ok(ToResponseDto(examination));
     }
     
-    [HttpPut("{id}")]
-    public async Task<ActionResult<ExaminationResponseDto>> PutExamination(Guid id, UpdateExaminationDto dto)
+    [HttpPut("{id}")] // UpdateExaminationDto
+    public async Task<ActionResult<ResponseExaminationDto>> PutExamination(Guid id, UpdateExaminationDto dto)
     {
         var examination = await _context.Examinations.FindAsync(id);
         if (examination == null)
@@ -94,8 +94,8 @@ public class ExaminationController : ControllerBase
         return Ok(ToResponseDto(examination));
     }
 
-    [HttpPatch("{id}")]
-    public async Task<ActionResult<ExaminationResponseDto>> PatchExamination(Guid id, PatchExaminationDto dto)
+    [HttpPatch("{id}")] // PatchExamination
+    public async Task<ActionResult<ResponseExaminationDto>> PatchExamination(Guid id, PatchExaminationDto dto)
     {
         var examination = await _context.Examinations.FindAsync(id);
         if (examination == null)
@@ -136,9 +136,9 @@ public class ExaminationController : ControllerBase
         return NoContent();
     }
 
-    private static ExaminationResponseDto ToResponseDto(Examination e)
+    private static ResponseExaminationDto ToResponseDto(Examination e)
     {
-        return new ExaminationResponseDto
+        return new ResponseExaminationDto
         {
             Id = e.Id,
             UserId = e.UserId,

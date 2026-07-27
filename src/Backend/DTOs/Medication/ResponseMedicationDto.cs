@@ -1,6 +1,6 @@
 ﻿namespace Backend.DTOs.Medication;
 
-public class MedicationResponseDto
+public class ResponseMedicationDto
 {
         public Guid Id { get; set; }
         public Guid UserId { get; set; }
