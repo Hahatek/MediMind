@@ -18,7 +18,7 @@ public class FamilyMemberController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<FamilyMemberResponseDto>>> GetFamilyMembers()
+    public async Task<ActionResult<IEnumerable<ResponseFamilyMemberDto>>> GetFamilyMembers()
     {
         var familyMembers = await _context.FamilyMembers
             .Include(fm => fm.Member)
@@ -28,7 +28,7 @@ public class FamilyMemberController : ControllerBase
     }
 
     [HttpGet("{id}")]
-    public async Task<ActionResult<FamilyMemberResponseDto>> GetFamilyMember(Guid id)
+    public async Task<ActionResult<ResponseFamilyMemberDto>> GetFamilyMember(Guid id)
     {
         var familyMember = await _context.FamilyMembers
             .Include(fm => fm.Member)
@@ -42,7 +42,7 @@ public class FamilyMemberController : ControllerBase
     }
 
     [HttpPost]
-    public async Task<ActionResult<FamilyMemberResponseDto>> PostFamilyMember(CreateFamilyMemberDto dto)
+    public async Task<ActionResult<ResponseFamilyMemberDto>> PostFamilyMember(CreateFamilyMemberDto dto)
     {
         var familyMember = new FamilyMember()
         {
@@ -62,7 +62,7 @@ public class FamilyMemberController : ControllerBase
     }
 
     [HttpPatch("{id}")]
-    public async Task<ActionResult<FamilyMemberResponseDto>> PatchFamilyMember(Guid id, PatchFamilyMemberDto dto)
+    public async Task<ActionResult<ResponseFamilyMemberDto>> PatchFamilyMember(Guid id, PatchFamilyMemberDto dto)
     {
         var familyMember = await _context.FamilyMembers
             .Include(fm => fm.Member)
@@ -95,9 +95,9 @@ public class FamilyMemberController : ControllerBase
         return NoContent();
     }
 
-    private static FamilyMemberResponseDto ToResponseDto(FamilyMember fm)
+    private static ResponseFamilyMemberDto ToResponseDto(FamilyMember fm)
     {
-        return new FamilyMemberResponseDto()
+        return new ResponseFamilyMemberDto()
         {
             Id = fm.Id,
             OwnerId = fm.OwnerId,

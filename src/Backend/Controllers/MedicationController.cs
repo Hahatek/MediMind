@@ -18,7 +18,7 @@ public class MedicationController : ControllerBase
     }
 
     [HttpPost]
-    public async Task<ActionResult<MedicationResponseDto>> PostMedication(CreateMedicationDto dto)
+    public async Task<ActionResult<ResponseMedicationDto>> PostMedication(CreateMedicationDto dto)
     {
         var medication = new Medication
         {
@@ -36,7 +36,7 @@ public class MedicationController : ControllerBase
     }
    
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<MedicationResponseDto>>> GetMedications()
+    public async Task<ActionResult<IEnumerable<ResponseMedicationDto>>> GetMedications()
     {
         var medication = await _context.Medications.ToListAsync();
 
@@ -44,7 +44,7 @@ public class MedicationController : ControllerBase
     }
 
     [HttpGet("{id}")]
-    public async Task<ActionResult<MedicationResponseDto>> GetMedication(Guid id)
+    public async Task<ActionResult<ResponseMedicationDto>> GetMedication(Guid id)
     {
         var medication = await _context.Medications.FindAsync(id);
         if (medication == null)
@@ -56,7 +56,7 @@ public class MedicationController : ControllerBase
     }
    
     [HttpPut("{id}")]
-    public async Task<ActionResult<MedicationResponseDto>> PutMedication(Guid id, UpdateMedicationDto dto)
+    public async Task<ActionResult<ResponseMedicationDto>> PutMedication(Guid id, UpdateMedicationDto dto)
     {
         var medication = await _context.Medications.FindAsync(id);
         if (medication == null)
@@ -75,7 +75,7 @@ public class MedicationController : ControllerBase
     }
 
     [HttpPatch("{id}")]
-    public async Task<ActionResult<MedicationResponseDto>> PatchMedication(Guid id, PatchMedicationDto dto)
+    public async Task<ActionResult<ResponseMedicationDto>> PatchMedication(Guid id, PatchMedicationDto dto)
     {
         var medication = await _context.Medications.FindAsync(id);
         if (medication == null)
@@ -109,9 +109,9 @@ public class MedicationController : ControllerBase
         return NoContent();
     }
     
-    private static MedicationResponseDto ToResponseDto(Medication m)
+    private static ResponseMedicationDto ToResponseDto(Medication m)
     {
-        return new MedicationResponseDto()
+        return new ResponseMedicationDto()
         {
             Id = m.Id,
             UserId = m.UserId,

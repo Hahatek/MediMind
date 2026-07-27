@@ -2,7 +2,7 @@
 
 namespace Backend.DTOs.Examination;
 
-public class ExaminationResponseDto
+public class ResponseExaminationDto
 {
     public Guid Id { get; set; }
     public Guid UserId { get; set; }

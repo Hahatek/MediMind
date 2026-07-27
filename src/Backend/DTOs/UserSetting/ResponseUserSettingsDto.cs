@@ -1,6 +1,6 @@
 ﻿namespace Backend.DTOs.UserSetting;
 
-public class UserSettingsResponseDto
+public class ResponseUserSettingsDto
 {
     public Guid Id { get; set; }
     public Guid UserId { get; set; }

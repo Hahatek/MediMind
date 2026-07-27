@@ -2,7 +2,7 @@ using Backend.Helpers;
 
 namespace Backend.DTOs.ChatMessage;
 
-public class ChatMessageResponseDto
+public class ResponseChatMessageDto
 {
     public Guid Id { get; set; }
     public Guid SessionId { get; set; }

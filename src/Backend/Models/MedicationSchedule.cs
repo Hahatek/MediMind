@@ -2,6 +2,8 @@
 
 namespace Backend.Models;
 
+// Informuje nas o porze brania leku 
+
 public class MedicationSchedule
 {
     public Guid Id { get; set; }
