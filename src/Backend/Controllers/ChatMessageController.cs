@@ -20,12 +20,12 @@ public class ChatMessageController : ControllerBase
     [HttpPost]
     public async Task<ActionResult<ResponseChatMessageDto>> PostChatMessage(CreateChatMessageDto dto)
     {
-        var chatMessage = new ChatMessage
+        var chatMessage = new ChatMessage()
         {
             Id = Guid.NewGuid(),
             SessionId = dto.SessionId,
             Content = dto.Content,
-            Time = dto.Time,
+            Time = DateTime.UtcNow,
             Author = dto.Author,
         };
         _context.ChatMessages.Add(chatMessage);
