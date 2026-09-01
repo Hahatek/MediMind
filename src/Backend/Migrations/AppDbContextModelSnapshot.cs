@@ -142,6 +142,9 @@ namespace Backend.Migrations
                     b.Property<bool>("IsCyclic")
                         .HasColumnType("boolean");
 
+                    b.Property<string>("LastSyncError")
+                        .HasColumnType("text");
+
                     b.Property<string>("Location")
                         .HasColumnType("text");
 
@@ -153,6 +156,9 @@ namespace Backend.Migrations
                         .HasColumnType("text");
 
                     b.Property<int>("Status")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("SyncStatus")
                         .HasColumnType("integer");
 
                     b.Property<TimeOnly?>("Time")
@@ -198,6 +204,62 @@ namespace Backend.Migrations
                     b.ToTable("FamilyMembers");
                 });
 
+            modelBuilder.Entity("Backend.Models.GoogleCalendarConnection", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("ConnectedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("RefreshToken")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("ScopeGranted")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId")
+                        .IsUnique();
+
+                    b.ToTable("GoogleCalendarConnections");
+                });
+
+            modelBuilder.Entity("Backend.Models.GoogleFitConnection", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("ConnectedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("RefreshToken")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("ScopeGranted")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId")
+                        .IsUnique();
+
+                    b.ToTable("GoogleFitConnections");
+                });
+
             modelBuilder.Entity("Backend.Models.Medication", b =>
                 {
                     b.Property<Guid>("Id")
@@ -232,8 +294,17 @@ namespace Backend.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
+                    b.Property<string>("GoogleEventId")
+                        .HasColumnType("text");
+
+                    b.Property<string>("LastSyncError")
+                        .HasColumnType("text");
+
                     b.Property<Guid>("MedicationId")
                         .HasColumnType("uuid");
+
+                    b.Property<int>("SyncStatus")
+                        .HasColumnType("integer");
 
                     b.Property<TimeOnly?>("Time")
                         .HasColumnType("time without time zone");
@@ -433,6 +504,28 @@ namespace Backend.Migrations
                     b.Navigation("Member");
 
                     b.Navigation("Owner");
+                });
+
+            modelBuilder.Entity("Backend.Models.GoogleCalendarConnection", b =>
+                {
+                    b.HasOne("Backend.Models.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("Backend.Models.GoogleFitConnection", b =>
+                {
+                    b.HasOne("Backend.Models.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("Backend.Models.Medication", b =>

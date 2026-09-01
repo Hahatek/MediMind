@@ -22,5 +22,7 @@ public class Examination
     public User? Owner { get; set; }
     public ICollection<Notification> Notifications { get; set; } = new List<Notification>();
     public ICollection<ChangeRequest> ChangeRequests { get; set; } = new List<ChangeRequest>();
+    public GoogleSyncStatus SyncStatus { get; set; } = GoogleSyncStatus.NotSynced;
+    public string? LastSyncError { get; set; }
 }
 
