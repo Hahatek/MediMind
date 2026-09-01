@@ -81,3 +81,10 @@ public enum ChangeRequestStatus
     Approved,
     Rejected
 }
+
+public enum GoogleSyncStatus
+{
+    NotSynced,  
+    Synced,     
+    Failed  
+}

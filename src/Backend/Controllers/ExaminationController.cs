@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using Backend.Data;
 using Backend.DTOs.Examination;
 using Backend.Models;
+using Backend.Services;
 
 namespace Backend.Controllers;
 
@@ -12,10 +13,12 @@ public class ExaminationController : ControllerBase
 {
     
     private readonly AppDbContext _context;
-    
-    public ExaminationController(AppDbContext context)
+    private readonly IGoogleCalendarService _googleCalendarService;
+
+    public ExaminationController(AppDbContext context, IGoogleCalendarService googleCalendarService)
     {
         _context = context;
+        _googleCalendarService = googleCalendarService;
     }
 
     [HttpPost] // CreateExamination
@@ -39,6 +42,9 @@ public class ExaminationController : ControllerBase
             Doctor = dto.Doctor
         };
         _context.Examinations.Add(examination);
+        
+        await _googleCalendarService.CreateEventAsyncExamination(examination);
+        
         await _context.SaveChangesAsync();
         
         return Ok(ToResponseDto(examination));
@@ -89,6 +95,8 @@ public class ExaminationController : ControllerBase
         examination.Icon = dto.Icon;
         examination.Doctor = dto.Doctor;
 
+        await _googleCalendarService.UpdateEventAsyncExamination(examination);
+        
         await _context.SaveChangesAsync();
 
         return Ok(ToResponseDto(examination));
@@ -116,12 +124,14 @@ public class ExaminationController : ControllerBase
         if (dto.Icon is not null) examination.Icon = dto.Icon;
         if (dto.Doctor is not null) examination.Doctor = dto.Doctor;
 
+        await _googleCalendarService.UpdateEventAsyncExamination(examination);
+        
         await _context.SaveChangesAsync();
-
+        
         return Ok(ToResponseDto(examination));
     }
 
-    [HttpDelete("{id}")]
+    [HttpDelete("{id}")] // DeleteExamination
     public async Task<IActionResult> DeleteExamination(Guid id)
     {
         var examination = await _context.Examinations.FindAsync(id);
@@ -130,7 +140,10 @@ public class ExaminationController : ControllerBase
             return NotFound($"Nie znaleziono badania o id {id}");
         }
 
+        await _googleCalendarService.DeleteEventAsyncExamination(examination);
+        
         _context.Examinations.Remove(examination);
+        
         await _context.SaveChangesAsync();
 
         return NoContent();

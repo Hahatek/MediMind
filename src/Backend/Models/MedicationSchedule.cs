@@ -11,4 +11,8 @@ public class MedicationSchedule
     public MedicationTime TimeOfDay { get; set; }
     public TimeOnly? Time { get; set; }
     public Medication Medication { get; set; }
+    public string? GoogleEventId { get; set; } // służy do synchornizacji z kalendarzem google
+    public GoogleSyncStatus SyncStatus { get; set; } = GoogleSyncStatus.NotSynced;
+    public string? LastSyncError { get; set; }
+
 }

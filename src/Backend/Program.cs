@@ -3,6 +3,7 @@ using Backend.Helpers;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using System.Text;
+using Backend.Services;
 using Microsoft.IdentityModel.Tokens;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -39,6 +40,18 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             ValidateLifetime = true,
         };
     });
+
+builder.Services.Configure<GoogleCalendarOptions>(
+    builder.Configuration.GetSection("GoogleCalendar"));
+
+builder.Services.AddScoped<IGoogleCalendarService, GoogleCalendarService>();
+
+builder.Services.Configure<GoogleFitOptions>(
+    builder.Configuration.GetSection("GoogleFit"));
+
+builder.Services.AddScoped<IGoogleFitService, GoogleFitService>();
+
+builder.Services.AddDataProtection();
 
 var app = builder.Build();
 

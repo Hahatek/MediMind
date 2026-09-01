@@ -18,7 +18,8 @@ public class AppDbContext : DbContext
     public DbSet<Examination> Examinations { get; set; }
     public DbSet<FamilyMember> FamilyMembers { get; set; }
     public DbSet<Notification> Notifications { get; set; }
-    
+    public DbSet<GoogleCalendarConnection> GoogleCalendarConnections { get; set; }
+    public DbSet<GoogleFitConnection> GoogleFitConnections { get; set; }
     
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -45,5 +46,13 @@ public class AppDbContext : DbContext
             .WithMany(u => u.ReviewedChangeRequests)
             .HasForeignKey(u => u.ReviewedBy)
             .OnDelete(DeleteBehavior.Restrict);
+        
+        modelBuilder.Entity<GoogleCalendarConnection>()
+            .HasIndex(g => g.UserId)
+            .IsUnique();
+
+        modelBuilder.Entity<GoogleFitConnection>()
+            .HasIndex(g => g.UserId)
+            .IsUnique();
     }
 }
