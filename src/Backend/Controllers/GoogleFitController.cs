@@ -1,8 +1,11 @@
+using Backend.Helpers;
 using Backend.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Backend.Controllers;
 
+[Authorize]
 [ApiController]
 [Route("api/googlefit")]
 public class GoogleFitController : ControllerBase
@@ -16,12 +19,13 @@ public class GoogleFitController : ControllerBase
     }
 
     [HttpGet("connect")]
-    public IActionResult Connect(Guid userId)
+    public IActionResult Connect()
     {
-        var url = _googleFitService.GetAuthorizationUrl(userId);
+        var url = _googleFitService.GetAuthorizationUrl(this.GetUserId());
         return Ok(new { url });
     }
 
+    [AllowAnonymous]
     [HttpGet("callback")]
     public async Task<IActionResult> Callback(string? code, string? state, string? error)
     {
@@ -42,25 +46,25 @@ public class GoogleFitController : ControllerBase
     }
 
     [HttpGet("status")]
-    public async Task<IActionResult> Status(Guid userId)
+    public async Task<IActionResult> Status()
     {
-        var isConnected = await _googleFitService.IsConnectedAsync(userId);
+        var isConnected = await _googleFitService.IsConnectedAsync(this.GetUserId());
         return Ok(new { isConnected });
     }
 
     [HttpPost("disconnect")]
-    public async Task<IActionResult> Disconnect(Guid userId)
+    public async Task<IActionResult> Disconnect()
     {
-        await _googleFitService.DisconnectAsync(userId);
+        await _googleFitService.DisconnectAsync(this.GetUserId());
         return Ok();
     }
 
     [HttpGet("steps")]
-    public async Task<IActionResult> GetSteps(Guid userId, DateOnly date)
+    public async Task<IActionResult> GetSteps(DateOnly date)
     {
         try
         {
-            var steps = await _googleFitService.GetStepsForDateAsync(userId, date);
+            var steps = await _googleFitService.GetStepsForDateAsync(this.GetUserId(), date);
             return Ok(new { date, steps });
         }
         catch (InvalidOperationException e)
@@ -70,11 +74,11 @@ public class GoogleFitController : ControllerBase
     }
 
     [HttpGet("heart-rate")]
-    public async Task<IActionResult> GetHeartRate(Guid userId, DateOnly date)
+    public async Task<IActionResult> GetHeartRate(DateOnly date)
     {
         try
         {
-            var summary = await _googleFitService.GetHeartRateForDateAsync(userId, date);
+            var summary = await _googleFitService.GetHeartRateForDateAsync(this.GetUserId(), date);
             return Ok(new { date, summary.AverageBpm, summary.MaxBpm, summary.MinBpm });
         }
         catch (InvalidOperationException e)
@@ -84,11 +88,11 @@ public class GoogleFitController : ControllerBase
     }
 
     [HttpGet("sleep")]
-    public async Task<IActionResult> GetSleep(Guid userId, DateOnly date)
+    public async Task<IActionResult> GetSleep(DateOnly date)
     {
         try
         {
-            var sleep = await _googleFitService.GetSleepForDateAsync(userId, date);
+            var sleep = await _googleFitService.GetSleepForDateAsync(this.GetUserId(), date);
             return Ok(new { date, totalMinutes = (int)sleep.TotalMinutes });
         }
         catch (InvalidOperationException e)

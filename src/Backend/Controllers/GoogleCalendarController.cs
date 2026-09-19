@@ -1,27 +1,31 @@
-﻿using Backend.Services;
+﻿using Backend.Helpers;
+using Backend.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Backend.Controllers;
 
+[Authorize]
 [ApiController]
 [Route("api/googlecalendar")]
 public class GoogleCalendarController : ControllerBase
 {
 
     private readonly IGoogleCalendarService _googleCalendarService;
-
+    
     public GoogleCalendarController(IGoogleCalendarService googleCalendarService)
     {
         _googleCalendarService = googleCalendarService;
     }
-    
+
     [HttpGet("connect")]
-    public IActionResult Connect(Guid userId)
+    public IActionResult Connect()
     {
-        var url = _googleCalendarService.GetAuthorizationUrl(userId);
+        var url = _googleCalendarService.GetAuthorizationUrl(this.GetUserId());
         return Ok(new { url });
     }
 
+    [AllowAnonymous]
     [HttpGet("callback")]
     public async Task<IActionResult> Callback(string? code, string? state, string? error)
     {
@@ -40,18 +44,18 @@ public class GoogleCalendarController : ControllerBase
             return BadRequest(e.Message);
         }
     }
- 
+
     [HttpGet("status")]
-    public async Task<IActionResult> Status(Guid userId)
+    public async Task<IActionResult> Status()
     {
-        var isConnected = await _googleCalendarService.IsConnectedAsync(userId);
+        var isConnected = await _googleCalendarService.IsConnectedAsync(this.GetUserId());
         return Ok(new { isConnected });
     }
 
     [HttpPost("disconnect")]
-    public async Task<IActionResult> Disconnect(Guid userId)
+    public async Task<IActionResult> Disconnect()
     {
-        await _googleCalendarService.DisconnectAsync(userId);
+        await _googleCalendarService.DisconnectAsync(this.GetUserId());
         return Ok();
     }
 

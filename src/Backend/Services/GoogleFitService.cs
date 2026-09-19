@@ -11,6 +11,7 @@ using Google.Apis.Fitness.v1;
 using Google.Apis.Fitness.v1.Data;
 using Google.Apis.Services;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Memory;
 
 namespace Backend.Services;
 
@@ -28,21 +29,28 @@ public class GoogleFitService : IGoogleFitService
     private readonly AppDbContext _context;
     private readonly GoogleFitOptions _options;
     private readonly IDataProtector _protector;
+    private readonly IMemoryCache _cache;
 
     public GoogleFitService(
         AppDbContext context,
         IOptions<GoogleFitOptions> options,
-        IDataProtectionProvider dataProtectionProvider)
+        IDataProtectionProvider dataProtectionProvider,
+        IMemoryCache cache)
     {
         _context = context;
         _options = options.Value;
         _protector = dataProtectionProvider.CreateProtector("GoogleFitConnection.RefreshToken");
+        _cache = cache;
     }
 
     public string GetAuthorizationUrl(Guid userId)
     {
         var baseUrl = "https://accounts.google.com/o/oauth2/v2/auth";
 
+        var stateToken = Guid.NewGuid().ToString();
+        
+        _cache.Set(stateToken, userId, TimeSpan.FromMinutes(10));
+        
         var queryParametrs = new Dictionary<string, string?>
         {
             ["client_id"] = _options.ClientId,
@@ -51,7 +59,7 @@ public class GoogleFitService : IGoogleFitService
             ["scope"] = string.Join(" ", FitnessScopes),
             ["access_type"] = "offline",
             ["prompt"] = "consent",
-            ["state"] = userId.ToString()
+            ["state"] = stateToken
         };
 
         return QueryHelpers.AddQueryString(baseUrl, queryParametrs);
@@ -64,11 +72,13 @@ public class GoogleFitService : IGoogleFitService
             throw new ArgumentException("Brak code lub state w odpowiedzi Google");
         }
 
-        if (!Guid.TryParse(state, out var userId))
+        if (!_cache.TryGetValue(state, out Guid userId))
         {
             throw new InvalidOperationException("Nieprawidłowy parametr state");
         }
 
+        _cache.Remove(state);
+        
         var flow = new GoogleAuthorizationCodeFlow(new GoogleAuthorizationCodeFlow.Initializer
         {
             ClientSecrets = new ClientSecrets

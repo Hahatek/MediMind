@@ -12,6 +12,7 @@ using Google.Apis.Calendar.v3;
 using Google.Apis.Services;
 using Microsoft.EntityFrameworkCore;
 using Google.Apis.Calendar.v3.Data;
+using Microsoft.Extensions.Caching.Memory;
 
 namespace Backend.Services;
 
@@ -20,21 +21,29 @@ public class GoogleCalendarService : IGoogleCalendarService
     private readonly AppDbContext _context;
     private readonly GoogleCalendarOptions _options;
     private readonly IDataProtector _protector;
+    private readonly IMemoryCache _cache;
 
     public GoogleCalendarService(
         AppDbContext context,
         IOptions<GoogleCalendarOptions> options,
-        IDataProtectionProvider dataProtectionProvider)
+        IDataProtectionProvider dataProtectionProvider,
+        IMemoryCache cache)
     {
         _context = context;
         _options = options.Value;
         _protector = dataProtectionProvider.CreateProtector("GoogleCalendarConnection.RefreshToken");
+        _cache = cache;
+
     }
 
     public string GetAuthorizationUrl(Guid userId)
     {
         var baseUrl = "https://accounts.google.com/o/oauth2/v2/auth";
 
+        var stateToken = Guid.NewGuid().ToString();
+        
+        _cache.Set(stateToken, userId, TimeSpan.FromMinutes(10));
+        
         var queryParametrs = new Dictionary<string, string?>
         {
             ["client_id"] = _options.ClientId,
@@ -43,7 +52,7 @@ public class GoogleCalendarService : IGoogleCalendarService
             ["scope"] = "https://www.googleapis.com/auth/calendar.events",
             ["access_type"] = "offline",
             ["prompt"] = "consent",
-            ["state"] = userId.ToString()
+            ["state"] = stateToken,
         };
         
         return QueryHelpers.AddQueryString(baseUrl, queryParametrs);
@@ -57,10 +66,12 @@ public class GoogleCalendarService : IGoogleCalendarService
         }
         
         // zwraca nam więcej niż jedna wartość dlatego dajemy out
-        if (!Guid.TryParse(state, out var userId))
+        if (!_cache.TryGetValue(state, out Guid userId))
         {
             throw new InvalidOperationException("Nieprawidłowy parametr state");
         }
+        
+        _cache.Remove(state);
 
         var flow = new GoogleAuthorizationCodeFlow(new GoogleAuthorizationCodeFlow.Initializer
         {

@@ -19,11 +19,11 @@ public class User
     public string? GoogleId { get; set; }
     
     public ICollection<Examination> Examinations { get; set; } = new List<Examination>();
-    public ICollection<FamilyMember> OwnedRelations { get; set; } = new List<FamilyMember>();
-    public ICollection<FamilyMember> MemberRelations { get; set; } = new List<FamilyMember>();
     public ICollection<Notification> Notifications { get; set; } = new List<Notification>();
     public ICollection<Medication> Medications { get; set; } = new List<Medication>();
     public ICollection<ChatSession> ChatSessions { get; set; } = new List<ChatSession>();
     public ICollection<ChangeRequest> CreatedChangeRequests  { get; set; } = new List<ChangeRequest>();
     public ICollection<ChangeRequest> ReviewedChangeRequests { get; set; } = new List<ChangeRequest>();
+    
+    public ICollection<FamilyMembership> FamilyMemberships { get; set; } = new List<FamilyMembership>();
 }

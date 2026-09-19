@@ -5,10 +5,16 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using System.Text;
 using Backend.Services;
 using Microsoft.IdentityModel.Tokens;
+using System.Text.Json.Serialization;
+using Scalar.AspNetCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddControllers();
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
+    });
 
 // Add services to the container.
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
@@ -45,20 +51,28 @@ builder.Services.Configure<GoogleCalendarOptions>(
     builder.Configuration.GetSection("GoogleCalendar"));
 
 builder.Services.AddScoped<IGoogleCalendarService, GoogleCalendarService>();
+builder.Services.AddScoped<IFamilyAccessService, FamilyAccessService>();
+builder.Services.AddScoped<IGoogleFitService, GoogleFitService>();
 
 builder.Services.Configure<GoogleFitOptions>(
     builder.Configuration.GetSection("GoogleFit"));
 
-builder.Services.AddScoped<IGoogleFitService, GoogleFitService>();
+builder.Services.AddMemoryCache();
 
 builder.Services.AddDataProtection();
 
+builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
+builder.Services.AddProblemDetails();
+
 var app = builder.Build();
+
+app.UseExceptionHandler();
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
+    app.MapScalarApiReference();
 }
 
 app.UseHttpsRedirection();

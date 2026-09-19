@@ -5,7 +5,6 @@ namespace Backend.DTOs.Examination;
 public class CreateExaminationDto
 {
     public required string Name { get; set; }
-    public Guid UserId { get; set; }
     public DateOnly Date { get; set; }
     public TimeOnly? Time { get; set; }
     public string? Description { get; set; }
@@ -17,4 +16,5 @@ public class CreateExaminationDto
     public string? Color { get; set; }
     public string? Icon { get; set; }
     public string? Doctor { get; set;  }
+    public Guid? ForUserId { get; set;  }
 }
