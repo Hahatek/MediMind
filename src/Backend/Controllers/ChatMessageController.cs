@@ -1,11 +1,14 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Backend.Data;
 using Backend.DTOs.ChatMessage;
+using Backend.Helpers;
 using Backend.Models;
 
 namespace Backend.Controllers;
 
+[Authorize]
 [ApiController]
 [Route("api/[controller]")]
 public class ChatMessageController : ControllerBase
@@ -17,9 +20,19 @@ public class ChatMessageController : ControllerBase
         _context = context;
     }
     
-    [HttpPost]
+    [HttpPost] 
     public async Task<ActionResult<ResponseChatMessageDto>> PostChatMessage(CreateChatMessageDto dto)
     {
+        var userId = this.GetUserId();
+        
+        var sessionBelongToUser = await _context.ChatSessions
+            .AnyAsync(s => s.Id == dto.SessionId && s.UserId == userId);
+
+        if (!sessionBelongToUser)
+        {
+            return NotFound($"Nie znaleziono sesji rozmowy o id {dto.SessionId}");
+        }
+        
         var chatMessage = new ChatMessage()
         {
             Id = Guid.NewGuid(),
@@ -37,6 +50,16 @@ public class ChatMessageController : ControllerBase
     [HttpGet]
     public async Task<ActionResult<IEnumerable<ResponseChatMessageDto>>> GetChatMessages([FromQuery] Guid sessionId)
     {
+        var userId = this.GetUserId();
+        
+        var sessionBelongToUser = await _context.ChatSessions
+            .AnyAsync(s => s.Id == sessionId && s.UserId == userId);
+
+        if (!sessionBelongToUser)
+        {
+            return NotFound($"Nie znaleziono sesji rozmowy o id {sessionId}");
+        }
+        
         var messages = await _context.ChatMessages
             .Where(m => m.SessionId == sessionId)
             .OrderBy(m => m.Time)
@@ -48,7 +71,10 @@ public class ChatMessageController : ControllerBase
     [HttpGet("{id}")]
     public async Task<ActionResult<ResponseChatMessageDto>> GetChatMessage(Guid id)
     {
-        var chatMessage = await _context.ChatMessages.FindAsync(id);
+        var userId = this.GetUserId();
+        var chatMessage = await _context.ChatMessages
+            .Include(m => m.Session)
+            .FirstOrDefaultAsync(m => m.Id == id && m.Session.UserId == userId);
         if (chatMessage == null)
         {
             return NotFound($"Nie znaleziono wiadomości o id {id}");
@@ -60,7 +86,9 @@ public class ChatMessageController : ControllerBase
     [HttpDelete("{id}")]
     public async Task<IActionResult> DeleteChatMessage(Guid id)
     {
-        var chatMessage = await _context.ChatMessages.FindAsync(id);
+        var chatMessage = await _context.ChatMessages
+            .Include(m => m.Session)
+            .FirstOrDefaultAsync(m => m.Id == id && m.Session.UserId == this.GetUserId());
         if (chatMessage == null)
         {
             return NotFound($"Nie znaleziono wiadomości o id {id}");

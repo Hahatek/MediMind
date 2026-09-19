@@ -1,11 +1,14 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Backend.Data;
 using Backend.DTOs.UserSetting;
+using Backend.Helpers;
 using Backend.Models;
 
 namespace Backend.Controllers;
 
+[Authorize]
 [ApiController]
 [Route("api/[controller]")]
 public class UserSettingsController : ControllerBase
@@ -23,7 +26,7 @@ public class UserSettingsController : ControllerBase
         var userSetting = new UserSettings()
         {
             Id = Guid.NewGuid(),
-            UserId = dto.UserId,
+            UserId = this.GetUserId(),
             DarkMode = dto.DarkMode,
             FontSize = dto.FontSize,
         };
@@ -36,7 +39,8 @@ public class UserSettingsController : ControllerBase
     [HttpGet]
     public async Task<ActionResult<IEnumerable<ResponseUserSettingsDto>>> GetUserSettings()
     {
-        var userSetting = await _context.UserSettings.ToListAsync();
+        var userId = this.GetUserId();
+        var userSetting = await _context.UserSettings.Where(us => us.UserId == userId).ToListAsync();
 
         return Ok(userSetting.Select(ToResponseDto));
     }
@@ -44,7 +48,9 @@ public class UserSettingsController : ControllerBase
     [HttpGet("{id}")]
     public async Task<ActionResult<ResponseUserSettingsDto>> GetUserSetting(Guid id)
     {
-        var userSetting = await _context.UserSettings.FindAsync(id);
+        var userId = this.GetUserId();
+        var userSetting = await _context.UserSettings
+            .FirstOrDefaultAsync(us => us.Id == id && us.UserId == userId);
         if (userSetting == null)
         {
             return NotFound($"Nie znaleziono ustawienia o id {id}");
@@ -56,7 +62,9 @@ public class UserSettingsController : ControllerBase
     [HttpPut("{id}")]
     public async Task<ActionResult<ResponseUserSettingsDto>> PutUserSetting(Guid id, UpdateUserSettingsDto dto)
     {
-        var userSetting = await _context.UserSettings.FindAsync(id);
+        var userId = this.GetUserId();
+        var userSetting = await _context.UserSettings
+            .FirstOrDefaultAsync(us => us.Id == id && us.UserId == userId);
         if (userSetting == null)
         {
             return NotFound($"Nie znaleziono ustawienia o id {id}");
@@ -73,7 +81,9 @@ public class UserSettingsController : ControllerBase
     [HttpPatch("{id}")]
     public async Task<ActionResult<ResponseUserSettingsDto>> PatchUserSetting(Guid id, PatchUserSettingsDto dto)
     {
-        var userSetting = await _context.UserSettings.FindAsync(id);
+        var userId = this.GetUserId();
+        var userSetting = await _context.UserSettings
+            .FirstOrDefaultAsync(us => us.Id == id && us.UserId == userId);
         if (userSetting == null)
         {
             return NotFound($"Nie znaleziono ustawienia o id {id}");
@@ -86,12 +96,13 @@ public class UserSettingsController : ControllerBase
 
         return Ok(ToResponseDto(userSetting));
     }
-
     
     [HttpDelete("{id}")]
     public async Task<IActionResult> DeleteUserSetting(Guid id)
     {
-        var userSetting = await _context.UserSettings.FindAsync(id);
+        var userId = this.GetUserId();
+        var userSetting = await _context.UserSettings
+            .FirstOrDefaultAsync(us => us.Id == id && us.UserId == userId);
         if (userSetting == null)
         {
             return NotFound($"Nie znaleziono ustawienia o id {id}");

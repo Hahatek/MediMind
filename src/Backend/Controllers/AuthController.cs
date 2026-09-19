@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Backend.Data;
 using Backend.Helpers;
@@ -7,6 +8,7 @@ using Backend.Models;
 
 namespace Backend.Controllers;
 
+[Authorize]
 [ApiController]
 [Route("api/[controller]")]
 public class AuthController : ControllerBase
@@ -38,6 +40,7 @@ public class AuthController : ControllerBase
 
         return RoleUser.Senior;    }
     
+    [AllowAnonymous]
     [HttpPost("register")]
     public async Task<ActionResult<AuthResponseDto>> Register(RegisterDto dto)
     {
@@ -45,7 +48,7 @@ public class AuthController : ControllerBase
         {
             return BadRequest("Hasła nie są identyczne");
         }
-        
+
         var existingUser = await _context.Users.FirstOrDefaultAsync(u => u.Email == dto.Email);
         if (existingUser != null)
         {
@@ -65,14 +68,17 @@ public class AuthController : ControllerBase
             PasswordHash = BCrypt.Net.BCrypt.HashPassword(dto.Password),
         };
 
+        
         _context.Users.Add(user);
         await _context.SaveChangesAsync();
-
+        
         var token = _tokenService.GenerateToken(user);
+        var (_, rawRefreshToken) = await _tokenService.GenerateRefreshTokenAsync(user.Id);
 
-        return Ok(new AuthResponseDto { Token = token });   
+        return Ok(new AuthResponseDto { Token = token, RefreshToken = rawRefreshToken});
     }
 
+    [AllowAnonymous]
     [HttpPost("login")]
     public async Task<ActionResult<AuthResponseDto>> Login(LoginDto dto)
     {
@@ -82,8 +88,59 @@ public class AuthController : ControllerBase
         {
             return Unauthorized("Nieprawidłowy email lub hasło");
         }
+        
         var token = _tokenService.GenerateToken(user);
+        var (_, rawRefreshToken) = await _tokenService.GenerateRefreshTokenAsync(user.Id);
 
-        return Ok(new AuthResponseDto { Token = token });   
+        return Ok(new AuthResponseDto { Token = token, RefreshToken = rawRefreshToken });
     }
+
+    [AllowAnonymous]
+    [HttpPost("refresh")]
+    public async Task<ActionResult<AuthResponseDto>> Refresh(RefreshTokenDto dto)
+    {
+        var tokenHash = _tokenService.HashRefreshToken(dto.RefreshToken);
+
+        var existingToken = await _context.RefreshTokens
+            .FirstOrDefaultAsync(rt => rt.TokenHash == tokenHash);
+
+        if (existingToken == null || existingToken.RevokedAt != null || existingToken.ExpiresAt < DateTime.UtcNow)
+        {
+            return Unauthorized("Nieprawidłowy token");
+        }
+
+        var user = await _context.Users
+            .FirstOrDefaultAsync(u => u.Id == existingToken.UserId);
+
+
+        existingToken.RevokedAt = DateTime.UtcNow;
+
+        await _context.SaveChangesAsync();
+
+        var token = _tokenService.GenerateToken(user);
+        var (_, rawRefreshToken) = await _tokenService.GenerateRefreshTokenAsync(user.Id);
+
+        return Ok(new AuthResponseDto { Token = token, RefreshToken = rawRefreshToken });
+    }
+
+    [AllowAnonymous]
+    [HttpPost("logout")]
+    public async Task<IActionResult> Logout(RefreshTokenDto dto)
+    {
+        var tokenHash = _tokenService.HashRefreshToken(dto.RefreshToken);
+
+        var existingToken = await _context.RefreshTokens
+            .FirstOrDefaultAsync(rt => rt.TokenHash == tokenHash);
+
+        if (existingToken == null || existingToken.RevokedAt != null || existingToken.ExpiresAt < DateTime.UtcNow)
+        {
+            return Unauthorized("Nieprawidłowy token");
+        }
+
+        existingToken.RevokedAt = DateTime.UtcNow;
+        await _context.SaveChangesAsync();
+
+        return NoContent();
+    }
+    
 }

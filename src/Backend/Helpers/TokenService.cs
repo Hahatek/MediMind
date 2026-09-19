@@ -1,10 +1,11 @@
 ﻿using System;
 using System.Text;
 using System.Security.Claims;
+using System.Security.Cryptography;
 using System.Collections.Generic;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
-
+using Backend.Data;
 using Backend.Models;
 
 namespace Backend.Helpers;
@@ -12,10 +13,12 @@ namespace Backend.Helpers;
 public class TokenService : ITokenService
 {
     
+    private readonly AppDbContext _context;
     private readonly JwtSettings _jwtSettings;
     
-    public TokenService(JwtSettings jwtSettings)
+    public TokenService(AppDbContext context, JwtSettings jwtSettings)
     {
+        _context = context;
         _jwtSettings = jwtSettings;
 
     }
@@ -41,5 +44,31 @@ public class TokenService : ITokenService
         
         return new JwtSecurityTokenHandler().WriteToken(token);
     }
-    
+
+    public async Task<(RefreshToken Entity, string RawToken)> GenerateRefreshTokenAsync(Guid userId)
+    {
+        var rawToken = Convert.ToBase64String(RandomNumberGenerator.GetBytes(32));
+
+        var refreshToken = new RefreshToken
+        {
+            Id = Guid.NewGuid(),
+            UserId = userId,
+            TokenHash = HashRefreshToken(rawToken),
+            IssuedAt = DateTime.UtcNow,
+            ExpiresAt = DateTime.UtcNow.AddDays(15),
+            RevokedAt = null
+        };
+
+        _context.RefreshTokens.Add(refreshToken);
+        await _context.SaveChangesAsync();
+
+        return (refreshToken, rawToken);
+    }
+
+    public string HashRefreshToken(string rawToken)
+    {
+        var hashBytes = SHA256.HashData(Encoding.UTF8.GetBytes(rawToken));
+        return Convert.ToBase64String(hashBytes);
+    }
+
 }

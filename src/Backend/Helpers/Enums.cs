@@ -84,7 +84,20 @@ public enum ChangeRequestStatus
 
 public enum GoogleSyncStatus
 {
-    NotSynced,  
-    Synced,     
-    Failed  
+    NotSynced,
+    Synced,
+    Failed
+}
+
+public enum IntakeStatus
+{
+    Taken,
+    Skipped
+}
+
+public enum TodayIntakeStatus
+{
+    Pending,
+    Taken,
+    Skipped
 }

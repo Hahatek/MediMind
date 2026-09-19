@@ -1,11 +1,14 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Backend.Data;
 using Backend.DTOs.ChatSession;
+using Backend.Helpers;
 using Backend.Models;
 
 namespace Backend.Controllers;
 
+[Authorize]
 [ApiController]
 [Route("api/[controller]")]
 public class ChatSessionController : ControllerBase
@@ -22,7 +25,7 @@ public class ChatSessionController : ControllerBase
         var chatSession = new ChatSession()
         {
             Id = Guid.NewGuid(),
-            UserId = dto.UserId,
+            UserId = this.GetUserId(),
             Topic = dto.Topic,
             CreatedAt = DateTime.UtcNow,
         };
@@ -35,7 +38,8 @@ public class ChatSessionController : ControllerBase
     [HttpGet]
     public async Task<ActionResult<IEnumerable<ResponseChatSessionDto>>> GetChatSessions()
     {
-        var chatSessions = await _context.ChatSessions.ToListAsync();
+        var userId = this.GetUserId();
+        var chatSessions = await _context.ChatSessions.Where(cs => cs.UserId == userId).ToListAsync();
 
         return Ok(chatSessions.Select(ToResponseDto));
     }
@@ -43,7 +47,9 @@ public class ChatSessionController : ControllerBase
     [HttpGet("{id}")]
     public async Task<ActionResult<ResponseChatSessionDto>> GetChatSession(Guid id)
     {
-        var chatSession = await _context.ChatSessions.FindAsync(id);
+        var userId = this.GetUserId();
+        var chatSession = await _context.ChatSessions
+            .FirstOrDefaultAsync(cs => cs.Id == id && cs.UserId == userId);
         if (chatSession == null)
         {
             return NotFound($"Nie znaleziono sesji czatu o id {id}");
@@ -55,7 +61,9 @@ public class ChatSessionController : ControllerBase
     [HttpPut("{id}")]
     public async Task<ActionResult<ResponseChatSessionDto>> PutChatSession(Guid id, UpdateChatSessionDto dto)
     {
-        var chatSession = await _context.ChatSessions.FindAsync(id);
+        var userId = this.GetUserId();
+        var chatSession = await _context.ChatSessions
+            .FirstOrDefaultAsync(cs => cs.Id == id && cs.UserId == userId);
         if (chatSession == null)
         {
             return NotFound($"Nie znaleziono sesji czatu o id {id}");
@@ -71,7 +79,9 @@ public class ChatSessionController : ControllerBase
     [HttpDelete("{id}")]
     public async Task<IActionResult> DeleteChatSession(Guid id)
     {
-        var chatSession = await _context.ChatSessions.FindAsync(id);
+        var userId = this.GetUserId();
+        var chatSession = await _context.ChatSessions
+            .FirstOrDefaultAsync(cs => cs.Id == id && cs.UserId == userId);
         if (chatSession == null)
         {
             return NotFound($"Nie znaleziono sesji czatu o id {id}");
@@ -82,7 +92,7 @@ public class ChatSessionController : ControllerBase
 
         return NoContent();
     }
-
+    
     private static ResponseChatSessionDto ToResponseDto(ChatSession cs)
     {
         return new ResponseChatSessionDto

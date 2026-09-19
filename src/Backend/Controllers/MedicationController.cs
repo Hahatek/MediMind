@@ -1,32 +1,51 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Backend.Data;
 using Backend.DTOs.Medication;
+using Backend.Helpers;
 using Backend.Models;
 using Backend.Services;
 
 namespace Backend.Controllers;
 
+[Authorize]
 [ApiController]
 [Route("api/[controller]")]
 public class MedicationController : ControllerBase
 {
     private readonly AppDbContext _context;
     private readonly IGoogleCalendarService _googleCalendarService;
-
-    public MedicationController(AppDbContext context, IGoogleCalendarService googleCalendarService)
+    private readonly IFamilyAccessService _familyAccessService;
+    
+    public MedicationController(AppDbContext context, IGoogleCalendarService googleCalendarService, IFamilyAccessService familyAccessService)
     {
         _context = context;
         _googleCalendarService = googleCalendarService;
+        _familyAccessService = familyAccessService;
     }
 
     [HttpPost]
     public async Task<ActionResult<ResponseMedicationDto>> PostMedication(CreateMedicationDto dto)
     {
+        var userId = this.GetUserId();
+
+        if (this.GetUserRole() == RoleUser.Child)
+        {
+            return Forbid();
+        }
+
+        var targetUserId = dto.ForUserId ?? userId;
+
+        if (targetUserId != userId && !await _familyAccessService.IsParentOfChildAsync(userId, targetUserId))
+        {
+            return Forbid();
+        }
+
         var medication = new Medication
         {
             Id = Guid.NewGuid(),
-            UserId = dto.UserId,
+            UserId = targetUserId,
             Name = dto.Name,
             Dose = dto.Dose,
             StartDate = dto.StartDate,
@@ -41,7 +60,9 @@ public class MedicationController : ControllerBase
     [HttpGet]
     public async Task<ActionResult<IEnumerable<ResponseMedicationDto>>> GetMedications()
     {
-        var medication = await _context.Medications.ToListAsync();
+        var userId = this.GetUserId();
+        var visibleUserIds = await _familyAccessService.GetVisibleUserIdsAsync(userId);
+        var medication = await _context.Medications.Where(m => visibleUserIds.Contains(m.UserId)).ToListAsync();
 
         return Ok(medication.Select(ToResponseDto));
     }
@@ -49,7 +70,10 @@ public class MedicationController : ControllerBase
     [HttpGet("{id}")]
     public async Task<ActionResult<ResponseMedicationDto>> GetMedication(Guid id)
     {
-        var medication = await _context.Medications.FindAsync(id);
+        var userId = this.GetUserId();
+        var visibleUserIds = await _familyAccessService.GetVisibleUserIdsAsync(userId);
+        var medication = await _context.Medications
+            .FirstOrDefaultAsync(m => m.Id == id && visibleUserIds.Contains(m.UserId));
         if (medication == null)
         {
             return NotFound($"Nie znaleziono leku o id {id}");
@@ -61,11 +85,24 @@ public class MedicationController : ControllerBase
     [HttpPut("{id}")]
     public async Task<ActionResult<ResponseMedicationDto>> PutMedication(Guid id, UpdateMedicationDto dto)
     {
+        var userId = this.GetUserId();
+
+        if (this.GetUserRole() == RoleUser.Child)
+        {
+            return Forbid();
+        }
+
         var medication = await _context.Medications
             .Include(m => m.MedicationSchedules)
-            .ThenInclude(ms => ms.Medication)
             .FirstOrDefaultAsync(m => m.Id == id);
         if (medication == null)
+        {
+            return NotFound($"Nie znaleziono leku o id {id}");
+        }
+
+        var isOwner = medication.UserId == userId;
+        var isParent = await _familyAccessService.IsParentOfChildAsync(userId, medication.UserId);
+        if (!isOwner && !isParent)
         {
             return NotFound($"Nie znaleziono leku o id {id}");
         }
@@ -96,11 +133,24 @@ public class MedicationController : ControllerBase
     [HttpPatch("{id}")]
     public async Task<ActionResult<ResponseMedicationDto>> PatchMedication(Guid id, PatchMedicationDto dto)
     {
+        var userId = this.GetUserId();
+
+        if (this.GetUserRole() == RoleUser.Child)
+        {
+            return Forbid();
+        }
+
         var medication = await _context.Medications
             .Include(m => m.MedicationSchedules)
-            .ThenInclude(ms => ms.Medication)
             .FirstOrDefaultAsync(m => m.Id == id);
         if (medication == null)
+        {
+            return NotFound($"Nie znaleziono leku o id {id}");
+        }
+
+        var isOwner = medication.UserId == userId;
+        var isParent = await _familyAccessService.IsParentOfChildAsync(userId, medication.UserId);
+        if (!isOwner && !isParent)
         {
             return NotFound($"Nie znaleziono leku o id {id}");
         }
@@ -131,11 +181,24 @@ public class MedicationController : ControllerBase
     [HttpDelete("{id}")]
     public async Task<IActionResult> DeleteMedication(Guid id)
     {
+        var userId = this.GetUserId();
+
+        if (this.GetUserRole() == RoleUser.Child)
+        {
+            return Forbid();
+        }
+
         var medication = await _context.Medications
             .Include(m => m.MedicationSchedules)
-            .ThenInclude(ms => ms.Medication)
             .FirstOrDefaultAsync(m => m.Id == id);
         if (medication == null)
+        {
+            return NotFound($"Nie znaleziono leku o id {id}");
+        }
+
+        var isOwner = medication.UserId == userId;
+        var isParent = await _familyAccessService.IsParentOfChildAsync(userId, medication.UserId);
+        if (!isOwner && !isParent)
         {
             return NotFound($"Nie znaleziono leku o id {id}");
         }
