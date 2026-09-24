@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Npgsql;
 using Backend.Data;
 using Backend.Helpers;
 using Backend.DTOs.Auth;
@@ -40,16 +41,15 @@ public class AuthController : ControllerBase
 
         return RoleUser.Senior;    }
     
+    private static string NormalizeEmail(string email) => email.Trim().ToLowerInvariant();
+
     [AllowAnonymous]
     [HttpPost("register")]
     public async Task<ActionResult<AuthResponseDto>> Register(RegisterDto dto)
     {
-        if (dto.Password != dto.ConfirmPassword)
-        {
-            return BadRequest("Hasła nie są identyczne");
-        }
+        var email = NormalizeEmail(dto.Email);
 
-        var existingUser = await _context.Users.FirstOrDefaultAsync(u => u.Email == dto.Email);
+        var existingUser = await _context.Users.FirstOrDefaultAsync(u => u.Email == email);
         if (existingUser != null)
         {
             return Conflict("Użytkownik z podanym adresem email już istnieje");
@@ -60,7 +60,7 @@ public class AuthController : ControllerBase
         var user = new User
         {
             Id = Guid.NewGuid(),
-            Email = dto.Email,
+            Email = email,
             FirstName = dto.FirstName,
             LastName = dto.LastName,
             BirthDate = dto.BirthDate,
@@ -70,8 +70,20 @@ public class AuthController : ControllerBase
 
         
         _context.Users.Add(user);
-        await _context.SaveChangesAsync();
-        
+
+        try
+        {
+            await _context.SaveChangesAsync();
+        }
+        catch (DbUpdateException ex) when (ex.InnerException is PostgresException
+                                           {
+                                               SqlState: PostgresErrorCodes.UniqueViolation,
+                                               ConstraintName: "IX_Users_Email"
+                                           })
+        {
+            return Conflict("Użytkownik z podanym adresem email już istnieje");
+        }
+
         var token = _tokenService.GenerateToken(user);
         var (_, rawRefreshToken) = await _tokenService.GenerateRefreshTokenAsync(user.Id);
 
@@ -82,7 +94,9 @@ public class AuthController : ControllerBase
     [HttpPost("login")]
     public async Task<ActionResult<AuthResponseDto>> Login(LoginDto dto)
     {
-        var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == dto.Email);
+        var email = NormalizeEmail(dto.Email);
+
+        var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == email);
 
         if (user?.PasswordHash is null || !BCrypt.Net.BCrypt.Verify(dto.Password, user.PasswordHash))
         {
