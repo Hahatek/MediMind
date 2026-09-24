@@ -1,0 +1,39 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(dotnet build *)",
+      "Bash(python3 -c ' *)",
+      "Read(//c/Users/piotr/Desktop/MediMind/src/Backend/DTOs/FamilyMember/**)",
+      "Bash(git mv *)",
+      "Bash(git add *)",
+      "PowerShell(dotnet build 2>&1)",
+      "WebSearch",
+      "Bash(where dotnet *)",
+      "Read(//c/Program Files/dotnet/**)",
+      "Read(//c/Program Files/JetBrains/**)",
+      "Read(//c/Users/piotr/AppData/Local/JetBrains/**)",
+      "Read(//c/Users/piotr/.dotnet/**)",
+      "Read(//c/Users/piotr/AppData/Local/Microsoft/**)",
+      "Bash(curl -s http://localhost:5003/openapi/v1.json)",
+      "Bash(curl -s -X POST http://localhost:5003/api/Auth/register -H 'Content-Type: application/json' -d '{ *)",
+      "Bash(curl -s -X POST http://localhost:5003/api/Auth/login -H 'Content-Type: application/json' -d '{\"email\": \"test.claude@example.com\", \"password\": \"TestHaslo123!\"}' -w '\\\\nHTTP_STATUS:%{http_code}\\\\n')",
+      "Bash(curl -s -X POST http://localhost:5003/api/Auth/login -H 'Content-Type: application/json' -d '{\"email\": \"test.claude@example.com\", \"password\": \"ZleHaslo\"}' -w '\\\\nHTTP_STATUS:%{http_code}\\\\n')",
+      "Bash(psql --version)",
+      "Bash(ls \"/c/Program Files/PostgreSQL/17/bin\" | grep -i psql)",
+      "Read(//c/Program Files/PostgreSQL/17/**)",
+      "Read(//c/Program Files/PostgreSQL/**)",
+      "Bash(ls \"/c/Program Files/PostgreSQL/18/bin\" 2>&1 | grep -i psql)",
+      "Read(//c/Program Files/PostgreSQL/18/bin/**)",
+      "Bash(export PGPASSWORD=\"7EEitfSHxB4F4bX\")",
+      "Bash(\"/c/Program Files/PostgreSQL/18/bin/psql.exe\" -h localhost -U medimind_user -d medimind -c \"DELETE FROM \\\\\"Users\\\\\" WHERE \\\\\"Email\\\\\" = 'test.claude@example.com' RETURNING \\\\\"Id\\\\\", \\\\\"Email\\\\\";\")",
+      "Bash(\"/c/Users/piotr/.dotnet/dotnet.exe\" build *)",
+      "Bash(PGPASSWORD='7EEitfSHxB4F4bX' psql -h localhost -U medimind_user -d medimind -c \"SELECT \\\\\"UserId\\\\\", \\\\\"Id\\\\\" FROM \\\\\"GoogleCalendarConnections\\\\\";\")",
+      "Bash(PGPASSWORD='7EEitfSHxB4F4bX' \"/c/Program Files/PostgreSQL/17/bin/psql.exe\" -h localhost -U medimind_user -d medimind -c \"SELECT \\\\\"UserId\\\\\" FROM \\\\\"GoogleCalendarConnections\\\\\";\")",
+      "Read(//c/Users/piotr/Desktop/**)",
+      "Bash(git status *)"
+    ],
+    "additionalDirectories": [
+      "c:\\Users\\piotr\\Desktop"
+    ]
+  }
+}

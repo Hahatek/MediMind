@@ -1,0 +1,160 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/*
+ * JEDYNE źródło kolorów MediMind (tokeny z makiety jako zmienne CSS).
+ * Klasy Tailwind (bg-screen, text-foreground...) mapuje tailwind.config.js.
+ * Motyw ciemny: nadpisania w @media (prefers-color-scheme: dark); NativeWind
+ * przełącza je przez colorScheme.set() (patrz src/theme/themeMode.ts).
+ */
+@layer base {
+  :root {
+    /* Marka */
+    --chrome: #005868;
+    --brand: #005868;
+    --brand-ink: #005868;
+    --brand-deep: #00414E;
+    --brand-deep-ink: #00414E;
+    --brand-soft: #4D9DA8;
+    --brand-hover: #00B3C2;
+    --accent: #00B3C2;
+    --info: #00A6F4;
+    --violet: #554AC7;
+    --on-brand: #FFFFFF;
+    --on-brand-soft: #A9D6DE;
+    --on-brand-dim: #8FC7D2;
+    /* Powierzchnie i tła */
+    --surface: #FFFFFF;
+    --screen: #F3FCFE;
+    --desk: #E7EDEF;
+    --field: #F8FBFD;
+    --bg-1: #EDF3F5;
+    --bg-2: #F4F8F9;
+    --tint-1: #D6F1F8;
+    --tint-2: #E3F2F6;
+    --tint-3: #C9EBF4;
+    --tint-4: #E6F1F4;
+    /* Tekst */
+    --ink-1: #001F26;
+    --ink-2: #00252E;
+    --ink-3: #4E6166;
+    --ink-4: #5C7075;
+    --ink-5: #657579;
+    --ink-6: #7C8C90;
+    --ink-7: #98ABAB;
+    --ink-8: #8C9B9F;
+    /* Krawędzie */
+    --line-1: #E6ECEE;
+    --line-2: #DEE6E9;
+    --line-3: #E2E9EB;
+    --line-4: #CFDADD;
+    --line-5: #BCC8CC;
+    /* Błąd */
+    --danger: #B2453B;
+    --danger-solid: #DD766F;
+    --danger-bg: #FBEAE8;
+    --danger-line: #F0CCC8;
+    --danger-ink: #660008;
+    /* Ostrzeżenie */
+    --warn: #F0B655;
+    --warn-solid: #FFDF20;
+    --warn-bg: #FDF2E0;
+    --warn-bg-soft: #FEF9F0;
+    --warn-line: #F0D3A3;
+    --warn-line-strong: #D9A04A;
+    --warn-ink: #7A5200;
+    --warn-ink-strong: #5C3E00;
+    /* Sukces */
+    --ok: #00762D;
+    --ok-solid: #00A63E;
+    --ok-bg: #DDF3E4;
+    --ok-bg-soft: #EFFAF2;
+    --ok-line: #B9E4C7;
+    --ok-ink: #05602A;
+    /* Statusy badań */
+    --status-planned-bg: #EFF0EE;
+    --status-planned-fg: #55554F;
+    --status-scheduled-bg: #EAE8F9;
+    --status-scheduled-fg: #443BA0;
+    --status-in-progress-bg: #E3F1FB;
+    --status-in-progress-fg: #0C447C;
+    --status-awaiting-result-bg: #FDF2E0;
+    --status-awaiting-result-fg: #7A5200;
+    --status-closed-bg: #F4F6F6;
+    --status-closed-fg: #657579;
+    --status-urgent-bg: #E71958;
+    --status-urgent-fg: #FFFFFF;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      /* --- Z MAKIETY (nadpisania motywu ciemnego) --- */
+      --surface: #132A31;
+      --screen: #0B1A1F;
+      --field: #18333B;
+      --tint-1: #123A44;
+      --line-2: #2B5159;
+      --line-5: #3A6E79;
+      --ink-1: #EAF7F9;
+      --ink-3: #AFCBD1;
+      --ink-6: #7E9CA3;
+      --chrome: #063A45;
+      --brand: #0E6B7C;
+      --brand-ink: #7FD7E4;
+      --brand-deep: #08434F;
+      --brand-soft: #43B6C4;
+      --brand-hover: #7DE9F2;
+      --accent: #00B3C2;
+      --info: #4FB8F7;
+      --violet: #9084F0;
+      --danger: #FFA093;
+      --warn: #F2CE3C;
+      --ok: #3FCB77;
+      /* --- UZUPEŁNIONE podczas implementacji (brak w makiecie, sprawdzone WCAG AA) --- */
+      --brand-deep-ink: #9EE3EE;
+      --desk: #050F13;
+      --bg-1: #0F2228;
+      --bg-2: #0D1E23;
+      --tint-2: #17414C;
+      --tint-3: #1B4A56;
+      --tint-4: #143540;
+      --ink-2: #DDF0F3;
+      --ink-4: #9DBBC1;
+      --ink-5: #8FAFB6;
+      --ink-7: #7A989F;
+      --ink-8: #86A4AB;
+      --line-1: #22434A;
+      --line-3: #27484F;
+      --line-4: #33606A;
+      --danger-solid: #B94A40;
+      --danger-bg: #3A1A18;
+      --danger-line: #6B302B;
+      --danger-ink: #FFC9C1;
+      --warn-bg: #33260F;
+      --warn-bg-soft: #261D0C;
+      --warn-line: #6B5222;
+      --warn-line-strong: #A87A2E;
+      --warn-ink: #F5D77A;
+      --warn-ink-strong: #FFE7A3;
+      --ok-solid: #1E9C50;
+      --ok-bg: #12331F;
+      --ok-bg-soft: #0F2718;
+      --ok-line: #1F5A35;
+      --ok-ink: #8BE3AB;
+      /* Statusy badań (z makiety) */
+      --status-planned-bg: #25302F;
+      --status-planned-fg: #BEC7C4;
+      --status-scheduled-bg: #241F45;
+      --status-scheduled-fg: #B3A9FA;
+      --status-in-progress-bg: #132A42;
+      --status-in-progress-fg: #8CD8F8;
+      --status-awaiting-result-bg: #332711;
+      --status-awaiting-result-fg: #F0C87E;
+      --status-closed-bg: #1C282C;
+      --status-closed-fg: #9B8AAB;
+      --status-urgent-bg: #B01043;
+      --status-urgent-fg: #FFE7EE;
+    }
+  }
+}

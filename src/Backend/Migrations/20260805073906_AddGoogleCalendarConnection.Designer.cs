@@ -3,6 +3,7 @@ using System;
 using Backend.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Backend.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260805073906_AddGoogleCalendarConnection")]
+    partial class AddGoogleCalendarConnection
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -174,109 +177,34 @@ namespace Backend.Migrations
                     b.ToTable("Examinations");
                 });
 
-            modelBuilder.Entity("Backend.Models.ExaminationHide", b =>
+            modelBuilder.Entity("Backend.Models.FamilyMember", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<Guid>("ExaminationId")
-                        .HasColumnType("uuid");
-
-                    b.Property<Guid>("HiddenByUserId")
-                        .HasColumnType("uuid");
-
-                    b.Property<Guid>("HiddenForUserId")
-                        .HasColumnType("uuid");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("HiddenByUserId");
-
-                    b.HasIndex("HiddenForUserId");
-
-                    b.HasIndex("ExaminationId", "HiddenForUserId")
-                        .IsUnique();
-
-                    b.ToTable("ExaminationsHide");
-                });
-
-            modelBuilder.Entity("Backend.Models.Family", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("Families");
-                });
-
-            modelBuilder.Entity("Backend.Models.FamilyInvite", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<Guid>("CreatedByUserId")
-                        .HasColumnType("uuid");
-
-                    b.Property<DateTime>("ExpiresAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<Guid>("FamilyId")
-                        .HasColumnType("uuid");
-
-                    b.Property<DateTime?>("RevokedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("CreatedByUserId");
-
-                    b.HasIndex("FamilyId");
-
-                    b.ToTable("FamilyInvites");
-                });
-
-            modelBuilder.Entity("Backend.Models.FamilyMembership", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<Guid>("FamilyId")
-                        .HasColumnType("uuid");
-
-                    b.Property<bool>("IsOwner")
+                    b.Property<bool?>("CanEdit")
                         .HasColumnType("boolean");
 
-                    b.Property<bool>("IsParent")
-                        .HasColumnType("boolean");
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
 
-                    b.Property<Guid>("UserId")
+                    b.Property<Guid>("MemberId")
                         .HasColumnType("uuid");
+
+                    b.Property<Guid>("OwnerId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Relation")
+                        .HasColumnType("text");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("UserId");
+                    b.HasIndex("MemberId");
 
-                    b.HasIndex("FamilyId", "UserId")
-                        .IsUnique();
+                    b.HasIndex("OwnerId");
 
-                    b.ToTable("FamilyMemberships");
+                    b.ToTable("FamilyMembers");
                 });
 
             modelBuilder.Entity("Backend.Models.GoogleCalendarConnection", b =>
@@ -307,34 +235,6 @@ namespace Backend.Migrations
                     b.ToTable("GoogleCalendarConnections");
                 });
 
-            modelBuilder.Entity("Backend.Models.GoogleFitConnection", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
-
-                    b.Property<DateTime>("ConnectedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("RefreshToken")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("ScopeGranted")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<Guid>("UserId")
-                        .HasColumnType("uuid");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("UserId")
-                        .IsUnique();
-
-                    b.ToTable("GoogleFitConnections");
-                });
-
             modelBuilder.Entity("Backend.Models.Medication", b =>
                 {
                     b.Property<Guid>("Id")
@@ -361,37 +261,6 @@ namespace Backend.Migrations
                     b.HasIndex("UserId");
 
                     b.ToTable("Medications");
-                });
-
-            modelBuilder.Entity("Backend.Models.MedicationIntake", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
-
-                    b.Property<DateOnly>("Date")
-                        .HasColumnType("date");
-
-                    b.Property<Guid>("MedicationScheduleId")
-                        .HasColumnType("uuid");
-
-                    b.Property<DateTime>("RecordedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<int>("Status")
-                        .HasColumnType("integer");
-
-                    b.Property<Guid>("UserId")
-                        .HasColumnType("uuid");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("UserId");
-
-                    b.HasIndex("MedicationScheduleId", "Date")
-                        .IsUnique();
-
-                    b.ToTable("MedicationIntakes");
                 });
 
             modelBuilder.Entity("Backend.Models.MedicationSchedule", b =>
@@ -462,38 +331,6 @@ namespace Backend.Migrations
                     b.ToTable("Notifications");
                 });
 
-            modelBuilder.Entity("Backend.Models.RefreshToken", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
-
-                    b.Property<DateTime>("ExpiresAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<DateTime>("IssuedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<DateTime?>("RevokedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("TokenHash")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<Guid>("UserId")
-                        .HasColumnType("uuid");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("TokenHash")
-                        .IsUnique();
-
-                    b.HasIndex("UserId");
-
-                    b.ToTable("RefreshTokens");
-                });
-
             modelBuilder.Entity("Backend.Models.User", b =>
                 {
                     b.Property<Guid>("Id")
@@ -540,9 +377,6 @@ namespace Backend.Migrations
                         .HasColumnType("double precision");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("Email")
-                        .IsUnique();
 
                     b.ToTable("Users");
                 });
@@ -628,83 +462,26 @@ namespace Backend.Migrations
                     b.Navigation("Owner");
                 });
 
-            modelBuilder.Entity("Backend.Models.ExaminationHide", b =>
+            modelBuilder.Entity("Backend.Models.FamilyMember", b =>
                 {
-                    b.HasOne("Backend.Models.Examination", "Examination")
-                        .WithMany()
-                        .HasForeignKey("ExaminationId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("Backend.Models.User", "HiddenByUser")
-                        .WithMany()
-                        .HasForeignKey("HiddenByUserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("Backend.Models.User", "HiddenForUser")
-                        .WithMany()
-                        .HasForeignKey("HiddenForUserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Examination");
-
-                    b.Navigation("HiddenByUser");
-
-                    b.Navigation("HiddenForUser");
-                });
-
-            modelBuilder.Entity("Backend.Models.FamilyInvite", b =>
-                {
-                    b.HasOne("Backend.Models.User", "CreatedBy")
-                        .WithMany()
-                        .HasForeignKey("CreatedByUserId")
+                    b.HasOne("Backend.Models.User", "Member")
+                        .WithMany("MemberRelations")
+                        .HasForeignKey("MemberId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("Backend.Models.Family", "Family")
-                        .WithMany()
-                        .HasForeignKey("FamilyId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                    b.HasOne("Backend.Models.User", "Owner")
+                        .WithMany("OwnedRelations")
+                        .HasForeignKey("OwnerId")
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.Navigation("CreatedBy");
+                    b.Navigation("Member");
 
-                    b.Navigation("Family");
-                });
-
-            modelBuilder.Entity("Backend.Models.FamilyMembership", b =>
-                {
-                    b.HasOne("Backend.Models.Family", "Family")
-                        .WithMany("Memberships")
-                        .HasForeignKey("FamilyId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("Backend.Models.User", "User")
-                        .WithMany("FamilyMemberships")
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Family");
-
-                    b.Navigation("User");
+                    b.Navigation("Owner");
                 });
 
             modelBuilder.Entity("Backend.Models.GoogleCalendarConnection", b =>
-                {
-                    b.HasOne("Backend.Models.User", "User")
-                        .WithMany()
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("User");
-                });
-
-            modelBuilder.Entity("Backend.Models.GoogleFitConnection", b =>
                 {
                     b.HasOne("Backend.Models.User", "User")
                         .WithMany()
@@ -722,25 +499,6 @@ namespace Backend.Migrations
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-
-                    b.Navigation("User");
-                });
-
-            modelBuilder.Entity("Backend.Models.MedicationIntake", b =>
-                {
-                    b.HasOne("Backend.Models.MedicationSchedule", "MedicationSchedule")
-                        .WithMany()
-                        .HasForeignKey("MedicationScheduleId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("Backend.Models.User", "User")
-                        .WithMany()
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("MedicationSchedule");
 
                     b.Navigation("User");
                 });
@@ -773,17 +531,6 @@ namespace Backend.Migrations
                     b.Navigation("Owner");
                 });
 
-            modelBuilder.Entity("Backend.Models.RefreshToken", b =>
-                {
-                    b.HasOne("Backend.Models.User", "User")
-                        .WithMany()
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("User");
-                });
-
             modelBuilder.Entity("Backend.Models.UserSettings", b =>
                 {
                     b.HasOne("Backend.Models.User", "Owner")
@@ -807,11 +554,6 @@ namespace Backend.Migrations
                     b.Navigation("Notifications");
                 });
 
-            modelBuilder.Entity("Backend.Models.Family", b =>
-                {
-                    b.Navigation("Memberships");
-                });
-
             modelBuilder.Entity("Backend.Models.Medication", b =>
                 {
                     b.Navigation("MedicationSchedules");
@@ -825,11 +567,13 @@ namespace Backend.Migrations
 
                     b.Navigation("Examinations");
 
-                    b.Navigation("FamilyMemberships");
-
                     b.Navigation("Medications");
 
+                    b.Navigation("MemberRelations");
+
                     b.Navigation("Notifications");
+
+                    b.Navigation("OwnedRelations");
 
                     b.Navigation("ReviewedChangeRequests");
                 });

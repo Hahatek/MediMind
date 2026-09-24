@@ -122,5 +122,8 @@ public class AppDbContext : DbContext
             .HasIndex(rt => rt.TokenHash)
             .IsUnique();
 
+        modelBuilder.Entity<User>()
+            .HasIndex(u => u.Email)
+            .IsUnique();
     }
 }
