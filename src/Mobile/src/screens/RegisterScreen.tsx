@@ -1,11 +1,21 @@
 import { useState } from "react";
-import { View, Text, TextInput, Pressable } from "react-native";
+import {
+  View,
+  Text,
+  TextInput,
+  Pressable,
+  Image,
+  ScrollView,
+} from "react-native";
 import { register } from "../api/auth";
 import { saveRefreshToken } from "../storage/tokenStorage";
 import { setToken } from "../storage/accessToken";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { AuthStackList } from "../navigation/AuthStack";
 import { SafeAreaView } from "react-native-safe-area-context";
+import TextField from "../components/TextField";
+import PickerField from "../components/PickerField";
+import Button from "../components/Button";
 
 type Props = {
   onRegisterSuccess: () => void;
@@ -55,73 +65,78 @@ export default function RegisterScreen({
   }
 
   return (
-    <SafeAreaView className="flex-1 justify-center p-4 bg-screen">
-      <Text className="text-foreground">Zarejestruj się do aplikacji</Text>
-      <TextInput
-        className="mb-2 border rounded-sm border-input-border bg-input text-foreground placeholder:text-placeholder"
-        placeholder="Imie"
-        value={name}
-        onChangeText={setName}
-      ></TextInput>
-      <TextInput
-        className="mb-2 border rounded-sm border-input-border bg-input text-foreground placeholder:text-placeholder"
-        placeholder="Nazwisko"
-        value={lastName}
-        onChangeText={setLastName}
-      ></TextInput>
-      <TextInput
-        className="mb-2 border rounded-sm border-input-border bg-input text-foreground placeholder:text-placeholder"
-        placeholder="Email"
-        autoCapitalize="none"
-        keyboardType="email-address"
-        value={emailText}
-        onChangeText={setEmailText}
-      ></TextInput>
-      <TextInput
-        className="mb-2 border rounded-sm border-input-border bg-input text-foreground placeholder:text-placeholder"
-        placeholder="Data urodzenia: YYYY-MM-DD"
-        value={brithDay}
-        onChangeText={setBrithDay}
-      ></TextInput>
-      <TextInput
-        className="mb-2 border rounded-sm border-input-border bg-input text-foreground placeholder:text-placeholder"
-        placeholder="Hasło"
-        secureTextEntry
-        autoCapitalize="none"
-        value={passowrdText}
-        onChangeText={setPasswordText}
-      ></TextInput>
-      <TextInput
-        className="mb-2 border rounded-sm border-input-border bg-input text-foreground placeholder:text-placeholder"
-        placeholder="Powtórz Hasło"
-        secureTextEntry
-        autoCapitalize="none"
-        value={confirmPasswordText}
-        onChangeText={setRepeatPasswordText}
-      ></TextInput>
-      {info !== "" && (
-        <Text className="font-bold text-destructive">{info}</Text>
-      )}
-      <Pressable
-        disabled={loading}
-        className={
-          loading ? "p-2 rounded-xl bg-disabled" : "p-2 rounded-xl bg-primary"
-        }
-        onPress={handleRegister}
+    <SafeAreaView className="flex-1 justify-center p-4 bg-screen ">
+      <ScrollView
+        className="flex-1"
+        keyboardShouldPersistTaps="handled"
+        contentContainerStyle={{ flexGrow: 1 }}
+        showsVerticalScrollIndicator={false}
       >
-        <Text
-          className={
-            loading ? "text-disabled-foreground" : "text-primary-foreground"
-          }
-        >
-          {loading ? "Tworzenie konta" : "Zarejestruj się!"}
-        </Text>{" "}
-      </Pressable>
-      <Pressable onPress={() => navigation.navigate("Login")}>
-        <Text className="text-link bg-surface p-2 rounded-xl mt-3">
-          Masz konto? Zaloguj się
-        </Text>
-      </Pressable>
+        <View className="items-center">
+          <Image
+            source={require("../../assets/RegisterLoginPhoto.png")}
+            className="w-[400px] h-[400px]"
+            resizeMode="contain"
+          />
+        </View>
+        <Text className="text-foreground">Zarejestruj się do aplikacji</Text>
+        <TextField label="Imię" required value={name} onChangeText={setName} />
+        <TextField
+          label="Nazwisko"
+          required
+          value={lastName}
+          onChangeText={setLastName}
+        />
+        <TextField
+          label="Adres e-mail"
+          required
+          keyboardType="email-address"
+          autoCapitalize="none"
+          value={emailText}
+          onChangeText={setEmailText}
+        />
+        <PickerField
+          label="Data urodzenia"
+          mode="date"
+          required
+          value={brithDay}
+          onChange={setBrithDay}
+          minimumDate={new Date(1900, 0, 1)}
+          maximumDate={new Date()}
+        />
+        <TextField
+          label="Hasło"
+          required
+          secureTextEntry
+          value={passowrdText}
+          onChangeText={setPasswordText}
+        />
+        <TextField
+          label="Powtórz Hasło"
+          required
+          secureTextEntry
+          value={confirmPasswordText}
+          onChangeText={setRepeatPasswordText}
+        />
+        {info !== "" && (
+          <Text className="font-bold text-destructive">{info}</Text>
+        )}
+
+        <View className="flex flex-col gap-2">
+          <Button
+            title={loading ? "Tworzenie konta..." : "Zarejestruj się"}
+            disabled={loading}
+            onPress={handleRegister}
+          />
+          <View className="flex-row justify-center mt-5">
+            <Text className="text-ink-3">Masz konto?</Text>
+
+            <Pressable onPress={() => navigation.navigate("Login")}>
+              <Text className="text-primary font-semibold"> Zaloguj się</Text>
+            </Pressable>
+          </View>
+        </View>
+      </ScrollView>
     </SafeAreaView>
   );
 }

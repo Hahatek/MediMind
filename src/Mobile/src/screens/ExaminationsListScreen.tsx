@@ -1,16 +1,32 @@
-import { useCallback, useEffect, useState } from "react";
-import { FlatList, Text, Pressable, View, Alert } from "react-native";
-import { getMe } from "../api/user";
-import { endSession } from "../api/auth";
-import ThemeSelector from "../components/ThemeSelector";
+import { useCallback, useState } from "react";
+import {
+  Text,
+  Pressable,
+  View,
+  Alert,
+  ActivityIndicator,
+  SectionList,
+} from "react-native";
+
 import { examinationDelete, examinationGet } from "../api/examination";
 import { ExaminationResponse } from "../types/ExaminationTypes";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { ExaminationStack } from "../navigation/ExaminationsStack";
 import { useFocusEffect } from "@react-navigation/native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { Trash } from "lucide-react-native";
+import { Plus } from "lucide-react-native";
 import ExaminationCard from "../components/ExaminationCard";
+import ErrorState from "../components/ErrorState";
+import { getErrorMessage } from "../utils/errorMessage";
+import Button from "../components/Button";
+import {
+  examinationSectionByStatus,
+  getExaminationDisplayStatus,
+  getExaminationDateTime,
+} from "../utils/examinationDisplayStatus";
+import SegmentedControl from "../components/SegmentedControl";
+import ExaminationsHistoryView from "../components/ExaminationsHistoryView";
+import ExaminationsCalendarView from "../components/ExaminationsCalendarView";
 
 type Props = {
   navigation: NativeStackNavigationProp<ExaminationStack, "Badania">;
@@ -18,24 +34,39 @@ type Props = {
 
 // TODO: po wejściu w szczeguły badania i zmienieniu tab zawsze pojawie sie nam lista z badaniami ani nie szczegóły badan
 
+const TABS = [
+  { value: "list", label: "Lista" },
+  { value: "calendar", label: "Kalendarz" },
+  { value: "history", label: "Historia" },
+];
+
 export default function ExaminationsListScreen({ navigation }: Props) {
   const [examinationsRespons, setExaminationsRespons] = useState<
     ExaminationResponse[]
   >([]);
-  const [errorE, setErrorE] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [tab, setTab] = useState("list");
+
+  // Osobna funkcja (a nie schowana w useFocusEffect), żeby przycisk
+  // "Spróbuj ponownie" mógł ją wywołać drugi raz.
+  const load = useCallback(async () => {
+    setLoading(true);
+    try {
+      const examinationData = await examinationGet();
+      setExaminationsRespons(examinationData);
+      setError(null);
+    } catch (e) {
+      setError(getErrorMessage(e, "Nie udało się pobrać badań"));
+    } finally {
+      setLoading(false);
+    }
+  }, []);
 
   useFocusEffect(
     useCallback(() => {
-      async function load() {
-        try {
-          const examinationData = await examinationGet();
-          setExaminationsRespons(examinationData);
-        } catch {
-          setErrorE("Nie udało się pobrać badań");
-        }
-      }
       load();
-    }, []),
+    }, [load]),
   );
 
   function handleExaminationDetails(examinationId: string) {
@@ -48,8 +79,8 @@ export default function ExaminationsListScreen({ navigation }: Props) {
       setExaminationsRespons((prev) =>
         prev.filter((e) => e.id !== examinationId),
       );
-    } catch {
-      Alert.alert("Błąd", "Nie udało się usunąć badania.");
+    } catch (e) {
+      Alert.alert("Błąd", getErrorMessage(e, "Nie udało się usunąć badania."));
     }
   }
 
@@ -64,48 +95,103 @@ export default function ExaminationsListScreen({ navigation }: Props) {
     ]);
   }
 
-  return (
-    <SafeAreaView className="flex-1">
-      <Text className="text-foreground">BADANIA</Text>
+  const day = new Date();
 
-      <FlatList
-        className="flex-1 m-2"
-        data={examinationsRespons}
-        keyExtractor={(item) => item.id.toString()}
-        renderItem={({ item }) => (
-          <Pressable onPress={() => handleExaminationDetails(item.id)}>
-            <ExaminationCard
-              name={item.name}
-              location={item.location}
-              date={item.date}
-              color={item.color}
-              status={item.status}
-              time={item.time}
-              onEdit={() =>
-                navigation.navigate("EdytujBadanie", { examinationId: item.id })
-              }
-              onDelete={() => handleDelete(item.id)}
-            />
-          </Pressable>
-          // <View>
-          //<Pressable
-          //     className="border-line-1 border-2 bg-surface m-3 p-4 rounded-xl flex flex-row justify-between"
-          //   onPress={() => handleExaminationDetails(item.id)}
-          // >
-          //     <Text className="text-primary">{item.name}</Text>
-          //     <Pressable onPress={() => handleDelete(item.id)}>
-          //       <Trash />
-          //     </Pressable>
-          //   </Pressable>
-          // </View>
-        )}
-      />
-      <Pressable
-        onPress={() => navigation.navigate("DodajBadanie")}
-        className="text-primary-foreground mt-8 bg-neutral-600 p-2 rounded-xl"
-      >
-        <Text className="text-primary-foreground">Dodaj Badanie</Text>
-      </Pressable>
+  const awaitingExaminations = examinationsRespons
+    .filter(
+      (item) =>
+        examinationSectionByStatus[getExaminationDisplayStatus(item, day)] ===
+        "awaitingConfirmation",
+    )
+    .sort(
+      (a, b) =>
+        getExaminationDateTime(a).getTime() -
+        getExaminationDateTime(b).getTime(),
+    );
+
+  const upcomingExaminations = examinationsRespons
+    .filter(
+      (item) =>
+        examinationSectionByStatus[getExaminationDisplayStatus(item, day)] ===
+        "upcoming",
+    )
+    .sort(
+      (a, b) =>
+        getExaminationDateTime(a).getTime() -
+        getExaminationDateTime(b).getTime(),
+    );
+
+  const sections = [
+    { title: "Do potwierdzenia", data: awaitingExaminations },
+    { title: "Nadchodzące", data: upcomingExaminations },
+  ].filter((section) => section.data.length > 0);
+
+  return (
+    <SafeAreaView className="flex-1" edges={["bottom", "left", "right"]}>
+      {error && <ErrorState message={error} onRetry={load} />}
+      <View>
+        <SegmentedControl options={TABS} value={tab} onChange={setTab} />
+      </View>
+      {tab === "list" && (
+        <SectionList
+          className="flex-1 m-2"
+          sections={sections}
+          keyExtractor={(item) => item.id.toString()}
+          ListEmptyComponent={
+            loading ? (
+              <ActivityIndicator className="mt-8" />
+            ) : error ? null : (
+              <Text className="text-muted-foreground text-center mt-8 ">
+                Nie masz jeszcze żadnych badań. Dodaj pierwsze poniżej.
+              </Text>
+            )
+          }
+          renderSectionHeader={({ section }) => (
+            <Text>
+              {section.title} ({section.data.length})
+            </Text>
+          )}
+          renderItem={({ item }) => (
+            <Pressable onPress={() => handleExaminationDetails(item.id)}>
+              <ExaminationCard
+                name={item.name}
+                location={item.location}
+                date={item.date}
+                color={item.color}
+                status={getExaminationDisplayStatus(item, day)}
+                time={item.time}
+                onEdit={() =>
+                  navigation.navigate("EdytujBadanie", {
+                    examinationId: item.id,
+                  })
+                }
+                onDelete={() => handleDelete(item.id)}
+              />
+            </Pressable>
+          )}
+        />
+      )}
+      {tab === "calendar" && (
+        <ExaminationsCalendarView
+          examinations={examinationsRespons}
+          onPressExamination={handleExaminationDetails}
+        />
+      )}
+      {tab === "history" && (
+        <ExaminationsHistoryView
+          examinations={examinationsRespons}
+          onPressExamination={handleExaminationDetails}
+        />
+      )}
+
+      <View className="m-4">
+        <Button
+          title={"Dodaj badanie"}
+          onPress={() => navigation.navigate("DodajBadanie")}
+          iconLeft={Plus}
+          variant="primary"
+        />
+      </View>
     </SafeAreaView>
   );
 }

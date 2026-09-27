@@ -26,6 +26,12 @@
       "expo-status-bar",
       "expo-secure-store",
       "@react-native-community/datetimepicker"
-    ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "d83e4373-7906-47b0-9b58-019d866ef61b"
+      }
+    },
+    "owner": "hahatek"
   }
 }

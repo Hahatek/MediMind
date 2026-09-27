@@ -95,7 +95,13 @@ public class AppDbContext : DbContext
         modelBuilder.Entity<ExaminationHide>()
             .HasIndex(exh => new { exh.ExaminationId, exh.HiddenForUserId })
             .IsUnique();
-
+        
+        modelBuilder.Entity<Examination>()
+            .HasOne<User>()                              
+            .WithMany()                                  
+            .HasForeignKey(e => e.CompletedByUserId)    
+            .OnDelete(DeleteBehavior.SetNull);       
+        
         modelBuilder.Entity<MedicationIntake>()
             .HasOne(mi => mi.MedicationSchedule)
             .WithMany()
@@ -125,5 +131,11 @@ public class AppDbContext : DbContext
         modelBuilder.Entity<User>()
             .HasIndex(u => u.Email)
             .IsUnique();
+        
+        modelBuilder.Entity<MedicationIntake>()
+            .HasOne<User>()                              
+            .WithMany()                                  
+            .HasForeignKey(mi => mi.RecordedByUserId)    
+            .OnDelete(DeleteBehavior.SetNull);       
     }
 }

@@ -1,6 +1,10 @@
 import { useCallback, useEffect, useState } from "react";
 import { Text, View, Pressable, Alert } from "react-native";
-import { examinationDelete, examinationGetOne } from "../api/examination";
+import {
+  examinationComplete,
+  examinationDelete,
+  examinationGetOne,
+} from "../api/examination";
 import { ExaminationResponse } from "../types/ExaminationTypes";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { ExaminationStack } from "../navigation/ExaminationsStack";
@@ -13,7 +17,15 @@ import {
   User,
   SquareText,
   Trash,
+  Repeat,
+  Pencil,
 } from "lucide-react-native";
+import { formatCycleInterval } from "../utils/cycleInterval";
+import { getErrorMessage } from "../utils/errorMessage";
+import ErrorState from "../components/ErrorState";
+import Button from "../components/Button";
+import { getExaminationDisplayStatus } from "../utils/examinationDisplayStatus";
+import { getExamStatusStyle } from "../theme/examStatus";
 
 type Props = {
   navigation: NativeStackNavigationProp<ExaminationStack, "SzczegolyBadania">;
@@ -31,9 +43,9 @@ function DetailField({
 }) {
   const Icon = icon;
   return (
-    <View>
-      <Icon size={16} />
-      <Text className="text-foreground border-b-2 p-2 mb-2">
+    <View className="flex flex-row items-center">
+      <Icon size={24} />
+      <Text className="text-foreground mb-2">
         {label}: {value ?? "Nie podano"}
       </Text>
     </View>
@@ -45,22 +57,29 @@ export default function ExaminationDetailsScreen({ navigation, route }: Props) {
     useState<ExaminationResponse | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [confirming, setConfirming] = useState(false);
+
+  const day = new Date();
+
+  const dataExamination = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const response = await examinationGetOne(route.params.examinationId);
+      setExaminationData(response);
+    } catch (e) {
+      setError(
+        getErrorMessage(e, "Nie udało się wczytać informacji o badaniu"),
+      );
+    } finally {
+      setLoading(false);
+    }
+  }, [route.params.examinationId]);
 
   useFocusEffect(
     useCallback(() => {
-      setLoading(true);
-      async function dataExamination() {
-        try {
-          const response = await examinationGetOne(route.params.examinationId);
-          setExaminationData(response);
-        } catch {
-          setError("Nie udało się wczytać informacji o badaniu");
-        } finally {
-          setLoading(false);
-        }
-      }
       dataExamination();
-    }, [route.params.examinationId]),
+    }, [dataExamination]),
   );
 
   async function handleDeleteExamination() {
@@ -68,8 +87,8 @@ export default function ExaminationDetailsScreen({ navigation, route }: Props) {
     try {
       await examinationDelete(route.params.examinationId);
       navigation.goBack();
-    } catch {
-      Alert.alert("Błąd", "Nie udało się usunąć badania.");
+    } catch (e) {
+      Alert.alert("Błąd", getErrorMessage(e, "Nie udało się usunąć badania."));
     } finally {
       setLoading(false);
     }
@@ -86,10 +105,39 @@ export default function ExaminationDetailsScreen({ navigation, route }: Props) {
     ]);
   }
 
+  async function handleConfirmExamination() {
+    setConfirming(true);
+    try {
+      const response = await examinationComplete(route.params.examinationId);
+      setExaminationData(response);
+    } catch (e) {
+      Alert.alert(
+        "Błąd",
+        getErrorMessage(
+          e,
+          "Nie udało się potwierdzić odbycia terminu badania.",
+        ),
+      );
+    } finally {
+      setConfirming(false);
+    }
+  }
+
+  function handleConfirm() {
+    Alert.alert("Potwierdzenie badania", "Czy potwierdzasz odbycie badania?", [
+      { text: "Anuluj", style: "cancel" },
+      {
+        text: "Tak",
+        style: "default",
+        onPress: handleConfirmExamination,
+      },
+    ]);
+  }
+
   // Guard clauses odrzucamy przypadki, w których nie możemy kontynuować. Potem piszemy główną logikę bez niepotrzebnych zagnieżdżeń.
   if (loading) {
     return (
-      <SafeAreaView className="flex-1">
+      <SafeAreaView className="flex-1" edges={["bottom", "left", "right"]}>
         <Text className="text-foreground">Ładowanie...</Text>
       </SafeAreaView>
     );
@@ -97,8 +145,8 @@ export default function ExaminationDetailsScreen({ navigation, route }: Props) {
 
   if (error) {
     return (
-      <SafeAreaView className="flex-1">
-        <Text className="text-foreground">{error}</Text>
+      <SafeAreaView className="flex-1" edges={["bottom", "left", "right"]}>
+        <ErrorState message={error} onRetry={dataExamination} />
       </SafeAreaView>
     );
   }
@@ -106,11 +154,21 @@ export default function ExaminationDetailsScreen({ navigation, route }: Props) {
   if (!examinationData) {
     return null;
   }
+
+  // Liczone po guardach — tu examinationData na pewno nie jest null.
+  const displayStatus = getExaminationDisplayStatus(examinationData, day);
+  const statusStyle = getExamStatusStyle(displayStatus);
+
   return (
-    <SafeAreaView className="flex-1">
-      <Text className="text-foreground text-xl border-b-2 p-2 mb-2">
-        {examinationData.name}
-      </Text>
+    <SafeAreaView className="flex-1 m-4" edges={["bottom", "left", "right"]}>
+      <View className="flex flex-row justify-between items-center">
+        <Text className="text-foreground text-xl p-2 mb-2">
+          {examinationData.name}
+        </Text>
+        <View className={`px-3 py-1 rounded-full ${statusStyle.container}`}>
+          <Text className={statusStyle.text}>{statusStyle.label}</Text>
+        </View>
+      </View>
       <Text className="text-foreground border-b-2 p-2 mb-2">
         {examinationData.date}
       </Text>
@@ -123,23 +181,43 @@ export default function ExaminationDetailsScreen({ navigation, route }: Props) {
       <DetailField icon={User} label="Lekarz" value={examinationData.doctor} />
       <DetailField
         icon={SquareText}
-        label="Opis"
-        value={examinationData.description}
+        label="Przygotowanie"
+        value={examinationData.preparation}
       />
+      {examinationData.isCyclic && examinationData.cycleInterval != null && (
+        <DetailField
+          icon={Repeat}
+          label="Cykliczność"
+          value={formatCycleInterval(examinationData.cycleInterval)}
+        />
+      )}
       <View className="mt-20 flex flex-row justify-between">
-        <Pressable
-          className="p-4 border-line-2 "
+        <Button
+          title="Edytuj Badanie"
           onPress={() =>
             navigation.navigate("EdytujBadanie", {
               examinationId: route.params.examinationId,
             })
           }
-        >
-          <Text>Edytuj Badaine</Text>
-        </Pressable>
-        <Pressable onPress={handleDelete}>
-          <Trash />
-        </Pressable>
+          iconLeft={Pencil}
+        />
+
+        <Button
+          title="Usuń badanie"
+          onPress={handleDelete}
+          iconLeft={Trash}
+          variant="danger"
+        />
+      </View>
+
+      <View className="mt-4">
+        {displayStatus === "awaitingConfirmation" && (
+          <Button
+            title="Potwierdź odbycie badania"
+            onPress={handleConfirm}
+            disabled={confirming}
+          />
+        )}
       </View>
     </SafeAreaView>
   );

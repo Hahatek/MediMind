@@ -49,6 +49,13 @@ export async function examinationPatch(
   return response.data;
 }
 
+export async function examinationComplete(examinationId: string) {
+  const response = await instance.post<ExaminationResponse>(
+    `/api/examination/${examinationId}/complete`,
+  );
+  return response.data;
+}
+
 export async function examinationDelete(examinationId: string) {
-  const response = await instance.delete(`/api/examination/${examinationId}`);
+  await instance.delete(`/api/examination/${examinationId}`);
 }

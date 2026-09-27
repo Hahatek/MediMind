@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Text, View, Pressable, TextInput } from "react-native";
 import { examinationGetOne, examinationPut } from "../api/examination";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
@@ -6,6 +6,9 @@ import { ExaminationStack } from "../navigation/ExaminationsStack";
 import { RouteProp } from "@react-navigation/native";
 import { ExaminationResponse } from "../types/ExaminationTypes";
 import { SafeAreaView } from "react-native-safe-area-context";
+import ErrorState from "../components/ErrorState";
+import PickerField from "../components/PickerField";
+import { getErrorMessage } from "../utils/errorMessage";
 
 type Props = {
   navigation: NativeStackNavigationProp<ExaminationStack, "EdytujBadanie">;
@@ -16,7 +19,10 @@ export default function ExaminationEditScreen({ navigation, route }: Props) {
   const [examinationData, setExaminationData] =
     useState<ExaminationResponse | null>(null);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  // Dwa osobne błędy: loadError zastępuje cały ekran (nie ma czego edytować),
+  // saveError pokazujemy pod formularzem, żeby nie zniknęły wpisane zmiany.
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const [saveError, setSaveError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
 
   const [name, setName] = useState("");
@@ -26,29 +32,42 @@ export default function ExaminationEditScreen({ navigation, route }: Props) {
   const [doctor, setDoctor] = useState("");
   const [description, setDescription] = useState("");
 
-  useEffect(() => {
+  const dataExamination = useCallback(async () => {
     setLoading(true);
-    async function dataExamination() {
-      try {
-        const response = await examinationGetOne(route.params.examinationId);
-        setExaminationData(response);
-        setName(response.name);
-        setDate(response.date);
-        setTime(response.time ?? "");
-        setLocation(response.location ?? "");
-        setDoctor(response.doctor ?? "");
-        setDescription(response.description ?? "");
-      } catch {
-        setError("Nie udało się wczytać informacji o badaniu");
-      } finally {
-        setLoading(false);
-      }
+    setLoadError(null);
+    try {
+      const response = await examinationGetOne(route.params.examinationId);
+      setExaminationData(response);
+      setName(response.name);
+      setDate(response.date);
+      setTime(response.time ?? "");
+      setLocation(response.location ?? "");
+      setDoctor(response.doctor ?? "");
+      setDescription(response.description ?? "");
+    } catch (e) {
+      setLoadError(
+        getErrorMessage(e, "Nie udało się wczytać informacji o badaniu"),
+      );
+    } finally {
+      setLoading(false);
     }
-    dataExamination();
   }, [route.params.examinationId]);
+
+  useEffect(() => {
+    dataExamination();
+  }, [dataExamination]);
 
   async function handleSave() {
     if (!examinationData) return;
+    if (!name.trim()) {
+      setSaveError("Podaj nazwę badania");
+      return;
+    }
+    if (!date) {
+      setSaveError("Podaj datę badania");
+      return;
+    }
+    setSaveError(null);
     setSaving(true);
     try {
       await examinationPut(
@@ -69,8 +88,8 @@ export default function ExaminationEditScreen({ navigation, route }: Props) {
         route.params.examinationId,
       );
       navigation.goBack();
-    } catch {
-      setError("Nie udało się zapisać zmian");
+    } catch (e) {
+      setSaveError(getErrorMessage(e, "Nie udało się zapisać zmian"));
     } finally {
       setSaving(false);
     }
@@ -79,16 +98,16 @@ export default function ExaminationEditScreen({ navigation, route }: Props) {
   // Guard clauses odrzucamy przypadki, w których nie możemy kontynuować. Potem piszemy główną logikę bez niepotrzebnych zagnieżdżeń.
   if (loading) {
     return (
-      <SafeAreaView className="flex-1">
+      <SafeAreaView className="flex-1" edges={["bottom", "left", "right"]}>
         <Text className="text-foreground">Ładowanie...</Text>
       </SafeAreaView>
     );
   }
 
-  if (error) {
+  if (loadError) {
     return (
-      <SafeAreaView className="flex-1">
-        <Text className="text-foreground">{error}</Text>
+      <SafeAreaView className="flex-1" edges={["bottom", "left", "right"]}>
+        <ErrorState message={loadError} onRetry={dataExamination} />
       </SafeAreaView>
     );
   }
@@ -98,24 +117,25 @@ export default function ExaminationEditScreen({ navigation, route }: Props) {
   }
 
   return (
-    <SafeAreaView className="flex-1">
+    <SafeAreaView className="flex-1" edges={["bottom", "left", "right"]}>
       <TextInput
         className="text-foreground text-xl border-b-2 p-2 mb-2"
         placeholder="Nazwa Badania"
         value={name}
         onChangeText={setName}
       />
-      <TextInput
-        className="text-foreground border-b-2 p-2 mb-2"
-        placeholder="Data (YYYY-MM-DD)"
+      <PickerField
+        label="Data"
+        mode="date"
+        required
         value={date}
-        onChangeText={setDate}
+        onChange={setDate}
       />
-      <TextInput
-        className="text-foreground border-b-2 p-2 mb-2"
-        placeholder="Godzina"
+      <PickerField
+        label="Godzina"
+        mode="time"
         value={time}
-        onChangeText={setTime}
+        onChange={setTime}
       />
       <TextInput
         className="text-foreground border-b-2 p-2 mb-2"
@@ -144,6 +164,7 @@ export default function ExaminationEditScreen({ navigation, route }: Props) {
           {saving ? "Zapisywanie..." : "Zapisz zmiany"}
         </Text>
       </Pressable>
+      {saveError && <Text className="text-danger mt-2">{saveError}</Text>}
     </SafeAreaView>
   );
 }

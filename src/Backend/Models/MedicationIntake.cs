@@ -13,4 +13,5 @@ public class MedicationIntake
 
     public MedicationSchedule MedicationSchedule { get; set; }
     public User User { get; set; }
+    public Guid? RecordedByUserId { get; set; }
 }

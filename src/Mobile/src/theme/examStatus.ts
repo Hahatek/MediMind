@@ -1,13 +1,4 @@
-import type { ExaminationsStatus } from "../types/EnumTypes";
-
-/** Identyfikatory wizualnych kategorii statusu (nie wartości z backendu). */
-export type ExamStatusCategory =
-  | "planned"
-  | "scheduled"
-  | "inProgress"
-  | "awaitingResult"
-  | "closed"
-  | "urgent";
+import type { ExaminationDisplayStatus } from "../utils/examinationDisplayStatus";
 
 export type ExamStatusStyle = {
   label: string;
@@ -16,58 +7,54 @@ export type ExamStatusStyle = {
   text: string;
 };
 
-// Kolory statusów: zmienne --status-*-bg/-fg w global.css. Etykieta tekstowa
-// jest zawsze pokazywana obok koloru.
-export const examStatusStyles: Record<ExamStatusCategory, ExamStatusStyle> = {
-  planned: {
-    label: "Zaplanowane",
-    container: "bg-status-planned",
-    text: "text-status-planned-foreground",
+export const examStatusStyles: Record<
+  ExaminationDisplayStatus,
+  ExamStatusStyle
+> = {
+  completed: {
+    label: "Zakończone",
+    container: "bg-status-closed",
+    text: "text-status-closed-foreground",
+  },
+  skipped: {
+    label: "Ominięte",
+    container: "bg-status-closed",
+    text: "text-status-closed-foreground",
+  },
+  awaitingConfirmation: {
+    label: "Do potwierdzenia",
+    container: "bg-status-awaiting-result",
+    text: "text-status-awaiting-result-foreground",
+  },
+  preparing: {
+    label: "W trakcie przygotowania",
+    container: "bg-status-in-progress",
+    text: "text-status-in-progress-foreground",
+  },
+  sudden: {
+    label: "Nagłe",
+    container: "bg-status-urgent",
+    text: "text-status-urgent-foreground",
+  },
+  upcoming: {
+    label: "Nadchodzące",
+    container: "bg-status-scheduled",
+    text: "text-status-scheduled-foreground",
   },
   scheduled: {
     label: "Umówione",
     container: "bg-status-scheduled",
     text: "text-status-scheduled-foreground",
   },
-  inProgress: {
-    label: "W trakcie",
-    container: "bg-status-in-progress",
-    text: "text-status-in-progress-foreground",
-  },
-  awaitingResult: {
-    label: "Oczekuje na wynik",
-    container: "bg-status-awaiting-result",
-    text: "text-status-awaiting-result-foreground",
-  },
-  closed: {
-    label: "Wykonane / pominięte",
-    container: "bg-status-closed",
-    text: "text-status-closed-foreground",
-  },
-  urgent: {
-    label: "Pilne",
-    container: "bg-status-urgent",
-    text: "text-status-urgent-foreground",
+  pending: {
+    label: "Oczekujące",
+    container: "bg-status-planned",
+    text: "text-status-planned-foreground",
   },
 };
 
-/**
- * Mapowanie wartości z backendu (bez zmian) na kategorię wizualną.
- * Record wymusza obsłużenie każdej nowej wartości ExaminationsStatus.
- */
-export const examStatusCategoryByBackend: Record<
-  ExaminationsStatus,
-  ExamStatusCategory
-> = {
-  Planned: "planned",
-  Scheduled: "scheduled",
-  InProgress: "inProgress",
-  Pending: "awaitingResult",
-  Completed: "closed",
-  Skipped: "closed",
-  Sudden: "urgent",
-};
-
-export function getExamStatusStyle(status: ExaminationsStatus): ExamStatusStyle {
-  return examStatusStyles[examStatusCategoryByBackend[status]];
+export function getExamStatusStyle(
+  status: ExaminationDisplayStatus,
+): ExamStatusStyle {
+  return examStatusStyles[status];
 }
