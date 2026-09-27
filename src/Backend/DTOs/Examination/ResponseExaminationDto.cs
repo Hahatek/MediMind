@@ -19,4 +19,6 @@ public class ResponseExaminationDto
     public string? Icon { get; set; }
     public string? Doctor { get; set;  }
     public string? GoogleEventId { get; set; } // służy do synchornizacji z kalendarzem google
+    public Guid? CompletedByUserId { get; set; }
+    public DateTime? CompletedAt { get; set; }
 }

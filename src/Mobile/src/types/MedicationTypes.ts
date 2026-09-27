@@ -1,5 +1,5 @@
 export interface CreateMedication {
-    name?: string | null,
+    name: string,
     dose: number,
     startDate?: string | null,   // "YYYY-MM-DD"
     endDate?: string | null,
@@ -7,7 +7,7 @@ export interface CreateMedication {
 }
 
 export interface UpdateMedication {
-    name?: string | null,
+    name: string,
     dose: number,
     startDate?: string | null,
     endDate?: string | null
@@ -23,7 +23,7 @@ export interface PatchMedication {
 export interface MedicationResponse {
     id: string,
     userId: string,
-    name?: string | null,
+    name: string,
     dose: number,
     startDate?: string | null,
     endDate?: string | null

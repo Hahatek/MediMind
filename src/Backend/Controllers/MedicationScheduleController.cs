@@ -68,23 +68,33 @@ public class MedicationScheduleController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<ResponseMedicationScheduleDto>>> GetMedicationSchedule()
+    public async Task<ActionResult<IEnumerable<ResponseMedicationScheduleDto>>> GetMedicationSchedule([FromQuery] Guid? medicationId)
     {
-        var userId = this.GetUserId();
-        var medicationschedules = await _context.MedicationSchedules
-            .Where(ms => ms.Medication.UserId == userId)
-            .ToListAsync();
+        var callerId = this.GetUserId();
+        var visibleUserIds = await _familyAccessService.GetVisibleUserIdsAsync(callerId);
 
-        return Ok(medicationschedules.Select(ToResponseDto));
+        var medicationschedules = _context.MedicationSchedules
+            .Where(ms => visibleUserIds.Contains(ms.Medication.UserId));
+
+        if (medicationId.HasValue)
+        {
+            medicationschedules = medicationschedules.Where(ms => ms.MedicationId == medicationId.Value);
+        }
+         
+        var result = await medicationschedules.ToListAsync();
+        
+        return Ok(result.Select(ToResponseDto));
     }
 
     [HttpGet("{id}")]
     public async Task<ActionResult<ResponseMedicationScheduleDto>> GetMedicationSchedule(Guid id)
     {
         var userId = this.GetUserId();
+        var visibleUserIds = await _familyAccessService.GetVisibleUserIdsAsync(userId);
+
         var medicationschedule = await _context.MedicationSchedules
             .Include(ms => ms.Medication)
-            .FirstOrDefaultAsync(ms => ms.Id == id && ms.Medication.UserId == userId);
+            .FirstOrDefaultAsync(ms => ms.Id == id && visibleUserIds.Contains(ms.Medication.UserId));
         if (medicationschedule == null)
         {
             return NotFound($"Nie znaleziono harmonogramu leku o id {id}");
@@ -106,6 +116,7 @@ public class MedicationScheduleController : ControllerBase
         var medicationschedule = await _context.MedicationSchedules
             .Include(ms => ms.Medication)
             .FirstOrDefaultAsync(ms => ms.Id == id);
+        
         if (medicationschedule == null)
         {
             return NotFound($"Nie znaleziono pory przyjmowania leku o id {id}");

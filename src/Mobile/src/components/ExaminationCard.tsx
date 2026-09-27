@@ -1,36 +1,30 @@
 import { View, Text, Pressable, Alert } from "react-native";
 import { ExaminationsStatus } from "../types/EnumTypes";
 import { PencilIcon, Trash } from "lucide-react-native";
+import { formatDate, formatTime } from "../utils/dateFormat";
+import { ExaminationDisplayStatus } from "../utils/examinationDisplayStatus";
+import { getExamStatusStyle } from "../theme/examStatus";
 
 type ExaminationCardProps = {
   name: string;
   date: string;
   time?: string | null;
   location?: string | null;
-  status?: ExaminationsStatus;
+  status?: ExaminationDisplayStatus;
   color?: string | null;
   onEdit?: () => void;
   onDelete?: () => void;
 };
 
-const statusLabels: Record<ExaminationsStatus, string> = {
-  Sudden: "Nagłe",
-  Pending: "Oczekujące",
-  Scheduled: "Umówione",
-  InProgress: "W trakcie",
-  Planned: "Zaplanowane",
-  Skipped: "Pominięte",
-  Completed: "Zakończone",
-};
-
-function formatDate(dateStr: string) {
-  const [year, month, day] = dateStr.split("-");
-  return `${day}.${month}.${year}`;
-}
-
-function formatTime(timeStr: string) {
-  return timeStr.slice(0, 5);
-}
+// const statusLabels: Record<ExaminationsStatus, string> = {
+//   Sudden: "Nagłe",
+//   Pending: "Oczekujące",
+//   Scheduled: "Umówione",
+//   InProgress: "W trakcie",
+//   Planned: "Zaplanowane",
+//   Skipped: "Pominięte",
+//   Completed: "Zakończone",
+// };
 
 export default function ExaminationCard({
   name,
@@ -42,34 +36,46 @@ export default function ExaminationCard({
   onEdit,
   onDelete,
 }: ExaminationCardProps) {
+  const style = status ? getExamStatusStyle(status) : null;
   return (
-    <View className="relative rounded-xl bg-surface p-4 m-2 border border-line-2">
-      <View
-        className="absolute left-2 top-2 bottom-2 rounded-full"
-        style={{ width: 4, backgroundColor: color ?? "#94a3b8" }}
-      />
-      <View className="pl-4">
-        {" "}
-        <View className="flex flex-row justify-between">
-          <Text className="text-foreground p-2 mb-2">{name}</Text>
-          <Text className="text-foreground p-2 mb-2 justify-end">
-            {status && statusLabels[status]}
+    <View className="relative rounded-xl bg-surface m-2 border border-line-2">
+      <View className="relative p-4 pl-8">
+        <View
+          className="absolute left-2 top-2 bottom-2 rounded-full"
+          style={{ width: 4, backgroundColor: color ?? "#00B3C2" }}
+        />
+        <View className="pl-4">
+          <View className="flex flex-row justify-between pb-2">
+            <Text className="text-foreground">{name}</Text>
+            {style && (
+              <View className={`px-4 py-2 rounded-full ${style.container}`}>
+                <Text className={`text-xs ${style.text}`}>{style.label}</Text>
+              </View>
+            )}
+          </View>
+          {location && <Text className="text-foreground pb-2">{location}</Text>}
+          <Text className="text-foreground pb-2">
+            {formatDate(date)}
+            {time && ` o godzinie ${formatTime(time)}`}
           </Text>
         </View>
-        {location && (
-          <Text className="text-foreground p-2 mb-2">{location}</Text>
-        )}
-        <Text className="text-foreground p-2 mb-2">
-          {formatDate(date)}
-          {time && ` o godzinie ${formatTime(time)}`}
-        </Text>
+      </View>
+      <View>
         {(onEdit || onDelete) && (
-          <View className="flex flex-row justify-between w-full m-0">
-            <Pressable className="flex flex-row" onPress={onEdit}>
-              <PencilIcon /> <Text>Edytuj</Text>
+          <View className="flex flex-row justify-between w-full m-0 border-t border-t-line-2">
+            <Pressable
+              className="flex flex-row items-center w-1/2 justify-center h-12 border-r border-r-line-2 gap-2"
+              onPress={onEdit}
+            >
+              <PencilIcon />
+              <Text>Edytuj</Text>
             </Pressable>
-            <Pressable className="flex flex-row" onPress={onDelete}>
-              <Trash /> <Text>Usuń</Text>
+            <Pressable
+              className="flex flex-row items-center w-1/2 justify-center h-12 gap-2"
+              onPress={onDelete}
+            >
+              <Trash />
+              <Text>Usuń</Text>
             </Pressable>
           </View>
         )}

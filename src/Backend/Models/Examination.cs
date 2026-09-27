@@ -24,5 +24,7 @@ public class Examination
     public ICollection<ChangeRequest> ChangeRequests { get; set; } = new List<ChangeRequest>();
     public GoogleSyncStatus SyncStatus { get; set; } = GoogleSyncStatus.NotSynced;
     public string? LastSyncError { get; set; }
+    public Guid? CompletedByUserId { get; set; }
+    public DateTime? CompletedAt { get; set; }
 }
 

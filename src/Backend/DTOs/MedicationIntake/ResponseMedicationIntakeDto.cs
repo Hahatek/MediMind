@@ -10,4 +10,5 @@ public class ResponseMedicationIntakeDto
     public DateOnly Date { get; set; }
     public IntakeStatus Status { get; set; }
     public DateTime RecordedAt { get; set; }
+    public Guid? RecordedByUserId { get; set; }
 }

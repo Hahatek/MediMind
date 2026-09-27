@@ -14,12 +14,13 @@ namespace Backend.Controllers;
 [Route("api/[controller]")]
 public class ExaminationController : ControllerBase
 {
-    
+
     private readonly AppDbContext _context;
     private readonly IGoogleCalendarService _googleCalendarService;
     private readonly IFamilyAccessService _familyAccessService;
-    
-    public ExaminationController(AppDbContext context, IGoogleCalendarService googleCalendarService, IFamilyAccessService familyAccessService)
+
+    public ExaminationController(AppDbContext context, IGoogleCalendarService googleCalendarService,
+        IFamilyAccessService familyAccessService)
     {
         _context = context;
         _googleCalendarService = googleCalendarService;
@@ -29,22 +30,22 @@ public class ExaminationController : ControllerBase
     [HttpPost] // CreateExamination
     public async Task<ActionResult<ResponseExaminationDto>> PostExamination(CreateExaminationDto dto)
     {
-        
+
         var userId = this.GetUserId();
         var userRole = this.GetUserRole();
-        
+
         if (userRole == RoleUser.Child)
         {
             return Forbid();
         }
-        
+
         var targetUserId = dto.ForUserId ?? userId; // pomaga nam to określić dla kogo tworzymy badanie
-        
+
         if (targetUserId != userId && !await _familyAccessService.IsParentOfChildAsync(userId, dto.ForUserId.Value))
         {
-            return Forbid();   
+            return Forbid();
         }
-        
+
         var examination = new Examination
         {
             Id = Guid.NewGuid(),
@@ -62,12 +63,26 @@ public class ExaminationController : ControllerBase
             Icon = dto.Icon,
             Doctor = dto.Doctor
         };
+
+        var today = DateOnly.FromDateTime(DateTime.UtcNow);
+        
+        if (examination.Date > today && examination.Status == ExaminationsStatus.Completed)
+        {
+            return BadRequest("Nie można potwierdzić badania, które jeszcze się nie odbyło");
+        }
+        
+        if (dto.Status == ExaminationsStatus.Completed)
+        {
+            examination.CompletedAt = DateTime.UtcNow;
+            examination.CompletedByUserId = userId;
+        }
+        
         _context.Examinations.Add(examination);
-        
+
         await _googleCalendarService.CreateEventAsyncExamination(examination);
-        
+
         await _context.SaveChangesAsync();
-        
+
         return Ok(ToResponseDto(examination));
     }
 
@@ -98,10 +113,10 @@ public class ExaminationController : ControllerBase
         {
             return NotFound($"Nie znaleziono badania o id {id}");
         }
-        
+
         return Ok(ToResponseDto(examination));
     }
-    
+
     [HttpPut("{id}")] // UpdateExaminationDto
     public async Task<ActionResult<ResponseExaminationDto>> PutExamination(Guid id, UpdateExaminationDto dto)
     {
@@ -113,19 +128,26 @@ public class ExaminationController : ControllerBase
         }
 
         var examination = await _context.Examinations
-            .FirstOrDefaultAsync(e => e.Id == id );
-        
-         if (examination == null)
+            .FirstOrDefaultAsync(e => e.Id == id);
+
+        if (examination == null)
         {
             return NotFound($"Nie znaleziono badania o id {id}");
         }
-         
+
         var isOwner = examination.UserId == userId;
         var isParent = await _familyAccessService.IsParentOfChildAsync(userId, examination.UserId);
 
         if (!isOwner && !isParent)
         {
             return NotFound("Nie znaleziono badania");
+        }
+
+        if (dto.Status.HasValue
+            && dto.Status.Value != examination.Status
+            && (dto.Status.Value == ExaminationsStatus.Completed || examination.Status == ExaminationsStatus.Completed))
+        {
+            return BadRequest("Status 'Completed' można ustawić tylko przez potwierdzenie odbycia badania");
         }
 
 
@@ -146,7 +168,7 @@ public class ExaminationController : ControllerBase
         examination.Doctor = dto.Doctor;
 
         await _googleCalendarService.UpdateEventAsyncExamination(examination);
-        
+
         await _context.SaveChangesAsync();
 
         return Ok(ToResponseDto(examination));
@@ -164,12 +186,12 @@ public class ExaminationController : ControllerBase
 
         var examination = await _context.Examinations
             .FirstOrDefaultAsync(e => e.Id == id);
-        
+
         if (examination == null)
         {
             return NotFound($"Nie znaleziono badania o id {id}");
         }
-        
+
         var isOwner = examination.UserId == userId;
         var isParent = await _familyAccessService.IsParentOfChildAsync(userId, examination.UserId);
 
@@ -178,6 +200,13 @@ public class ExaminationController : ControllerBase
             return NotFound($"Nie znaleziono badania o id {id}");
         }
 
+        if (dto.Status.HasValue
+            && dto.Status.Value != examination.Status
+            && (dto.Status.Value == ExaminationsStatus.Completed || examination.Status == ExaminationsStatus.Completed))
+        {
+            return BadRequest("Status 'Completed' można ustawić tylko przez potwierdzenie odbycia badania");
+        }
+ 
         if (dto.Name is not null) examination.Name = dto.Name;
         if (dto.Date.HasValue) examination.Date = dto.Date.Value;
         if (dto.Time.HasValue) examination.Time = dto.Time.Value;
@@ -192,9 +221,9 @@ public class ExaminationController : ControllerBase
         if (dto.Doctor is not null) examination.Doctor = dto.Doctor;
 
         await _googleCalendarService.UpdateEventAsyncExamination(examination);
-        
+
         await _context.SaveChangesAsync();
-        
+
         return Ok(ToResponseDto(examination));
     }
 
@@ -210,7 +239,7 @@ public class ExaminationController : ControllerBase
 
         var examination = await _context.Examinations
             .FirstOrDefaultAsync(e => e.Id == id);
-        
+
         if (examination == null)
         {
             return NotFound($"Nie znaleziono badania o id {id}");
@@ -223,11 +252,11 @@ public class ExaminationController : ControllerBase
         {
             return NotFound($"Nie znaleziono badania o id {id}");
         }
-        
+
         await _googleCalendarService.DeleteEventAsyncExamination(examination);
-        
+
         _context.Examinations.Remove(examination);
-        
+
         await _context.SaveChangesAsync();
 
         return NoContent();
@@ -253,13 +282,13 @@ public class ExaminationController : ControllerBase
         {
             return BadRequest("Nie można ukryć badania przed samym sobą");
         }
-        
+
         var visibleUserIds = await _familyAccessService.GetVisibleUserIdsAsync(userId);
         if (!visibleUserIds.Contains(hiddenForUserId))
         {
             return BadRequest("Ta osoba nie jest w twojej rodzinie");
         }
-        
+
         var aleardyHidden = await _context.ExaminationsHide
             .AnyAsync(h => h.ExaminationId == id && h.HiddenForUserId == hiddenForUserId);
         if (aleardyHidden)
@@ -275,10 +304,55 @@ public class ExaminationController : ControllerBase
             HiddenByUserId = userId,
             CreatedAt = DateTime.UtcNow,
         });
+
+        await _context.SaveChangesAsync();
+
+        return (Ok(ToResponseDto(examination)));
+    }
+
+    [HttpPost("{id}/complete")]
+    public async Task<ActionResult<ResponseExaminationDto>> CompleteExamination(Guid id)
+    {
+        var userId = this.GetUserId();
+
+        if (this.GetUserRole() == RoleUser.Child)
+        {
+            return Forbid();
+        }
+
+        var examination = await _context.Examinations
+            .FirstOrDefaultAsync(e => e.Id == id);
+
+        if (examination == null)
+        {
+            return NotFound($"Nie znaleziono badania o id {id}");
+        }
+        
+        var isOwner = examination.UserId == userId;
+        var isParent = await _familyAccessService.IsParentOfChildAsync(userId, examination.UserId);
+        
+        if (!isOwner && !isParent)
+        {
+            return NotFound("Nie znaleziono badania");
+        }
+        var today = DateOnly.FromDateTime(DateTime.UtcNow);
+        
+        if (examination.Date > today)
+        {
+            return BadRequest("Nie można potwierdzić badania, które jeszcze się nie odbyło");
+        }
+
+        if (examination.Status == ExaminationsStatus.Completed)
+        {
+            return (Ok(ToResponseDto(examination)));
+        }
+        examination.Status = ExaminationsStatus.Completed;
+        examination.CompletedAt = DateTime.UtcNow;
+        examination.CompletedByUserId = userId;
         
         await _context.SaveChangesAsync();
-        
-        return  (Ok(ToResponseDto(examination)));
+
+        return (Ok(ToResponseDto(examination)));
     }
 
     [HttpDelete("{id}/hide/{hiddenForUserId}")]
@@ -324,7 +398,9 @@ public class ExaminationController : ControllerBase
             Color = e.Color,
             Icon = e.Icon,
             Doctor = e.Doctor,
-            GoogleEventId = e.GoogleEventId
+            GoogleEventId = e.GoogleEventId,
+            CompletedAt = e.CompletedAt,
+            CompletedByUserId = e.CompletedByUserId,
         };
     }
 }

@@ -3,8 +3,21 @@ import { Text, View, Pressable, TextInput, Switch } from "react-native";
 import { examinationCreate } from "../api/examination";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { ExaminationStack } from "../navigation/ExaminationsStack";
-import { ChevronRight } from "lucide-react-native";
-import DateTimePicker from "@react-native-community/datetimepicker";
+import { ChevronLeft, ChevronRight, Plus } from "lucide-react-native";
+import { CreateExamination } from "../types/ExaminationTypes";
+import PickerField from "../components/PickerField";
+import ExaminationCard from "../components/ExaminationCard";
+import { examColors } from "../theme/examColors";
+import {
+  CycleUnit,
+  cycleUnitLabels,
+  parseCycleValue,
+  toMonths,
+} from "../utils/cycleInterval";
+import { getErrorMessage } from "../utils/errorMessage";
+import Button from "../components/Button";
+import TextField from "../components/TextField";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 type Props = {
   navigation: NativeStackNavigationProp<ExaminationStack, "DodajBadanie">;
@@ -19,20 +32,30 @@ export default function ExaminationAddScreen({ navigation }: Props) {
   const [doctorExamination, setDoctorExamination] = useState("");
   const [preparationExamination, setPreparationExamination] = useState("");
   const [isCyclicExamination, setIsCyclicExamination] = useState(false);
+  const [cycleIntervalExamination, setCycleIntervalExamination] = useState("");
+  const [cycleUnitExamination, setCycleUnitExamination] =
+    useState<CycleUnit>("months");
   const [info, setInfo] = useState("");
   const [loading, setLoading] = useState(false);
-  const [showDatePicker, setShowDatePicker] = useState(false);
-  const [showTimePicker, setShowTimePicker] = useState(false);
+  const [colorPickForExamination, setColorPickForExamination] = useState<
+    string | null
+  >(null);
 
   async function handleCreateExamination() {
-    const examination = {
+    const cycleValue = parseCycleValue(cycleIntervalExamination);
+    const examination: CreateExamination = {
       name: nameTextExamination,
       date: dateExamination,
       time: timeExamination || null,
       location: locationExamination || null,
       doctor: doctorExamination || null,
-      preparaton: preparationExamination || null,
+      preparation: preparationExamination || null,
+      color: colorPickForExamination,
       isCyclic: isCyclicExamination,
+      cycleInterval:
+        isCyclicExamination && cycleValue !== null
+          ? toMonths(cycleValue, cycleUnitExamination)
+          : null,
     };
     setInfo("");
     setLoading(true);
@@ -41,11 +64,7 @@ export default function ExaminationAddScreen({ navigation }: Props) {
       await examinationCreate(examination);
       navigation.goBack();
     } catch (e) {
-      if (e instanceof Error) {
-        setInfo(e.message);
-      } else {
-        setInfo("Nieznany błąd");
-      }
+      setInfo(getErrorMessage(e, "Nie udało się zapisać badania"));
     } finally {
       setLoading(false);
     }
@@ -63,96 +82,209 @@ export default function ExaminationAddScreen({ navigation }: Props) {
     setInfo("");
     setStep(2);
   }
+  function handlePreviosPage() {
+    setInfo("");
+    setStep(1);
+  }
+
+  function handleConfirmCreateExamination() {
+    if (
+      isCyclicExamination &&
+      parseCycleValue(cycleIntervalExamination) === null
+    ) {
+      setInfo("Podaj co ile ma być badanie (liczba większa od 0)");
+      return;
+    }
+    setInfo("");
+    handleCreateExamination();
+  }
 
   if (step === 1) {
     return (
-      <View className="flex-1 items-center justify-center bg-screen">
-        <Text className="text-foreground">Dodaj Badanie</Text>
-        <TextInput
-          placeholder="Nazwa Badania"
-          autoCapitalize="none"
-          className="border-2 border-input-border bg-input text-foreground placeholder:text-placeholder"
-          value={nameTextExamination}
-          onChangeText={setNameTextExamination}
-        ></TextInput>
-        <Pressable onPress={() => setShowDatePicker(true)}>
-          <Text>{dateExamination || "Wybierz datę"}</Text>
-        </Pressable>
-        {showDatePicker && (
-          <DateTimePicker
-            value={new Date()}
-            mode="date"
-            onChange={(event, selectedDate) => {
-              setShowDatePicker(false);
-              if (selectedDate) {
-                const date = selectedDate.toISOString().split("T")[0];
-                setDateExamination(date);
-              }
-            }}
-          />
-        )}
-        <Pressable onPress={() => setShowTimePicker(true)}>
-          <Text>{timeExamination || "Wybierz godzinę"}</Text>
-        </Pressable>
-        {showTimePicker && (
-          <DateTimePicker
-            value={new Date()}
-            mode="time"
-            onChange={(event, selectedDate) => {
-              setShowTimePicker(false);
-              if (selectedDate) {
-                const date = selectedDate
-                  .toISOString()
-                  .split("T")[1]
-                  .split(".")[0];
-                setTimeExamination(date);
-              }
-            }}
-          />
-        )}
-        <TextInput
-          placeholder="np. Przychodnia Zdrowia Toruń"
-          autoCapitalize="none"
-          className="border-2 border-input-border bg-input text-foreground placeholder:text-placeholder"
-          value={locationExamination}
-          onChangeText={setLocationExamination}
-        ></TextInput>
-        <TextInput
-          placeholder="np. Doktor Nowak"
-          autoCapitalize="none"
-          className="border-2 border-input-border bg-input text-foreground placeholder:text-placeholder"
-          value={doctorExamination}
-          onChangeText={setDoctorExamination}
-        ></TextInput>
-        <Pressable
-          className="flex flex-row bg-slate-400"
-          onPress={handleNextPage}
-        >
-          <ChevronRight />
-          <Text className="pl-2">Dalej</Text>
-        </Pressable>
-      </View>
+      <SafeAreaView
+        edges={["bottom", "left", "right"]}
+        className="flex-1 bg-screen"
+      >
+        <View className="flex-1 items-center justify-center m-4 bg-screen">
+          <View className="flex-1 w-full">
+            <View className="flex-row gap-2 w-full mb-6">
+              <View
+                className={`flex-1 h-1 rounded-full ${
+                  step >= 1 ? "bg-primary" : "bg-gray-300"
+                }`}
+              />
+
+              <View
+                className={`flex-1 h-1 rounded-full ${
+                  step >= 2 ? "bg-primary" : "bg-gray-300"
+                }`}
+              />
+            </View>
+            <Text className="text-ink-4 mb-8">
+              Termin i miejsce, krok 1 z 2{" "}
+            </Text>
+
+            <TextField
+              label="Nazwa Badania"
+              placeholder="Morfologia"
+              required
+              autoCapitalize="none"
+              value={nameTextExamination}
+              onChangeText={setNameTextExamination}
+            />
+
+            <PickerField
+              label="Data"
+              mode="date"
+              required
+              value={dateExamination}
+              onChange={setDateExamination}
+            />
+            <PickerField
+              label="Godzina"
+              mode="time"
+              value={timeExamination}
+              onChange={setTimeExamination}
+            />
+            <TextField
+              label="Lokalizacja badania"
+              placeholder="np. Przychodnia Zdrowia Toruń"
+              autoCapitalize="none"
+              value={locationExamination}
+              onChangeText={setLocationExamination}
+            />
+
+            <TextField
+              label="Doktor przeprowadzający badanie"
+              placeholder="np. Doktor Nowak"
+              autoCapitalize="none"
+              value={doctorExamination}
+              onChangeText={setDoctorExamination}
+            />
+
+            {info && <Text className="text-danger">{info}</Text>}
+          </View>
+          <View className="ml-[200px]">
+            <Button
+              title={"Dalej"}
+              iconLeft={ChevronRight}
+              variant="primary"
+              onPress={handleNextPage}
+            />
+          </View>
+        </View>
+      </SafeAreaView>
     );
   }
 
   return (
-    <View className="flex-1 items-center justify-center bg-screen">
-      <TextInput
-        placeholder="np. Na czczo, min, 12 godz bez posiłku"
-        autoCapitalize="none"
-        className="border-2 border-input-border bg-input text-foreground placeholder:text-placeholder"
-        value={preparationExamination}
-        onChangeText={setPreparationExamination}
-      ></TextInput>
-      <Switch
-        value={isCyclicExamination}
-        onValueChange={setIsCyclicExamination}
-      />
-      <Pressable onPress={handleCreateExamination} disabled={loading}>
-        <Text className="text-primary-foreground mt-8 bg-neutral-600 p-2 rounded-xl">
-          {loading ? "Zapisywanie..." : "Zapisz badanie"}
+    <SafeAreaView
+      edges={["bottom", "left", "right"]}
+      className="flex-1 bg-screen"
+    >
+      <View className="flex-1 justify-center m-4 bg-screen">
+        <View className="flex-row gap-2 w-full mb-6">
+          <View
+            className={`flex-1 h-1 rounded-full ${
+              step >= 1 ? "bg-gray-300" : "bg-primary"
+            }`}
+          />
+
+          <View
+            className={`flex-1 h-1 rounded-full ${
+              step >= 2 ? "bg-primary" : "bg-gray-300"
+            }`}
+          />
+        </View>
+        <Text className="text-ink-4 mb-8">
+          Wygląd i przygotowanie, krok 2 z 2{" "}
         </Text>
-      </Pressable>
-    </View>
+        <View className="flex-1">
+          <ExaminationCard
+            name={nameTextExamination}
+            date={dateExamination}
+            time={timeExamination}
+            location={locationExamination}
+            color={colorPickForExamination}
+          />
+          <TextField
+            label="Przygotowanie do badania"
+            placeholder="np. Na czczo, min, 12 godz bez posiłku"
+            autoCapitalize="none"
+            value={preparationExamination}
+            onChangeText={setPreparationExamination}
+          />
+          <View className="flex flex-row gap-2 items-center">
+            <Text className="text-foreground">Badanie cykliczne</Text>
+            <Switch
+              value={isCyclicExamination}
+              onValueChange={setIsCyclicExamination}
+            />
+          </View>
+          {isCyclicExamination && (
+            <View className="flex-row items-end gap-2">
+              <View className="flex-1">
+                <TextField
+                  label={"Co ile ma być badanie?"}
+                  keyboardType="number-pad"
+                  value={cycleIntervalExamination}
+                  onChangeText={setCycleIntervalExamination}
+                  placeholder={
+                    cycleUnitExamination === "years" ? "np. 2" : "np. 3"
+                  }
+                />
+              </View>
+              {(Object.keys(cycleUnitLabels) as CycleUnit[]).map((unit) => (
+                <Pressable
+                  key={unit}
+                  accessibilityLabel={cycleUnitLabels[unit]}
+                  onPress={() => setCycleUnitExamination(unit)}
+                  className={`mb-4 px-4 py-3 rounded-2xl border ${unit === cycleUnitExamination ? "bg-primary border-primary" : "border-input-border"}`}
+                >
+                  <Text
+                    className={
+                      unit === cycleUnitExamination
+                        ? "text-primary-foreground"
+                        : "text-foreground"
+                    }
+                  >
+                    {cycleUnitLabels[unit]}
+                  </Text>
+                </Pressable>
+              ))}
+            </View>
+          )}
+          {info && <Text className="text-danger mb-4">{info}</Text>}
+          <View className="flex flex-row gap-4">
+            {examColors.map((colorExamination) => (
+              <Pressable
+                key={colorExamination.value}
+                style={{
+                  backgroundColor: `${colorExamination.value}`, // colorExamination.value,
+                }}
+                onPress={() =>
+                  setColorPickForExamination(colorExamination.value)
+                }
+                className={`w-10 h-10 rounded-full ${colorExamination.value === colorPickForExamination ? "border-2 border-foreground" : ""}`}
+              ></Pressable>
+            ))}
+          </View>
+        </View>
+
+        <View className="flex flex-row gap-2 mt-4 justify-between">
+          <Button
+            title="Wróć"
+            variant="secondary"
+            iconLeft={ChevronLeft}
+            onPress={handlePreviosPage}
+          />
+          <Button
+            title="Zapisz badanie"
+            onPress={handleConfirmCreateExamination}
+            disabled={loading}
+          />
+        </View>
+      </View>
+    </SafeAreaView>
   );
 }

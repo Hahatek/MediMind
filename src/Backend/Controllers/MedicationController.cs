@@ -72,8 +72,10 @@ public class MedicationController : ControllerBase
     {
         var userId = this.GetUserId();
         var visibleUserIds = await _familyAccessService.GetVisibleUserIdsAsync(userId);
+        
         var medication = await _context.Medications
             .FirstOrDefaultAsync(m => m.Id == id && visibleUserIds.Contains(m.UserId));
+        
         if (medication == null)
         {
             return NotFound($"Nie znaleziono leku o id {id}");

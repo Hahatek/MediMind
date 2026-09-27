@@ -121,6 +121,12 @@ namespace Backend.Migrations
                     b.Property<string>("Color")
                         .HasColumnType("text");
 
+                    b.Property<DateTime?>("CompletedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid?>("CompletedByUserId")
+                        .HasColumnType("uuid");
+
                     b.Property<int?>("CycleInterval")
                         .HasColumnType("integer");
 
@@ -168,6 +174,8 @@ namespace Backend.Migrations
                         .HasColumnType("uuid");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("CompletedByUserId");
 
                     b.HasIndex("UserId");
 
@@ -348,6 +356,7 @@ namespace Backend.Migrations
                         .HasColumnType("date");
 
                     b.Property<string>("Name")
+                        .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<DateOnly?>("StartDate")
@@ -378,6 +387,9 @@ namespace Backend.Migrations
                     b.Property<DateTime>("RecordedAt")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<Guid?>("RecordedByUserId")
+                        .HasColumnType("uuid");
+
                     b.Property<int>("Status")
                         .HasColumnType("integer");
 
@@ -385,6 +397,8 @@ namespace Backend.Migrations
                         .HasColumnType("uuid");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("RecordedByUserId");
 
                     b.HasIndex("UserId");
 
@@ -619,6 +633,11 @@ namespace Backend.Migrations
 
             modelBuilder.Entity("Backend.Models.Examination", b =>
                 {
+                    b.HasOne("Backend.Models.User", null)
+                        .WithMany()
+                        .HasForeignKey("CompletedByUserId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
                     b.HasOne("Backend.Models.User", "Owner")
                         .WithMany("Examinations")
                         .HasForeignKey("UserId")
@@ -733,6 +752,11 @@ namespace Backend.Migrations
                         .HasForeignKey("MedicationScheduleId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.HasOne("Backend.Models.User", null)
+                        .WithMany()
+                        .HasForeignKey("RecordedByUserId")
+                        .OnDelete(DeleteBehavior.SetNull);
 
                     b.HasOne("Backend.Models.User", "User")
                         .WithMany()

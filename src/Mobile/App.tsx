@@ -3,7 +3,7 @@ import "./global.css";
 import { NavigationContainer } from "@react-navigation/native";
 import AuthStack from "./src/navigation/AuthStack";
 import AppStack from "./src/navigation/AppStack";
-import { Text } from "react-native";
+import { Text, View } from "react-native";
 import { StatusBar } from "expo-status-bar";
 import { refreshTokens, setSessionExpiredHandler } from "./src/api/client";
 import { useNavigationTheme } from "./src/theme";
@@ -39,7 +39,7 @@ export default function App() {
   return (
     <SafeAreaProvider>
       <NavigationContainer theme={navigationTheme}>
-        <StatusBar style="auto" />
+        <StatusBar style="light" />
         {status === "loggedOut" && (
           <AuthStack
             onLoginSuccess={() => setStatus("loggedIn")}

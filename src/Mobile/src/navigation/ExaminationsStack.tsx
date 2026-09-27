@@ -20,19 +20,22 @@ const Stack = createNativeStackNavigator<ExaminationStack>();
 // { onLoginSuccess, onRegisterSuccess }: Props
 function ExaminationsStack() {
   return (
-    <Stack.Navigator screenOptions={{ headerShown: false }}>
-      <Stack.Screen name="Badania">
+    <Stack.Navigator screenOptions={{ headerShown: true }}>
+      <Stack.Screen name="Badania" options={{ title: "Badania" }}>
         {({ navigation }) => <ExaminationsListScreen navigation={navigation} />}
       </Stack.Screen>
-      <Stack.Screen name="DodajBadanie">
+      <Stack.Screen name="DodajBadanie" options={{ title: "Dodaj badanie" }}>
         {({ navigation }) => <ExaminationAddScreen navigation={navigation} />}
       </Stack.Screen>
-      <Stack.Screen name="SzczegolyBadania">
+      <Stack.Screen
+        name="SzczegolyBadania"
+        options={{ title: "Szczegóły badania" }}
+      >
         {({ navigation, route }) => (
           <ExaminationDetailsScreen navigation={navigation} route={route} />
         )}
       </Stack.Screen>
-      <Stack.Screen name="EdytujBadanie">
+      <Stack.Screen name="EdytujBadanie" options={{ title: "Edytuj badanie" }}>
         {({ navigation, route }) => (
           <ExaminationEditScreen navigation={navigation} route={route} />
         )}

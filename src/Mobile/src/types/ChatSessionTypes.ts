@@ -1,14 +1,14 @@
 export interface CreateChatSession {
-    topic: string
+  topic: string;
 }
 
 export interface UpdateChatSession {
-    topic: string
+  topic: string;
 }
 
 export interface ChatSessionResponse {
-    id: string,
-    userId: string,
-    createdAt: string,
-    topic: string
+  id: string;
+  userId: string;
+  createdAt: string;
+  topic: string;
 }
