@@ -25,9 +25,10 @@ public class TokenService : ITokenService
     
     public string GenerateToken(User user)
     {
+        // Token niesie tylko tożsamość osoby (User.Id). Bez Email — ten sam kształt tokenu
+        // dla sesji z kontem i bez konta (UserDevice); email jest w /users/me.
         var claims = new List<Claim> {
             new Claim(ClaimTypes.NameIdentifier, user.Id.ToString() ),
-            new Claim(ClaimTypes.Email, user.Email),
             new Claim(ClaimTypes.Role, user.Role.ToString()),
         };
         

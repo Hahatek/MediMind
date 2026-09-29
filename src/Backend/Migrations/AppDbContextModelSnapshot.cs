@@ -349,18 +349,32 @@ namespace Backend.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
-                    b.Property<double>("Dose")
-                        .HasColumnType("double precision");
+                    b.Property<DateOnly?>("DiscontinuedOn")
+                        .HasColumnType("date");
 
                     b.Property<DateOnly?>("EndDate")
                         .HasColumnType("date");
 
+                    b.Property<string>("Form")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
                     b.Property<string>("Name")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<string>("Notes")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)");
 
                     b.Property<DateOnly?>("StartDate")
                         .HasColumnType("date");
+
+                    b.Property<string>("Strength")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
 
                     b.Property<Guid>("UserId")
                         .HasColumnType("uuid");
@@ -390,6 +404,13 @@ namespace Backend.Migrations
                     b.Property<Guid?>("RecordedByUserId")
                         .HasColumnType("uuid");
 
+                    b.Property<decimal>("ScheduledAmount")
+                        .HasPrecision(8, 2)
+                        .HasColumnType("numeric(8,2)");
+
+                    b.Property<TimeOnly?>("ScheduledTime")
+                        .HasColumnType("time without time zone");
+
                     b.Property<int>("Status")
                         .HasColumnType("integer");
 
@@ -413,6 +434,10 @@ namespace Backend.Migrations
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
+
+                    b.Property<decimal>("Amount")
+                        .HasPrecision(8, 2)
+                        .HasColumnType("numeric(8,2)");
 
                     b.Property<string>("GoogleEventId")
                         .HasColumnType("text");
@@ -559,6 +584,30 @@ namespace Backend.Migrations
                         .IsUnique();
 
                     b.ToTable("Users");
+                });
+
+            modelBuilder.Entity("Backend.Models.UserAccount", b =>
+                {
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Email")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("PasswordHash")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("UserId");
+
+                    b.HasIndex("Email")
+                        .IsUnique();
+
+                    b.ToTable("UserAccounts");
                 });
 
             modelBuilder.Entity("Backend.Models.UserSettings", b =>
@@ -750,7 +799,7 @@ namespace Backend.Migrations
                     b.HasOne("Backend.Models.MedicationSchedule", "MedicationSchedule")
                         .WithMany()
                         .HasForeignKey("MedicationScheduleId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
                     b.HasOne("Backend.Models.User", null)
@@ -808,6 +857,17 @@ namespace Backend.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("Backend.Models.UserAccount", b =>
+                {
+                    b.HasOne("Backend.Models.User", "User")
+                        .WithOne("Account")
+                        .HasForeignKey("Backend.Models.UserAccount", "UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("Backend.Models.UserSettings", b =>
                 {
                     b.HasOne("Backend.Models.User", "Owner")
@@ -843,6 +903,8 @@ namespace Backend.Migrations
 
             modelBuilder.Entity("Backend.Models.User", b =>
                 {
+                    b.Navigation("Account");
+
                     b.Navigation("ChatSessions");
 
                     b.Navigation("CreatedChangeRequests");

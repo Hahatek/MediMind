@@ -1,11 +1,8 @@
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import MedicationListScreen from "../screens/MedicationListScreen";
 import MedicationDetailsScreen from "../screens/MedicationDetailsScreen";
-
-type Props = {
-  onLoginSuccess: () => void;
-  onRegisterSuccess: () => void;
-};
+import MedicationAddScreen from "../screens/MedicationAddScreen";
+import MedicationEditScreen from "../screens/MedicationEditScreen";
 
 export type MedicationStack = {
   Leki: undefined;
@@ -21,23 +18,19 @@ function MedicationsStack() {
       <Stack.Screen name="Leki" options={{ title: "Leki" }}>
         {({ navigation }) => <MedicationListScreen navigation={navigation} />}
       </Stack.Screen>
-      <Stack.Screen
-        name="SzczegolyLeku"
-        options={{ title: "Szczegóły badania" }}
-      >
+      <Stack.Screen name="DodajLek" options={{ title: "Dodaj lek" }}>
+        {({ navigation }) => <MedicationAddScreen navigation={navigation} />}
+      </Stack.Screen>
+      <Stack.Screen name="SzczegolyLeku" options={{ title: "Szczegóły leku" }}>
         {({ navigation, route }) => (
           <MedicationDetailsScreen navigation={navigation} route={route} />
         )}
       </Stack.Screen>
-      {/* <Stack.Screen name="DodajLek" options={{ title: "Dodaj badanie" }}>
-        {({ navigation }) => <ExaminationAddScreen navigation={navigation} />}
-      </Stack.Screen>
-
-      <Stack.Screen name="EdytujLek" options={{ title: "Edytuj badanie" }}>
+      <Stack.Screen name="EdytujLek" options={{ title: "Edytuj lek" }}>
         {({ navigation, route }) => (
-          <ExaminationEditScreen navigation={navigation} route={route} />
+          <MedicationEditScreen navigation={navigation} route={route} />
         )}
-      </Stack.Screen> */}
+      </Stack.Screen>
     </Stack.Navigator>
   );
 }

@@ -101,3 +101,19 @@ public enum TodayIntakeStatus
     Taken,
     Skipped
 }
+
+// Wyliczany z dat leku przez Medication.GetStatusOn, nie jest zapisywany w bazie
+public enum MedicationStatus
+{
+    Planned,
+    Active,
+    Finished,
+    Discontinued
+}
+
+public enum MedicationListScope
+{
+    Active,
+    History,
+    All
+}

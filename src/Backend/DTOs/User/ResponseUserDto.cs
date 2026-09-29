@@ -5,7 +5,7 @@ namespace Backend.DTOs.User;
 public class ResponseUserDto
 {
     public Guid Id { get; set; }
-    public string Email { get; set; }
+    public string? Email { get; set; } // email konta logowania; null = profil bez UserAccount
     public string FirstName { get; set; }
     public string LastName { get; set; }
     public DateOnly? BirthDate { get; set; }

@@ -9,6 +9,7 @@ public class AppDbContext : DbContext
     {
     }
     public DbSet<User> Users { get; set; }
+    public DbSet<UserAccount> UserAccounts { get; set; }
     public DbSet<UserSettings> UserSettings { get; set; }
     public DbSet<Medication> Medications { get; set; }
     public DbSet<MedicationSchedule> MedicationSchedules { get; set; }
@@ -102,11 +103,29 @@ public class AppDbContext : DbContext
             .HasForeignKey(e => e.CompletedByUserId)    
             .OnDelete(DeleteBehavior.SetNull);       
         
+        modelBuilder.Entity<Medication>(m =>
+        {
+            m.Property(x => x.Name).HasMaxLength(200);
+            m.Property(x => x.Strength).HasMaxLength(100);
+            m.Property(x => x.Form).HasMaxLength(50);
+            m.Property(x => x.Notes).HasMaxLength(1000);
+        });
+
+        modelBuilder.Entity<MedicationSchedule>()
+            .Property(ms => ms.Amount)
+            .HasPrecision(8, 2);
+
+        modelBuilder.Entity<MedicationIntake>()
+            .Property(mi => mi.ScheduledAmount)
+            .HasPrecision(8, 2);
+
+        // NoAction zamiast Cascade: usunięcie harmonogramu nie może skasować historii przyjęć.
+        // Kontrolery zwracają 409, gdy historia istnieje — to jest dodatkowa blokada na poziomie bazy.
         modelBuilder.Entity<MedicationIntake>()
             .HasOne(mi => mi.MedicationSchedule)
             .WithMany()
             .HasForeignKey(mi => mi.MedicationScheduleId)
-            .OnDelete(DeleteBehavior.Cascade);
+            .OnDelete(DeleteBehavior.NoAction);
 
         modelBuilder.Entity<MedicationIntake>()
             .HasOne(mi => mi.User)
@@ -131,7 +150,22 @@ public class AppDbContext : DbContext
         modelBuilder.Entity<User>()
             .HasIndex(u => u.Email)
             .IsUnique();
-        
+
+        // UserAccount = opcjonalny login (1:0..1). Klucz główny to jednocześnie FK do User,
+        // więc jedna osoba ma najwyżej jedno konto. Usunięcie konta nie rusza User.
+        modelBuilder.Entity<UserAccount>()
+            .HasKey(ua => ua.UserId);
+
+        modelBuilder.Entity<UserAccount>()
+            .HasOne(ua => ua.User)
+            .WithOne(u => u.Account)
+            .HasForeignKey<UserAccount>(ua => ua.UserId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<UserAccount>()
+            .HasIndex(ua => ua.Email)
+            .IsUnique();
+
         modelBuilder.Entity<MedicationIntake>()
             .HasOne<User>()                              
             .WithMany()                                  

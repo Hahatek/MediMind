@@ -49,12 +49,23 @@ public class MedicationScheduleController : ControllerBase
             return NotFound($"Nie znaleziono leku o id {dto.MedicationId}");
         }
 
+        if (medication.DiscontinuedOn != null)
+        {
+            return BadRequest("Nie można dodać pory przyjmowania do odstawionego leku");
+        }
+
+        if (await IsDuplicateAsync(dto.MedicationId, dto.TimeOfDay, dto.Time, null))
+        {
+            return Conflict("Ten lek ma już taką porę przyjmowania");
+        }
+
         var medicationschedule = new MedicationSchedule()
         {
             Id = Guid.NewGuid(),
             MedicationId = dto.MedicationId,
             TimeOfDay = dto.TimeOfDay,
             Time = dto.Time,
+            Amount = dto.Amount,
             Medication = medication,
         };
 
@@ -129,24 +140,15 @@ public class MedicationScheduleController : ControllerBase
             return NotFound($"Nie znaleziono pory przyjmowania leku o id {id}");
         }
 
-        if (dto.MedicationId != medicationschedule.MedicationId)
+        if (await IsDuplicateAsync(medicationschedule.MedicationId, dto.TimeOfDay, dto.Time, id))
         {
-            var medication = await _context.Medications.FindAsync(dto.MedicationId);
-            if (medication == null)
-            {
-                return NotFound($"Nie znaleziono leku o id {dto.MedicationId}");
-            }
-            var isOwnerOfNew = medication.UserId == userId;
-            var isParentOfNew = await _familyAccessService.IsParentOfChildAsync(userId, medication.UserId);
-            if (!isOwnerOfNew && !isParentOfNew)
-            {
-                return NotFound($"Nie znaleziono leku o id {dto.MedicationId}");
-            }
-            medicationschedule.MedicationId = dto.MedicationId;
-            medicationschedule.Medication = medication;
+            return Conflict("Ten lek ma już taką porę przyjmowania");
         }
+
+        // Historyczne MedicationIntake nie są tu zmieniane — mają własną kopię godziny (ScheduledTime)
         medicationschedule.TimeOfDay = dto.TimeOfDay;
         medicationschedule.Time = dto.Time;
+        medicationschedule.Amount = dto.Amount;
 
         await _googleCalendarService.UpdateEventAsyncMedicationSchedule(medicationschedule);
 
@@ -180,24 +182,17 @@ public class MedicationScheduleController : ControllerBase
             return NotFound($"Nie znaleziono pory przyjmowania leku o id {id}");
         }
 
-        if (dto.MedicationId is not null && dto.MedicationId != medicationschedule.MedicationId)
+        var newTimeOfDay = dto.TimeOfDay ?? medicationschedule.TimeOfDay;
+        var newTime = dto.Time ?? medicationschedule.Time;
+
+        if (await IsDuplicateAsync(medicationschedule.MedicationId, newTimeOfDay, newTime, id))
         {
-            var medication = await _context.Medications.FindAsync(dto.MedicationId);
-            if (medication == null)
-            {
-                return NotFound($"Nie znaleziono leku o id {dto.MedicationId}");
-            }
-            var isOwnerOfNew = medication.UserId == userId;
-            var isParentOfNew = await _familyAccessService.IsParentOfChildAsync(userId, medication.UserId);
-            if (!isOwnerOfNew && !isParentOfNew)
-            {
-                return NotFound($"Nie znaleziono leku o id {dto.MedicationId}");
-            }
-            medicationschedule.MedicationId = (Guid)dto.MedicationId;
-            medicationschedule.Medication = medication;
+            return Conflict("Ten lek ma już taką porę przyjmowania");
         }
-        if (dto.TimeOfDay.HasValue) medicationschedule.TimeOfDay = dto.TimeOfDay.Value;
-        if (dto.Time.HasValue) medicationschedule.Time = dto.Time.Value;
+
+        medicationschedule.TimeOfDay = newTimeOfDay;
+        medicationschedule.Time = newTime;
+        if (dto.Amount.HasValue) medicationschedule.Amount = dto.Amount.Value;
 
         await _googleCalendarService.UpdateEventAsyncMedicationSchedule(medicationschedule);
         
@@ -231,6 +226,12 @@ public class MedicationScheduleController : ControllerBase
             return NotFound($"Nie znaleziono pory przyjmowania leku o id {id}");
         }
 
+        var hasHistory = await _context.MedicationIntakes.AnyAsync(mi => mi.MedicationScheduleId == id);
+        if (hasHistory)
+        {
+            return Conflict("Ta pora ma historię przyjęć — nie można jej usunąć");
+        }
+
         await _googleCalendarService.DeleteEventAsyncMedicationSchedule(medicationschedule);
         
         _context.MedicationSchedules.Remove(medicationschedule);
@@ -239,7 +240,17 @@ public class MedicationScheduleController : ControllerBase
         return NoContent();
     }
 
-    private static ResponseMedicationScheduleDto ToResponseDto(MedicationSchedule ms)
+    // Ta sama pora = ta sama TimeOfDay i ta sama godzina (także obie puste)
+    private Task<bool> IsDuplicateAsync(Guid medicationId, MedicationTime timeOfDay, TimeOnly? time, Guid? exceptScheduleId)
+    {
+        return _context.MedicationSchedules.AnyAsync(ms => ms.MedicationId == medicationId
+            && ms.TimeOfDay == timeOfDay
+            && ms.Time == time
+            && ms.Id != exceptScheduleId);
+    }
+
+    // internal, bo używa go też lista leków w MedicationController
+    internal static ResponseMedicationScheduleDto ToResponseDto(MedicationSchedule ms)
     {
         return new ResponseMedicationScheduleDto
         {
@@ -247,6 +258,7 @@ public class MedicationScheduleController : ControllerBase
             MedicationId = ms.MedicationId,
             TimeOfDay = ms.TimeOfDay,
             Time = ms.Time,
+            Amount = ms.Amount,
         };
     }
 }

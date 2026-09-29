@@ -11,4 +11,6 @@ public class ResponseMedicationIntakeDto
     public IntakeStatus Status { get; set; }
     public DateTime RecordedAt { get; set; }
     public Guid? RecordedByUserId { get; set; }
+    public TimeOnly? ScheduledTime { get; set; }
+    public decimal ScheduledAmount { get; set; }
 }

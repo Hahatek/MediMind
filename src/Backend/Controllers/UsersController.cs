@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Backend.Data;
 using Backend.DTOs.User;
 using Backend.Helpers;
@@ -22,7 +23,10 @@ public class UsersController : ControllerBase
     [HttpGet("me")]
     public async Task<ActionResult<ResponseUserDto>> GetMe()
     {
-        var user = await _context.Users.FindAsync(this.GetUserId());
+        var userId = this.GetUserId();
+        var user = await _context.Users
+            .Include(u => u.Account)
+            .FirstOrDefaultAsync(u => u.Id == userId);
         if (user == null)
         {
             return NotFound();
@@ -34,7 +38,10 @@ public class UsersController : ControllerBase
     [HttpPut("me")]
     public async Task<ActionResult<ResponseUserDto>> PutMe(UpdateUserDto dto)
     {
-        var user = await _context.Users.FindAsync(this.GetUserId());
+        var userId = this.GetUserId();
+        var user = await _context.Users
+            .Include(u => u.Account)
+            .FirstOrDefaultAsync(u => u.Id == userId);
         if (user == null)
         {
             return NotFound();
@@ -57,7 +64,10 @@ public class UsersController : ControllerBase
     [HttpPatch("me")]
     public async Task<ActionResult<ResponseUserDto>> PatchMe(PatchUserDto dto)
     {
-        var user = await _context.Users.FindAsync(this.GetUserId());
+        var userId = this.GetUserId();
+        var user = await _context.Users
+            .Include(u => u.Account)
+            .FirstOrDefaultAsync(u => u.Id == userId);
         if (user == null)
         {
             return NotFound();
@@ -82,7 +92,7 @@ public class UsersController : ControllerBase
         return new ResponseUserDto
         {
             Id = u.Id,
-            Email = u.Email,
+            Email = u.Account?.Email,
             FirstName = u.FirstName,
             LastName = u.LastName,
             BirthDate = u.BirthDate,

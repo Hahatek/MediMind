@@ -49,14 +49,16 @@ public class AuthController : ControllerBase
     {
         var email = NormalizeEmail(dto.Email);
 
-        var existingUser = await _context.Users.FirstOrDefaultAsync(u => u.Email == email);
-        if (existingUser != null)
+        var emailTaken = await _context.UserAccounts.AnyAsync(a => a.Email == email);
+        if (emailTaken)
         {
             return Conflict("Użytkownik z podanym adresem email już istnieje");
         }
-        
+
         var role = CalculateAgeForRole(dto.BirthDate);
 
+        // User = osoba, UserAccount = dane logowania. User.Email zapisujemy jeszcze tylko
+        // dlatego, że kolumna legacy jest wymagana (do etapu 4). User.PasswordHash już nie.
         var user = new User
         {
             Id = Guid.NewGuid(),
@@ -65,20 +67,27 @@ public class AuthController : ControllerBase
             LastName = dto.LastName,
             BirthDate = dto.BirthDate,
             Role = role,
-            PasswordHash = BCrypt.Net.BCrypt.HashPassword(dto.Password),
         };
 
-        
+        var account = new UserAccount
+        {
+            UserId = user.Id,
+            Email = email,
+            PasswordHash = BCrypt.Net.BCrypt.HashPassword(dto.Password),
+            CreatedAt = DateTime.UtcNow,
+        };
+
         _context.Users.Add(user);
+        _context.UserAccounts.Add(account);
 
         try
         {
             await _context.SaveChangesAsync();
         }
-        catch (DbUpdateException ex) when (ex.InnerException is PostgresException
+        catch (DbUpdateException ex) when (ex.InnerException is PostgresException 
                                            {
                                                SqlState: PostgresErrorCodes.UniqueViolation,
-                                               ConstraintName: "IX_Users_Email"
+                                               ConstraintName: "IX_UserAccounts_Email" or "IX_Users_Email"
                                            })
         {
             return Conflict("Użytkownik z podanym adresem email już istnieje");
@@ -96,13 +105,18 @@ public class AuthController : ControllerBase
     {
         var email = NormalizeEmail(dto.Email);
 
-        var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == email);
+        // Dane logowania czytamy wyłącznie z UserAccount (legacy User.Email/PasswordHash są ignorowane)
+        var account = await _context.UserAccounts
+            .Include(a => a.User)
+            .FirstOrDefaultAsync(a => a.Email == email);
 
-        if (user?.PasswordHash is null || !BCrypt.Net.BCrypt.Verify(dto.Password, user.PasswordHash))
+        if (account == null || !BCrypt.Net.BCrypt.Verify(dto.Password, account.PasswordHash))
         {
             return Unauthorized("Nieprawidłowy email lub hasło");
         }
-        
+
+        var user = account.User;
+
         var token = _tokenService.GenerateToken(user);
         var (_, rawRefreshToken) = await _tokenService.GenerateRefreshTokenAsync(user.Id);
 
@@ -123,9 +137,14 @@ public class AuthController : ControllerBase
             return Unauthorized("Nieprawidłowy token");
         }
 
+        // Refresh celowo NIE wymaga UserAccount — sesja z UserDevice (np. dziecko) też musi się odświeżać
         var user = await _context.Users
             .FirstOrDefaultAsync(u => u.Id == existingToken.UserId);
 
+        if (user == null)
+        {
+            return Unauthorized("Nieprawidłowy token");
+        }
 
         existingToken.RevokedAt = DateTime.UtcNow;
 
