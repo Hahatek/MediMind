@@ -17,14 +17,16 @@ public class ExaminationController : ControllerBase
 
     private readonly AppDbContext _context;
     private readonly IGoogleCalendarService _googleCalendarService;
-    private readonly IFamilyAccessService _familyAccessService;
+    private readonly IFamilyAccessService _familyAccessService; // tylko HideExamination (bez zmian w MVP)
+    private readonly IAccessService _accessService;
 
     public ExaminationController(AppDbContext context, IGoogleCalendarService googleCalendarService,
-        IFamilyAccessService familyAccessService)
+        IFamilyAccessService familyAccessService, IAccessService accessService)
     {
         _context = context;
         _googleCalendarService = googleCalendarService;
         _familyAccessService = familyAccessService;
+        _accessService = accessService;
     }
 
     [HttpPost] // CreateExamination
@@ -32,18 +34,12 @@ public class ExaminationController : ControllerBase
     {
 
         var userId = this.GetUserId();
-        var userRole = this.GetUserRole();
-
-        if (userRole == RoleUser.Child)
-        {
-            return Forbid();
-        }
-
         var targetUserId = dto.ForUserId ?? userId; // pomaga nam to określić dla kogo tworzymy badanie
 
-        if (targetUserId != userId && !await _familyAccessService.IsParentOfChildAsync(userId, dto.ForUserId.Value))
+        var denied = await this.CheckCanManageAsync(_accessService, userId, targetUserId, "Nie znaleziono użytkownika");
+        if (denied != null)
         {
-            return Forbid();
+            return denied;
         }
 
         var examination = new Examination
@@ -90,10 +86,9 @@ public class ExaminationController : ControllerBase
     public async Task<ActionResult<IEnumerable<ResponseExaminationDto>>> GetExaminations()
     {
         var userId = this.GetUserId();
-        var visibleUserIds = await _familyAccessService
-            .GetVisibleUserIdsAsync(userId);
+        var readableUserIds = await _accessService.GetReadableUserIds(userId);
         var examinations = await _context.Examinations
-            .Where(e => visibleUserIds.Contains(e.UserId))
+            .Where(e => readableUserIds.Contains(e.UserId))
             .Where(e => !_context.ExaminationsHide.Any(h => h.ExaminationId == e.Id && h.HiddenForUserId == userId))
             .ToListAsync();
 
@@ -104,9 +99,9 @@ public class ExaminationController : ControllerBase
     public async Task<ActionResult<ResponseExaminationDto>> GetExamination(Guid id)
     {
         var userId = this.GetUserId();
-        var visibleUserIds = await _familyAccessService.GetVisibleUserIdsAsync(userId);
+        var readableUserIds = await _accessService.GetReadableUserIds(userId);
         var examination = await _context.Examinations
-            .Where(e => e.Id == id && visibleUserIds.Contains(e.UserId))
+            .Where(e => e.Id == id && readableUserIds.Contains(e.UserId))
             .Where(e => !_context.ExaminationsHide.Any(h => h.ExaminationId == e.Id && h.HiddenForUserId == userId))
             .FirstOrDefaultAsync();
         if (examination == null)
@@ -122,11 +117,6 @@ public class ExaminationController : ControllerBase
     {
         var userId = this.GetUserId();
 
-        if (this.GetUserRole() == RoleUser.Child)
-        {
-            return Forbid();
-        }
-
         var examination = await _context.Examinations
             .FirstOrDefaultAsync(e => e.Id == id);
 
@@ -135,12 +125,10 @@ public class ExaminationController : ControllerBase
             return NotFound($"Nie znaleziono badania o id {id}");
         }
 
-        var isOwner = examination.UserId == userId;
-        var isParent = await _familyAccessService.IsParentOfChildAsync(userId, examination.UserId);
-
-        if (!isOwner && !isParent)
+        var denied = await this.CheckCanManageAsync(_accessService, userId, examination.UserId, "Nie znaleziono badania");
+        if (denied != null)
         {
-            return NotFound("Nie znaleziono badania");
+            return denied;
         }
 
         if (dto.Status.HasValue
@@ -179,11 +167,6 @@ public class ExaminationController : ControllerBase
     {
         var userId = this.GetUserId();
 
-        if (this.GetUserRole() == RoleUser.Child)
-        {
-            return Forbid();
-        }
-
         var examination = await _context.Examinations
             .FirstOrDefaultAsync(e => e.Id == id);
 
@@ -192,12 +175,10 @@ public class ExaminationController : ControllerBase
             return NotFound($"Nie znaleziono badania o id {id}");
         }
 
-        var isOwner = examination.UserId == userId;
-        var isParent = await _familyAccessService.IsParentOfChildAsync(userId, examination.UserId);
-
-        if (!isOwner && !isParent)
+        var denied = await this.CheckCanManageAsync(_accessService, userId, examination.UserId, $"Nie znaleziono badania o id {id}");
+        if (denied != null)
         {
-            return NotFound($"Nie znaleziono badania o id {id}");
+            return denied;
         }
 
         if (dto.Status.HasValue
@@ -232,11 +213,6 @@ public class ExaminationController : ControllerBase
     {
         var userId = this.GetUserId();
 
-        if (this.GetUserRole() == RoleUser.Child)
-        {
-            return Forbid();
-        }
-
         var examination = await _context.Examinations
             .FirstOrDefaultAsync(e => e.Id == id);
 
@@ -245,12 +221,10 @@ public class ExaminationController : ControllerBase
             return NotFound($"Nie znaleziono badania o id {id}");
         }
 
-        var isOwner = examination.UserId == userId;
-        var isParent = await _familyAccessService.IsParentOfChildAsync(userId, examination.UserId);
-
-        if (!isOwner && !isParent)
+        var denied = await this.CheckCanManageAsync(_accessService, userId, examination.UserId, $"Nie znaleziono badania o id {id}");
+        if (denied != null)
         {
-            return NotFound($"Nie znaleziono badania o id {id}");
+            return denied;
         }
 
         await _googleCalendarService.DeleteEventAsyncExamination(examination);
@@ -315,11 +289,6 @@ public class ExaminationController : ControllerBase
     {
         var userId = this.GetUserId();
 
-        if (this.GetUserRole() == RoleUser.Child)
-        {
-            return Forbid();
-        }
-
         var examination = await _context.Examinations
             .FirstOrDefaultAsync(e => e.Id == id);
 
@@ -327,13 +296,11 @@ public class ExaminationController : ControllerBase
         {
             return NotFound($"Nie znaleziono badania o id {id}");
         }
-        
-        var isOwner = examination.UserId == userId;
-        var isParent = await _familyAccessService.IsParentOfChildAsync(userId, examination.UserId);
-        
-        if (!isOwner && !isParent)
+
+        var denied = await this.CheckCanManageAsync(_accessService, userId, examination.UserId, "Nie znaleziono badania");
+        if (denied != null)
         {
-            return NotFound("Nie znaleziono badania");
+            return denied;
         }
         var today = DateOnly.FromDateTime(DateTime.UtcNow);
         

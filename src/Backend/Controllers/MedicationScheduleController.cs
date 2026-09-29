@@ -16,24 +16,19 @@ public class MedicationScheduleController : ControllerBase
 {
     private readonly AppDbContext _context;
     private readonly IGoogleCalendarService _googleCalendarService;
-    private readonly IFamilyAccessService _familyAccessService;
+    private readonly IAccessService _accessService;
 
-    public MedicationScheduleController(AppDbContext context, IGoogleCalendarService googleCalendarService, IFamilyAccessService familyAccessService)
+    public MedicationScheduleController(AppDbContext context, IGoogleCalendarService googleCalendarService, IAccessService accessService)
     {
         _context = context;
         _googleCalendarService = googleCalendarService;
-        _familyAccessService = familyAccessService;
+        _accessService = accessService;
     }
 
     [HttpPost]
     public async Task<ActionResult<ResponseMedicationScheduleDto>> PostMedicationSchedule(CreateMedicationScheduleDto dto)
     {
         var userId = this.GetUserId();
-
-        if (this.GetUserRole() == RoleUser.Child)
-        {
-            return Forbid();
-        }
 
         var medication = await _context.Medications
             .FindAsync(dto.MedicationId);
@@ -42,11 +37,10 @@ public class MedicationScheduleController : ControllerBase
             return NotFound($"Nie znaleziono leku o id {dto.MedicationId}");
         }
 
-        var isOwner = medication.UserId == userId;
-        var isParent = await _familyAccessService.IsParentOfChildAsync(userId, medication.UserId);
-        if (!isOwner && !isParent)
+        var denied = await this.CheckCanManageAsync(_accessService, userId, medication.UserId, $"Nie znaleziono leku o id {dto.MedicationId}");
+        if (denied != null)
         {
-            return NotFound($"Nie znaleziono leku o id {dto.MedicationId}");
+            return denied;
         }
 
         if (medication.DiscontinuedOn != null)
@@ -82,10 +76,10 @@ public class MedicationScheduleController : ControllerBase
     public async Task<ActionResult<IEnumerable<ResponseMedicationScheduleDto>>> GetMedicationSchedule([FromQuery] Guid? medicationId)
     {
         var callerId = this.GetUserId();
-        var visibleUserIds = await _familyAccessService.GetVisibleUserIdsAsync(callerId);
+        var readableUserIds = await _accessService.GetReadableUserIds(callerId);
 
         var medicationschedules = _context.MedicationSchedules
-            .Where(ms => visibleUserIds.Contains(ms.Medication.UserId));
+            .Where(ms => readableUserIds.Contains(ms.Medication.UserId));
 
         if (medicationId.HasValue)
         {
@@ -101,11 +95,11 @@ public class MedicationScheduleController : ControllerBase
     public async Task<ActionResult<ResponseMedicationScheduleDto>> GetMedicationSchedule(Guid id)
     {
         var userId = this.GetUserId();
-        var visibleUserIds = await _familyAccessService.GetVisibleUserIdsAsync(userId);
+        var readableUserIds = await _accessService.GetReadableUserIds(userId);
 
         var medicationschedule = await _context.MedicationSchedules
             .Include(ms => ms.Medication)
-            .FirstOrDefaultAsync(ms => ms.Id == id && visibleUserIds.Contains(ms.Medication.UserId));
+            .FirstOrDefaultAsync(ms => ms.Id == id && readableUserIds.Contains(ms.Medication.UserId));
         if (medicationschedule == null)
         {
             return NotFound($"Nie znaleziono harmonogramu leku o id {id}");
@@ -119,11 +113,6 @@ public class MedicationScheduleController : ControllerBase
     {
         var userId = this.GetUserId();
 
-        if (this.GetUserRole() == RoleUser.Child)
-        {
-            return Forbid();
-        }
-
         var medicationschedule = await _context.MedicationSchedules
             .Include(ms => ms.Medication)
             .FirstOrDefaultAsync(ms => ms.Id == id);
@@ -133,11 +122,10 @@ public class MedicationScheduleController : ControllerBase
             return NotFound($"Nie znaleziono pory przyjmowania leku o id {id}");
         }
 
-        var isOwner = medicationschedule.Medication.UserId == userId;
-        var isParent = await _familyAccessService.IsParentOfChildAsync(userId, medicationschedule.Medication.UserId);
-        if (!isOwner && !isParent)
+        var denied = await this.CheckCanManageAsync(_accessService, userId, medicationschedule.Medication.UserId, $"Nie znaleziono pory przyjmowania leku o id {id}");
+        if (denied != null)
         {
-            return NotFound($"Nie znaleziono pory przyjmowania leku o id {id}");
+            return denied;
         }
 
         if (await IsDuplicateAsync(medicationschedule.MedicationId, dto.TimeOfDay, dto.Time, id))
@@ -162,11 +150,6 @@ public class MedicationScheduleController : ControllerBase
     {
         var userId = this.GetUserId();
 
-        if (this.GetUserRole() == RoleUser.Child)
-        {
-            return Forbid();
-        }
-
         var medicationschedule = await _context.MedicationSchedules
             .Include(ms => ms.Medication)
             .FirstOrDefaultAsync(ms => ms.Id == id);
@@ -175,11 +158,10 @@ public class MedicationScheduleController : ControllerBase
             return NotFound($"Nie znaleziono pory przyjmowania leku o id {id}");
         }
 
-        var isOwner = medicationschedule.Medication.UserId == userId;
-        var isParent = await _familyAccessService.IsParentOfChildAsync(userId, medicationschedule.Medication.UserId);
-        if (!isOwner && !isParent)
+        var denied = await this.CheckCanManageAsync(_accessService, userId, medicationschedule.Medication.UserId, $"Nie znaleziono pory przyjmowania leku o id {id}");
+        if (denied != null)
         {
-            return NotFound($"Nie znaleziono pory przyjmowania leku o id {id}");
+            return denied;
         }
 
         var newTimeOfDay = dto.TimeOfDay ?? medicationschedule.TimeOfDay;
@@ -206,11 +188,6 @@ public class MedicationScheduleController : ControllerBase
     {
         var userId = this.GetUserId();
 
-        if (this.GetUserRole() == RoleUser.Child)
-        {
-            return Forbid();
-        }
-
         var medicationschedule = await _context.MedicationSchedules
             .Include(ms => ms.Medication)
             .FirstOrDefaultAsync(ms => ms.Id == id);
@@ -219,11 +196,10 @@ public class MedicationScheduleController : ControllerBase
             return NotFound($"Nie znaleziono pory przyjmowania leku o id {id}");
         }
 
-        var isOwner = medicationschedule.Medication.UserId == userId;
-        var isParent = await _familyAccessService.IsParentOfChildAsync(userId, medicationschedule.Medication.UserId);
-        if (!isOwner && !isParent)
+        var denied = await this.CheckCanManageAsync(_accessService, userId, medicationschedule.Medication.UserId, $"Nie znaleziono pory przyjmowania leku o id {id}");
+        if (denied != null)
         {
-            return NotFound($"Nie znaleziono pory przyjmowania leku o id {id}");
+            return denied;
         }
 
         var hasHistory = await _context.MedicationIntakes.AnyAsync(mi => mi.MedicationScheduleId == id);

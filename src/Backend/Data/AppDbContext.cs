@@ -31,6 +31,8 @@ public class AppDbContext : DbContext
 
     public DbSet<RefreshToken> RefreshTokens { get; set; }
 
+    public DbSet<Guardianship> Guardianships { get; set; }
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<ChangeRequest>()
@@ -165,6 +167,36 @@ public class AppDbContext : DbContext
         modelBuilder.Entity<UserAccount>()
             .HasIndex(ua => ua.Email)
             .IsUnique();
+
+        // Guardianship = "GuardianUser może zarządzać profilem WardUser". Reguły dotyczące wielu wierszy pilnuje baza.
+        // Restrict na opiekunie: nie da się usunąć osoby, która jest czyimś opiekunem (np. Primary) bez rozwiązania opieki.
+        modelBuilder.Entity<Guardianship>()
+            .HasOne(g => g.GuardianUser)
+            .WithMany()
+            .HasForeignKey(g => g.GuardianUserId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        // Cascade na podopiecznym: usunięcie profilu podopiecznego usuwa relacje opieki, które go dotyczą.
+        modelBuilder.Entity<Guardianship>()
+            .HasOne(g => g.WardUser)
+            .WithMany()
+            .HasForeignKey(g => g.WardUserId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<Guardianship>()
+            .ToTable(t => t.HasCheckConstraint(
+                "CK_Guardianships_GuardianNotWard", "\"GuardianUserId\" <> \"WardUserId\""));
+
+        modelBuilder.Entity<Guardianship>()
+            .HasIndex(g => new { g.GuardianUserId, g.WardUserId })
+            .IsUnique();
+
+        // Najwyżej jeden Primary na podopiecznego. "Co najmniej jeden" pilnują operacje (CreateManagedProfile, TransferPrimary).
+        modelBuilder.Entity<Guardianship>()
+            .HasIndex(g => g.WardUserId)
+            .IsUnique()
+            .HasFilter("\"IsPrimary\"")
+            .HasDatabaseName("IX_Guardianships_WardUserId_Primary");
 
         modelBuilder.Entity<MedicationIntake>()
             .HasOne<User>()                              
