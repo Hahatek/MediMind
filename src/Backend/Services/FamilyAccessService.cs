@@ -34,19 +34,6 @@ public class FamilyAccessService : IFamilyAccessService
         return visibleUserIds;
     }
 
-    public async Task<bool> IsParentOfChildAsync(Guid callerId, Guid childUserId)
-    {
-        var parentFamilyIds = await _context.FamilyMemberships
-            .Where(m => m.UserId == callerId && m.IsParent )
-            .Select(m => m.FamilyId)
-            .ToListAsync();
-
-        if (parentFamilyIds.Count == 0)
-        {
-            return false;
-        }
-        
-        return await _context.FamilyMemberships.AnyAsync(m => parentFamilyIds.Contains(m.FamilyId) && m.UserId == childUserId && m.User.Role == RoleUser.Child);
-    }
-    
+    // IsParentOfChildAsync usunięte (etap 4, Family MVP v1): uprawnienia medyczne dają Guardianship + AccessService,
+    // a IsParent zostaje wyłącznie do administracji rodziną (zaproszenia, TransferOwnership).
 }

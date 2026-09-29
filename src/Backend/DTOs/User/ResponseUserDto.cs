@@ -8,7 +8,7 @@ public class ResponseUserDto
     public string? Email { get; set; } // email konta logowania; null = profil bez UserAccount
     public string FirstName { get; set; }
     public string LastName { get; set; }
-    public DateOnly? BirthDate { get; set; }
+    public DateOnly BirthDate { get; set; }
     public Gender? Gender { get; set; }
     public double? Height { get; set; }
     public double? Weight { get; set; }

@@ -343,6 +343,40 @@ namespace Backend.Migrations
                     b.ToTable("GoogleFitConnections");
                 });
 
+            modelBuilder.Entity("Backend.Models.Guardianship", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("GuardianUserId")
+                        .HasColumnType("uuid");
+
+                    b.Property<bool>("IsPrimary")
+                        .HasColumnType("boolean");
+
+                    b.Property<Guid>("WardUserId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("WardUserId")
+                        .IsUnique()
+                        .HasDatabaseName("IX_Guardianships_WardUserId_Primary")
+                        .HasFilter("\"IsPrimary\"");
+
+                    b.HasIndex("GuardianUserId", "WardUserId")
+                        .IsUnique();
+
+                    b.ToTable("Guardianships", t =>
+                        {
+                            t.HasCheckConstraint("CK_Guardianships_GuardianNotWard", "\"GuardianUserId\" <> \"WardUserId\"");
+                        });
+                });
+
             modelBuilder.Entity("Backend.Models.Medication", b =>
                 {
                     b.Property<Guid>("Id")
@@ -542,7 +576,7 @@ namespace Backend.Migrations
                     b.Property<string>("Avatar")
                         .HasColumnType("text");
 
-                    b.Property<DateOnly?>("BirthDate")
+                    b.Property<DateOnly>("BirthDate")
                         .HasColumnType("date");
 
                     b.Property<int?>("BloodType")
@@ -781,6 +815,25 @@ namespace Backend.Migrations
                         .IsRequired();
 
                     b.Navigation("User");
+                });
+
+            modelBuilder.Entity("Backend.Models.Guardianship", b =>
+                {
+                    b.HasOne("Backend.Models.User", "GuardianUser")
+                        .WithMany()
+                        .HasForeignKey("GuardianUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Backend.Models.User", "WardUser")
+                        .WithMany()
+                        .HasForeignKey("WardUserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("GuardianUser");
+
+                    b.Navigation("WardUser");
                 });
 
             modelBuilder.Entity("Backend.Models.Medication", b =>

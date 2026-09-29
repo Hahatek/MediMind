@@ -117,3 +117,12 @@ public enum MedicationListScope
     History,
     All
 }
+
+// Kategoria wieku wyliczana z BirthDate przez AgeCategoryCalculator, nie jest zapisywana w bazie.
+// To NIE jest rola ani uprawnienie (w przeciwieństwie do legacy RoleUser zapisanego w User.Role).
+public enum AgeCategory
+{
+    Child,
+    Adult, 
+    Senior,
+}

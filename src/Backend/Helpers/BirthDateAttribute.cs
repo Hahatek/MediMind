@@ -8,6 +8,13 @@ public class BirthDateAttribute : ValidationAttribute
 
     protected override ValidationResult? IsValid(object? value, ValidationContext validationContext)
     {
+        // Brak wartości nie jest tu błędem — to, czy pole jest wymagane, mówi osobny [Required]
+        // (PATCH: brak = "nie zmieniam"). Atrybut sprawdza tylko poprawność podanej daty.
+        if (value is null)
+        {
+            return ValidationResult.Success;
+        }
+
         if (value is not DateOnly birthDate)
         {
             return new ValidationResult("Nieprawidłowy format daty.");

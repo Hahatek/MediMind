@@ -9,7 +9,7 @@ public class User
     public string? PasswordHash  { get; set; }
     public string FirstName { get; set; }
     public string LastName { get; set; }
-    public DateOnly? BirthDate { get; set; }
+    public DateOnly BirthDate { get; set; } // wymagana: z niej liczymy AgeCategory (AccessService)
     public Gender? Gender { get; set; }
     public double? Height { get; set; }
     public double? Weight { get; set; }

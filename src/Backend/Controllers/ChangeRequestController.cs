@@ -15,12 +15,12 @@ namespace Backend.Controllers;
 public class ChangeRequestController : ControllerBase
 {
     private readonly AppDbContext _context;
-    private readonly IFamilyAccessService _familyAccessService;
-    
-    public ChangeRequestController(AppDbContext context, IFamilyAccessService familyAccessService)
+    private readonly IAccessService _accessService;
+
+    public ChangeRequestController(AppDbContext context, IAccessService accessService)
     {
         _context = context;
-        _familyAccessService = familyAccessService;
+        _accessService = accessService;
     }
     
     [HttpPost]
@@ -35,9 +35,7 @@ public class ChangeRequestController : ControllerBase
             return NotFound($"Nie znaleziono badania o id {dto.ExaminationId}");
         }
 
-        var visibleUserId = await _familyAccessService.GetVisibleUserIdsAsync(userId);
-
-        if (!visibleUserId.Contains(examination.UserId))
+        if (!await _accessService.CanRead(userId, examination.UserId))
         {
             return Forbid();
         }
@@ -171,9 +169,8 @@ public class ChangeRequestController : ControllerBase
             return NotFound("Nie znaleziono wniosku");
         }
 
-        var isOwner = changeRequest.Examination.UserId == userId;
-        var isParent = await _familyAccessService.IsParentOfChildAsync(userId, changeRequest.Examination.UserId);
-        if (!isOwner && !isParent)
+        // Recenzuje ten, kto może zarządzać badaniem (właściciel poza dzieckiem albo opiekun)
+        if (!await _accessService.CanManage(userId, changeRequest.Examination.UserId))
         {
             return NotFound("Nie znaleziono wniosku");
         }

@@ -15,16 +15,16 @@ namespace Backend.Controllers;
 public class MedicationIntakeController : ControllerBase
 {
     private readonly AppDbContext _context;
-    private readonly IFamilyAccessService _familyAccessService;
+    private readonly IAccessService _accessService;
 
-    public MedicationIntakeController(AppDbContext context, IFamilyAccessService familyAccessService)
+    public MedicationIntakeController(AppDbContext context, IAccessService accessService)
     {
         _context = context;
-        _familyAccessService = familyAccessService;
+        _accessService = accessService;
     }
 
     // Zaznacza przyjęcie (albo pominięcie) konkretnej dawki danego dnia.
-    // Celowo BEZ blokady roli Child — dziecko może zaznaczyć przyjęcie WŁASNEGO leku,
+    // CanRecordIntake, nie CanManage — dziecko może zaznaczyć przyjęcie WŁASNEGO leku,
     // mimo że nie może zarządzać samym lekiem (patrz MedicationController).
     [HttpPost]
     public async Task<ActionResult<ResponseMedicationIntakeDto>> PostMedicationIntake(CreateMedicationIntakeDto dto)
@@ -39,11 +39,10 @@ public class MedicationIntakeController : ControllerBase
             return NotFound($"Nie znaleziono harmonogramu o id {dto.MedicationScheduleId}");
         }
 
-        var isOwner = schedule.Medication.UserId == userId;
-        var isParent = await _familyAccessService.IsParentOfChildAsync(userId, schedule.Medication.UserId);
-        if (!isOwner && !isParent)
+        var denied = await this.CheckCanRecordIntakeAsync(_accessService, userId, schedule.Medication.UserId, $"Nie znaleziono dawki leku o id {dto.MedicationScheduleId}");
+        if (denied != null)
         {
-            return NotFound($"Nie znaleziono dawki leku o id {dto.MedicationScheduleId}");
+            return denied;
         }
 
         if (!dto.Date.HasValue)
@@ -128,11 +127,10 @@ public class MedicationIntakeController : ControllerBase
             return NotFound($"Nie znaleziono wpisu o id {id}");
         }
         
-        var isOwner = intake.UserId == userId;
-        var isParent = await _familyAccessService.IsParentOfChildAsync(userId, intake.UserId);
-        if (!isOwner && !isParent)
+        var denied = await this.CheckCanRecordIntakeAsync(_accessService, userId, intake.UserId, "Nie znaleziono dawki leku");
+        if (denied != null)
         {
-            return NotFound($"Nie znaleziono dawki leku");
+            return denied;
         }
 
         // Cofnąć można tylko dawkę z tego samego okna co przy potwierdzaniu — starsza historia jest chroniona
@@ -154,13 +152,9 @@ public class MedicationIntakeController : ControllerBase
         var callerId = this.GetUserId();
         var targetUserId = userId ?? callerId;
 
-        if (targetUserId != callerId)
+        if (!await _accessService.CanRead(callerId, targetUserId))
         {
-            var visibleUserIds = await _familyAccessService.GetVisibleUserIdsAsync(callerId);
-            if (!visibleUserIds.Contains(targetUserId))
-            {
-                return Forbid();
-            }
+            return Forbid();
         }
 
         var rangeTo = to ?? DateOnly.FromDateTime(DateTime.UtcNow);
@@ -180,13 +174,9 @@ public class MedicationIntakeController : ControllerBase
         var callerId = this.GetUserId();
         var targetUserId = userId ?? callerId;
 
-        if (targetUserId != callerId)
+        if (!await _accessService.CanRead(callerId, targetUserId))
         {
-            var visibleUserIds = await _familyAccessService.GetVisibleUserIdsAsync(callerId);
-            if (!visibleUserIds.Contains(targetUserId))
-            {
-                return Forbid();
-            }
+            return Forbid();
         }
 
         if (!date.HasValue)
@@ -242,10 +232,10 @@ public class MedicationIntakeController : ControllerBase
     public async Task<ActionResult<ResponseMedicationIntakeDto>> GetMedicationIntake(Guid id)
     {
         var callerId = this.GetUserId();
-        var visibleUserIds = await _familyAccessService.GetVisibleUserIdsAsync(callerId);
+        var readableUserIds = await _accessService.GetReadableUserIds(callerId);
 
         var intake = await _context.MedicationIntakes
-            .FirstOrDefaultAsync(mi => mi.Id == id && visibleUserIds.Contains(mi.UserId));
+            .FirstOrDefaultAsync(mi => mi.Id == id && readableUserIds.Contains(mi.UserId));
        
         if (intake == null)
         {
