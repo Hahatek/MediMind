@@ -296,77 +296,19 @@ public class GoogleCalendarService : IGoogleCalendarService
         try
         {
             var calendarService = await GetCalendarServiceForUserAsync(schedule.Medication.UserId);
-            
-            DateOnly scheduleDate;
-            if (schedule.Medication.StartDate.HasValue)
-            {
-                scheduleDate = schedule.Medication.StartDate.Value;
-            }
-            else
-            {
-                scheduleDate = DateOnly.FromDateTime(DateTime.Today);
-            }
 
-            TimeOnly scheduleTime;
-            if (schedule.Time.HasValue)
-            {
-                scheduleTime = schedule.Time.Value;
-            }
-            else
-            {
-                if (schedule.TimeOfDay == MedicationTime.Morning)
-                {
-                    scheduleTime = new TimeOnly(8, 0);
-                }
-                else if (schedule.TimeOfDay == MedicationTime.Afternoon)
-                {
-                    scheduleTime = new TimeOnly(12, 0);
-                }
-                else if (schedule.TimeOfDay == MedicationTime.Evening)
-                {
-                    scheduleTime = new TimeOnly(20, 0);
-                }
-                else
-                {
-                    scheduleTime = new TimeOnly(22, 0);
-                }
-            }
-            
-            
-            DateTime startDateTime = scheduleDate.ToDateTime(scheduleTime);
-            
-            var endDateTime = startDateTime.AddMinutes(30);
-            
-            string recurrenceRule;
-            if (schedule.Medication.EndDate.HasValue)
-            {
-                var untilDate = schedule.Medication.EndDate.Value.ToString("yyyyMMdd");
-                recurrenceRule = $"RRULE:FREQ=DAILY;UNTIL={untilDate}T235959Z";
-            }
-            else
-            {
-                recurrenceRule = "RRULE:FREQ=DAILY";
-            }
-            
-            var newEvent = new Event
-            {
-                Summary = schedule.Medication.Name,
-                Description = $"Dawka: {schedule.Medication.Dose}",
-                Recurrence = new List<string> { recurrenceRule },
+            // Bez StartDate seria zaczyna się w dniu utworzenia wydarzenia; przy aktualizacji ten dzień
+            // jest odczytywany z istniejącego wydarzenia, żeby początek serii się nie przesuwał
+            var seriesStart = schedule.Medication.StartDate ?? DateOnly.FromDateTime(DateTime.Today);
 
-                Start = new EventDateTime
-                {
-                    DateTimeDateTimeOffset =
-                        new DateTimeOffset(startDateTime, TimeZoneInfo.Local.GetUtcOffset(startDateTime)),
-                    TimeZone = "Europe/Warsaw"
-                },
-                End = new EventDateTime
-                {
-                    DateTimeDateTimeOffset =
-                        new DateTimeOffset(endDateTime, TimeZoneInfo.Local.GetUtcOffset(endDateTime)),
-                    TimeZone = "Europe/Warsaw"
-                }
-            };
+            var newEvent = BuildMedicationEvent(schedule, seriesStart);
+            if (newEvent == null)
+            {
+                // Lek zakończony/odstawiony przed początkiem serii — nie ma czego dodawać do kalendarza
+                schedule.SyncStatus = GoogleSyncStatus.Synced;
+                schedule.LastSyncError = null;
+                return new GoogleSyncResult(true, null, null);
+            }
 
             var request = calendarService.Events.Insert(newEvent, "primary");
             var createdEvent = await request.ExecuteAsync();
@@ -395,77 +337,27 @@ public class GoogleCalendarService : IGoogleCalendarService
        try
         {
             var calendarService = await GetCalendarServiceForUserAsync(schedule.Medication.UserId);
-            
-            DateOnly scheduleDate;
+
+            DateOnly seriesStart;
             if (schedule.Medication.StartDate.HasValue)
             {
-                scheduleDate = schedule.Medication.StartDate.Value;
+                seriesStart = schedule.Medication.StartDate.Value;
             }
             else
             {
-                scheduleDate = DateOnly.FromDateTime(DateTime.Today);
+                var existingEvent = await calendarService.Events.Get("primary", schedule.GoogleEventId).ExecuteAsync();
+                var existingStart = existingEvent.Start?.DateTimeDateTimeOffset;
+                seriesStart = existingStart.HasValue
+                    ? DateOnly.FromDateTime(existingStart.Value.DateTime)
+                    : DateOnly.FromDateTime(DateTime.Today);
             }
 
-            TimeOnly scheduleTime;
-            if (schedule.Time.HasValue)
+            var newEvent = BuildMedicationEvent(schedule, seriesStart);
+            if (newEvent == null)
             {
-                scheduleTime = schedule.Time.Value;
+                // Po zmianie dat seria nie ma już żadnego wystąpienia — usuwamy wydarzenie
+                return await DeleteEventAsyncMedicationSchedule(schedule);
             }
-            else
-            {
-                if (schedule.TimeOfDay == MedicationTime.Morning)
-                {
-                    scheduleTime = new TimeOnly(8, 0);
-                }
-                else if (schedule.TimeOfDay == MedicationTime.Afternoon)
-                {
-                    scheduleTime = new TimeOnly(12, 0);
-                }
-                else if (schedule.TimeOfDay == MedicationTime.Evening)
-                {
-                    scheduleTime = new TimeOnly(20, 0);
-                }
-                else
-                {
-                    scheduleTime = new TimeOnly(22, 0);
-                }
-            }
-            
-            
-            DateTime startDateTime = scheduleDate.ToDateTime(scheduleTime);
-            
-            var endDateTime = startDateTime.AddMinutes(30);
-            
-            string recurrenceRule;
-            if (schedule.Medication.EndDate.HasValue)
-            {
-                var untilDate = schedule.Medication.EndDate.Value.ToString("yyyyMMdd");
-                recurrenceRule = $"RRULE:FREQ=DAILY;UNTIL={untilDate}T235959Z";
-            }
-            else
-            {
-                recurrenceRule = "RRULE:FREQ=DAILY";
-            }
-            
-            var newEvent = new Event
-            {
-                Summary = schedule.Medication.Name,
-                Description = $"Dawka: {schedule.Medication.Dose}",
-                Recurrence = new List<string> { recurrenceRule },
-
-                Start = new EventDateTime
-                {
-                    DateTimeDateTimeOffset =
-                        new DateTimeOffset(startDateTime, TimeZoneInfo.Local.GetUtcOffset(startDateTime)),
-                    TimeZone = "Europe/Warsaw"
-                },
-                End = new EventDateTime
-                {
-                    DateTimeDateTimeOffset =
-                        new DateTimeOffset(endDateTime, TimeZoneInfo.Local.GetUtcOffset(endDateTime)),
-                    TimeZone = "Europe/Warsaw"
-                }
-            };
 
             var request = calendarService.Events.Update(newEvent, "primary", schedule.GoogleEventId);
             var createdEvent = await request.ExecuteAsync();
@@ -482,6 +374,97 @@ public class GoogleCalendarService : IGoogleCalendarService
 
             return new GoogleSyncResult(false, e.Message, null);
         }
+    }
+
+    // Buduje codzienną serię dla jednej pory leku. Zwraca null, gdy seria nie ma żadnego wystąpienia.
+    private static Event? BuildMedicationEvent(MedicationSchedule schedule, DateOnly seriesStart)
+    {
+        var medication = schedule.Medication;
+
+        TimeOnly scheduleTime;
+        if (schedule.Time.HasValue)
+        {
+            scheduleTime = schedule.Time.Value;
+        }
+        else
+        {
+            if (schedule.TimeOfDay == MedicationTime.Morning)
+            {
+                scheduleTime = new TimeOnly(8, 0);
+            }
+            else if (schedule.TimeOfDay == MedicationTime.Afternoon)
+            {
+                scheduleTime = new TimeOnly(12, 0);
+            }
+            else if (schedule.TimeOfDay == MedicationTime.Evening)
+            {
+                scheduleTime = new TimeOnly(20, 0);
+            }
+            else
+            {
+                scheduleTime = new TimeOnly(22, 0);
+            }
+        }
+
+        // Ostatni dzień przyjmowania: EndDate albo dzień przed odstawieniem (co nastąpi wcześniej)
+        DateOnly? lastDay = medication.EndDate;
+        if (medication.DiscontinuedOn.HasValue)
+        {
+            var dayBeforeDiscontinued = medication.DiscontinuedOn.Value.AddDays(-1);
+            if (lastDay == null || dayBeforeDiscontinued < lastDay)
+            {
+                lastDay = dayBeforeDiscontinued;
+            }
+        }
+
+        if (lastDay.HasValue && lastDay.Value < seriesStart)
+        {
+            return null;
+        }
+
+        string recurrenceRule;
+        if (lastDay.HasValue)
+        {
+            // UNTIL musi być w UTC — koniec ostatniego dnia czasu lokalnego przeliczony na UTC
+            var lastMoment = lastDay.Value.ToDateTime(new TimeOnly(23, 59, 59));
+            var untilUtc = new DateTimeOffset(lastMoment, TimeZoneInfo.Local.GetUtcOffset(lastMoment)).UtcDateTime;
+            recurrenceRule = $"RRULE:FREQ=DAILY;UNTIL={untilUtc:yyyyMMdd'T'HHmmss'Z'}";
+        }
+        else
+        {
+            recurrenceRule = "RRULE:FREQ=DAILY";
+        }
+
+        DateTime startDateTime = seriesStart.ToDateTime(scheduleTime);
+        var endDateTime = startDateTime.AddMinutes(30);
+
+        // np. "Augmentin 875/125 mg\n1 tabletka"
+        var amount = schedule.Amount.ToString("0.##", new System.Globalization.CultureInfo("pl-PL"));
+        var description = $"{medication.Name} {medication.Strength}".TrimEnd() + $"\n{amount} {medication.Form}";
+        if (!string.IsNullOrWhiteSpace(medication.Notes))
+        {
+            description += $"\n{medication.Notes}";
+        }
+
+        return new Event
+        {
+            Summary = medication.Name,
+            Description = description,
+            Recurrence = new List<string> { recurrenceRule },
+
+            Start = new EventDateTime
+            {
+                DateTimeDateTimeOffset =
+                    new DateTimeOffset(startDateTime, TimeZoneInfo.Local.GetUtcOffset(startDateTime)),
+                TimeZone = "Europe/Warsaw"
+            },
+            End = new EventDateTime
+            {
+                DateTimeDateTimeOffset =
+                    new DateTimeOffset(endDateTime, TimeZoneInfo.Local.GetUtcOffset(endDateTime)),
+                TimeZone = "Europe/Warsaw"
+            }
+        };
     }
 
     public async Task<GoogleSyncResult> DeleteEventAsyncMedicationSchedule(MedicationSchedule schedule)

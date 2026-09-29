@@ -127,7 +127,7 @@ export default function ExaminationsListScreen({ navigation }: Props) {
   ].filter((section) => section.data.length > 0);
 
   return (
-    <SafeAreaView className="flex-1" edges={["bottom", "left", "right"]}>
+    <SafeAreaView className="flex-1 mt-4" edges={["bottom", "left", "right"]}>
       {error && <ErrorState message={error} onRetry={load} />}
       <View>
         <SegmentedControl options={TABS} value={tab} onChange={setTab} />

@@ -23,6 +23,11 @@ type Props = {
   navigation: NativeStackNavigationProp<ExaminationStack, "DodajBadanie">;
 };
 
+const cycleUnits = [
+  { value: "months", label: cycleUnitLabels.months },
+  { value: "years", label: cycleUnitLabels.years },
+] as const satisfies readonly { value: CycleUnit; label: string }[];
+
 export default function ExaminationAddScreen({ navigation }: Props) {
   const [step, setStep] = useState<1 | 2>(1);
   const [nameTextExamination, setNameTextExamination] = useState("");
@@ -164,7 +169,7 @@ export default function ExaminationAddScreen({ navigation }: Props) {
 
             {info && <Text className="text-danger">{info}</Text>}
           </View>
-          <View className="ml-[200px]">
+          <View className="w-full">
             <Button
               title={"Dalej"}
               iconLeft={ChevronRight}
@@ -234,21 +239,21 @@ export default function ExaminationAddScreen({ navigation }: Props) {
                   }
                 />
               </View>
-              {(Object.keys(cycleUnitLabels) as CycleUnit[]).map((unit) => (
+              {cycleUnits.map(({ value, label }) => (
                 <Pressable
-                  key={unit}
-                  accessibilityLabel={cycleUnitLabels[unit]}
-                  onPress={() => setCycleUnitExamination(unit)}
-                  className={`mb-4 px-4 py-3 rounded-2xl border ${unit === cycleUnitExamination ? "bg-primary border-primary" : "border-input-border"}`}
+                  key={value}
+                  accessibilityLabel={label}
+                  onPress={() => setCycleUnitExamination(value)}
+                  className={`mb-4 px-4 py-3 rounded-2xl border ${value === cycleUnitExamination ? "bg-primary border-primary" : "border-input-border"}`}
                 >
                   <Text
                     className={
-                      unit === cycleUnitExamination
+                      value === cycleUnitExamination
                         ? "text-primary-foreground"
                         : "text-foreground"
                     }
                   >
-                    {cycleUnitLabels[unit]}
+                    {label}
                   </Text>
                 </Pressable>
               ))}

@@ -53,20 +53,34 @@ public class MedicationIntakeController : ControllerBase
 
         var date = dto.Date.Value;
 
-        var todayUtc = DateOnly.FromDateTime(DateTime.UtcNow);
-        if (date < todayUtc.AddDays(-1) || date > todayUtc.AddDays(1))
+        if (!IsInConfirmWindow(date))
         {
             return BadRequest("Można potwierdzić tylko dawkę z dzisiejszego dnia");
+        }
+
+        if (schedule.Medication.GetStatusOn(date) != MedicationStatus.Active)
+        {
+            return BadRequest("Ten lek nie jest przyjmowany w tym dniu");
         }
 
         var existing = await _context.MedicationIntakes
             .FirstOrDefaultAsync(mi => mi.MedicationScheduleId == dto.MedicationScheduleId && mi.Date == date);
         if (existing != null)
         {
+            // Ten sam status = powtórzone kliknięcie, zwracamy wpis bez zmian (idempotencja).
+            // Inny status (Skipped -> Taken albo Taken -> Skipped) = poprawka użytkownika, aktualizujemy ten sam wpis.
+            // ScheduledTime i ScheduledAmount zostają z pierwszego zapisu — to wciąż ta sama dawka.
+            if (existing.Status != dto.Status)
+            {
+                existing.Status = dto.Status;
+                existing.RecordedAt = DateTime.UtcNow;
+                existing.RecordedByUserId = userId;
+                await _context.SaveChangesAsync();
+            }
+
             return Ok(ToResponseDto(existing));
         }
-        
-        
+
         var intake = new MedicationIntake
         {
             Id = Guid.NewGuid(),
@@ -76,7 +90,8 @@ public class MedicationIntakeController : ControllerBase
             Status = dto.Status,
             RecordedAt = DateTime.UtcNow,
             RecordedByUserId = userId,
-
+            ScheduledTime = schedule.Time,
+            ScheduledAmount = schedule.Amount,
         };
         _context.MedicationIntakes.Add(intake);
 
@@ -118,6 +133,12 @@ public class MedicationIntakeController : ControllerBase
         if (!isOwner && !isParent)
         {
             return NotFound($"Nie znaleziono dawki leku");
+        }
+
+        // Cofnąć można tylko dawkę z tego samego okna co przy potwierdzaniu — starsza historia jest chroniona
+        if (!IsInConfirmWindow(intake.Date))
+        {
+            return BadRequest("Można cofnąć tylko dawkę z dzisiejszego dnia");
         }
 
         _context.MedicationIntakes.Remove(intake);
@@ -175,19 +196,18 @@ public class MedicationIntakeController : ControllerBase
 
         var day = date.Value;
 
-        var todayUtc = DateOnly.FromDateTime(DateTime.UtcNow);
-
-        if (date < todayUtc.AddDays(-1) || date > todayUtc.AddDays(1))
+        if (!IsInConfirmWindow(day))
         {
             return BadRequest("Można potwierdzić tylko dawkę z dzisiejszego dnia");
         }
         
-        var schedules = await _context.MedicationSchedules
+        // Aktywność liczona w pamięci przez Medication.GetStatusOn — ta sama reguła co lista leków i POST
+        var schedules = (await _context.MedicationSchedules
             .Include(ms => ms.Medication)
             .Where(ms => ms.Medication.UserId == targetUserId)
-            .Where(ms => (ms.Medication.StartDate == null || ms.Medication.StartDate <= day)
-                         && (ms.Medication.EndDate == null || ms.Medication.EndDate >= day))
-            .ToListAsync();
+            .ToListAsync())
+            .Where(ms => ms.Medication.GetStatusOn(day) == MedicationStatus.Active)
+            .ToList();
 
         var scheduleIds = schedules.Select(s => s.Id).ToList();
         var todaysIntakes = await _context.MedicationIntakes
@@ -202,6 +222,10 @@ public class MedicationIntakeController : ControllerBase
                 MedicationScheduleId = s.Id,
                 MedicationId = s.MedicationId,
                 MedicationName = s.Medication.Name,
+                Strength = s.Medication.Strength,
+                Form = s.Medication.Form,
+                Notes = s.Medication.Notes,
+                Amount = s.Amount,
                 TimeOfDay = s.TimeOfDay,
                 Time = s.Time,
                 Status = intake == null
@@ -231,6 +255,14 @@ public class MedicationIntakeController : ControllerBase
         return Ok(ToResponseDto(intake));
     }
     
+    // Data z telefonu może różnić się od dzisiejszej daty UTC o jeden dzień (strefy czasowe),
+    // dlatego dopuszczamy ±1 dzień. Wspólne dla POST, DELETE i /today.
+    private static bool IsInConfirmWindow(DateOnly date)
+    {
+        var todayUtc = DateOnly.FromDateTime(DateTime.UtcNow);
+        return date >= todayUtc.AddDays(-1) && date <= todayUtc.AddDays(1);
+    }
+
     private static ResponseMedicationIntakeDto ToResponseDto(MedicationIntake mi)
     {
         return new ResponseMedicationIntakeDto
@@ -241,7 +273,9 @@ public class MedicationIntakeController : ControllerBase
             Date = mi.Date,
             Status = mi.Status,
             RecordedAt = mi.RecordedAt,
-            RecordedByUserId = mi.RecordedByUserId
+            RecordedByUserId = mi.RecordedByUserId,
+            ScheduledTime = mi.ScheduledTime,
+            ScheduledAmount = mi.ScheduledAmount,
         };
     }
 }

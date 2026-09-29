@@ -1,4 +1,4 @@
-﻿using Backend.Helpers;
+using Backend.Helpers;
 
 namespace Backend.DTOs.MedicationSchedule;
 
@@ -8,4 +8,5 @@ public class ResponseMedicationScheduleDto
     public Guid MedicationId { get; set; }
     public MedicationTime TimeOfDay { get; set; }
     public TimeOnly? Time { get; set; }
+    public decimal Amount { get; set; }
 }
