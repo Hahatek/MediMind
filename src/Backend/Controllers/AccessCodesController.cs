@@ -44,8 +44,22 @@ public class AccessCodesController : ControllerBase
             return BadRequest("Ten profil ma już konto");
         }
         
-        var (entity, code) = await _accessCodeService.GenerateAsync(userId, actionType, callerId);
+        if (actionType == CodeActionType.ClaimProfile)
+        {
+            var birthDate = await _context.Users
+                .Where(u => u.Id == userId)
+                .Select(u => u.BirthDate)
+                .FirstAsync();
 
+            var age = AgeCategoryCalculator.Calculate(birthDate, PolandClock.Today());
+
+            if (age == AgeCategory.Child)
+            {
+                return BadRequest("Profil dziecka nie może mieć konta — użyj połączenia telefonu");
+            }
+        }
+        
+        var (entity, code) = await _accessCodeService.GenerateAsync(userId, actionType, callerId);
         
         return Ok(new AccessCodeDto
         {

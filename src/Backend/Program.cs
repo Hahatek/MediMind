@@ -8,6 +8,7 @@ using Microsoft.IdentityModel.Tokens;
 using System.Text.Json.Serialization;
 using Scalar.AspNetCore;
 using System.Threading.RateLimiting;
+using System.Security.Claims;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -64,14 +65,29 @@ if (accessCodeOptions.Secret.Length < AccessCodeOptions.MinSecretLength)
 
 builder.Services.AddSingleton(accessCodeOptions);
 builder.Services.AddScoped<IAccessCodeService, AccessCodeService>();
+builder.Services.AddScoped<IFamilyInviteService, FamilyInviteService>();
 
-// Limit prób użycia kodu: osobny licznik na każdy adres IP, okno 1 minuty. Po przekroczeniu -> 429.
+// Limit prób użycia kodu: okno 1 minuty, po przekroczeniu -> 429.
 builder.Services.AddRateLimiter(options =>
 {
     options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+
+    // Endpointy anonimowe (link-device, claim-profile): osobny licznik na każdy adres IP.
     options.AddPolicy(RateLimitPolicies.AccessCode, httpContext =>
         RateLimitPartition.GetFixedWindowLimiter(
             httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+            _ => new FixedWindowRateLimiterOptions
+            {
+                PermitLimit = accessCodeOptions.AttemptsPerMinute,
+                Window = TimeSpan.FromMinutes(1),
+                QueueLimit = 0,
+            }));
+
+    // Przyjęcie zaproszenia wymaga zalogowania: osobny licznik na każdego użytkownika (zmiana sieci go nie zeruje).
+    options.AddPolicy(RateLimitPolicies.FamilyInviteAccept, httpContext =>
+        RateLimitPartition.GetFixedWindowLimiter(
+            httpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value
+                ?? "ip:" + (httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown"),
             _ => new FixedWindowRateLimiterOptions
             {
                 PermitLimit = accessCodeOptions.AttemptsPerMinute,
