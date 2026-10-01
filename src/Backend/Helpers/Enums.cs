@@ -126,3 +126,9 @@ public enum AgeCategory
     Adult, 
     Senior,
 }
+
+public enum CodeActionType
+{
+    LinkDevice,
+    ClaimProfile
+}

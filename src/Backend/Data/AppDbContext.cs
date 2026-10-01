@@ -31,6 +31,10 @@ public class AppDbContext : DbContext
 
     public DbSet<RefreshToken> RefreshTokens { get; set; }
 
+    public DbSet<UserDevice> UserDevices { get; set; }
+
+    public DbSet<ProfileAccessCode> ProfileAccessCodes { get; set; }
+
     public DbSet<Guardianship> Guardianships { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -149,6 +153,27 @@ public class AppDbContext : DbContext
             .HasIndex(rt => rt.TokenHash)
             .IsUnique();
 
+        // UserDevice = "to urządzenie ma dostęp do tego profilu". Nie to samo co UserAccount:
+        // profil bez konta (np. dziecko) też może mieć urządzenie. Dostępu nie kasujemy, tylko ustawiamy RevokedAt.
+        modelBuilder.Entity<UserDevice>()
+            .HasOne(d => d.User)
+            .WithMany()
+            .HasForeignKey(d => d.UserId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<UserDevice>()
+            .HasIndex(d => d.UserId);
+
+        // Każdy RefreshToken należy do urządzenia. Odwołanie urządzenia unieważnia cały łańcuch jego tokenów.
+        modelBuilder.Entity<RefreshToken>()
+            .HasOne(rt => rt.Device)
+            .WithMany()
+            .HasForeignKey(rt => rt.DeviceId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<RefreshToken>()
+            .HasIndex(rt => rt.DeviceId);
+
         modelBuilder.Entity<User>()
             .HasIndex(u => u.Email)
             .IsUnique();
@@ -201,7 +226,37 @@ public class AppDbContext : DbContext
         modelBuilder.Entity<MedicationIntake>()
             .HasOne<User>()                              
             .WithMany()                                  
-            .HasForeignKey(mi => mi.RecordedByUserId)    
-            .OnDelete(DeleteBehavior.SetNull);       
+            .HasForeignKey(mi => mi.RecordedByUserId)
+            .OnDelete(DeleteBehavior.SetNull);
+
+        // ProfileAccessCode = jednorazowy kod dostępu do ISTNIEJĄCEGO profilu (LinkDevice / ClaimProfile).
+        // W bazie jest tylko HMAC kodu. Wiersze są krótkotrwałe, więc znikają razem z osobą (Cascade po obu stronach).
+        modelBuilder.Entity<ProfileAccessCode>(c =>
+        {
+            c.Property(x => x.CodeHash).HasMaxLength(64);
+
+            c.HasOne(x => x.TargetUser)
+                .WithMany()
+                .HasForeignKey(x => x.TargetUserId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            c.HasOne(x => x.CreatedByUser)
+                .WithMany()
+                .HasForeignKey(x => x.CreatedByUserId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // "Żywy" kod = niezużyty i nieunieważniony. Wygasłe unieważnia usługa przy generowaniu nowego.
+            // Najwyżej jeden żywy kod na parę (profil, cel) — nowy unieważnia poprzedni.
+            c.HasIndex(x => new { x.TargetUserId, x.ActionType })
+                .IsUnique()
+                .HasFilter("\"ConsumedAt\" IS NULL AND \"RevokedAt\" IS NULL")
+                .HasDatabaseName("IX_ProfileAccessCodes_Target_ActionType_Live");
+
+            // Kodu szukamy po samym HMAC, więc wśród żywych kodów nie może być dwóch takich samych.
+            c.HasIndex(x => x.CodeHash)
+                .IsUnique()
+                .HasFilter("\"ConsumedAt\" IS NULL AND \"RevokedAt\" IS NULL")
+                .HasDatabaseName("IX_ProfileAccessCodes_CodeHash_Live");
+        });
     }
 }

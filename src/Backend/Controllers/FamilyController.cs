@@ -313,6 +313,87 @@ public class FamilyController : ControllerBase
         return NoContent();
     }
 
+    [HttpPost("{familyId}/profiles")]
+    public async Task<ActionResult<FamilyMembershipDto>> CreateManagedProfile(Guid familyId,
+        CreateManagedProfileDto dto)
+    {
+        var callerId = this.GetUserId();
+
+        if (this.GetUserRole() == RoleUser.Child)
+        {
+            return Forbid();
+        }
+
+        var canCreate = await _context.FamilyMemberships
+            .AnyAsync(m => m.FamilyId == familyId && m.UserId == callerId && (m.IsOwner || m.IsParent));
+        if (!canCreate)
+        {
+            return Forbid();
+        }
+
+        var userBirthDate = dto.BirthDate!.Value;
+        var category = AgeCategoryCalculator.Calculate(userBirthDate, PolandClock.Today());
+        
+        RoleUser role;
+        if (category == AgeCategory.Child)
+        {
+            role = RoleUser.Child;
+        }
+       else if (category == AgeCategory.Adult)
+       {
+           role = RoleUser.Adult;
+       }
+       else
+        {
+            role = RoleUser.Senior;
+        }
+
+        
+        var user = new User()
+        {
+            Id = Guid.NewGuid(),
+            FirstName = dto.FirstName,
+            LastName = dto.LastName,
+            BirthDate = userBirthDate,
+            Role = role
+            
+        };
+        
+        var membership = new FamilyMembership()
+        {
+            Id = Guid.NewGuid(),
+            FamilyId = familyId,
+            UserId = user.Id,
+            IsOwner = false,
+            IsParent = false,
+            CreatedAt = DateTime.UtcNow
+        };
+
+        var guardianShip = new Guardianship()
+        {
+            Id = Guid.NewGuid(),
+            GuardianUserId = callerId,
+            WardUserId =  user.Id,
+            IsPrimary = true,
+            CreatedAt = DateTime.UtcNow
+        };
+
+    
+        _context.Users.Add(user);
+        _context.FamilyMemberships.Add(membership);
+        _context.Guardianships.Add(guardianShip);
+        
+        await _context.SaveChangesAsync();
+
+        return Ok(new FamilyMembershipDto{UserId = user.Id,
+            FirstName = user.FirstName,
+            LastName = user.LastName,
+            IsOwner = membership.IsOwner,
+            IsParent = membership.IsParent
+            
+        });
+    }
+
     
     private static ResponseFamilyDto ToResponseDto(Family f) =>
         new() { Id = f.Id, CreatedAt = f.CreatedAt };

@@ -16,7 +16,7 @@ export default function UserScreen({ onLogout }: Props) {
     async function load() {
       const userData = await getMe();
       setNameUser(userData.firstName);
-      setEmailUser(userData.email);
+      setEmailUser(userData.email ?? "");
     }
     load();
   }, []);
