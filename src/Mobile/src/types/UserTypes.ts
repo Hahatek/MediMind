@@ -24,7 +24,7 @@ export interface PatchUser {
 
 export interface UserResponse {
     id: string,
-    email: string,
+    email: string | null,   // null = profil bez konta (UserAccount)
     firstName: string,
     lastName: string,
     birthDate?: string | null,

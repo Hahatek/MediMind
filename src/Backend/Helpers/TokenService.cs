@@ -46,7 +46,7 @@ public class TokenService : ITokenService
         return new JwtSecurityTokenHandler().WriteToken(token);
     }
 
-    public async Task<(RefreshToken Entity, string RawToken)> GenerateRefreshTokenAsync(Guid userId)
+    public async Task<(RefreshToken Entity, string RawToken)> GenerateRefreshTokenAsync(Guid userId, Guid deviceId)
     {
         var rawToken = Convert.ToBase64String(RandomNumberGenerator.GetBytes(32));
 
@@ -54,6 +54,7 @@ public class TokenService : ITokenService
         {
             Id = Guid.NewGuid(),
             UserId = userId,
+            DeviceId = deviceId,
             TokenHash = HashRefreshToken(rawToken),
             IssuedAt = DateTime.UtcNow,
             ExpiresAt = DateTime.UtcNow.AddDays(15),

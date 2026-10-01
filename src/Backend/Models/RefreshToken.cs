@@ -9,4 +9,7 @@ public class RefreshToken
     public DateTime IssuedAt { get; set; }
     public DateTime ExpiresAt { get; set; }
     public DateTime? RevokedAt { get; set; }
+    
+    public Guid DeviceId { get; set; }
+    public UserDevice? Device { get; set; }
 }

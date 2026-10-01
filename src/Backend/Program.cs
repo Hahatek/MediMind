@@ -7,6 +7,7 @@ using Backend.Services;
 using Microsoft.IdentityModel.Tokens;
 using System.Text.Json.Serialization;
 using Scalar.AspNetCore;
+using System.Threading.RateLimiting;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -16,8 +17,6 @@ builder.Services.AddControllers()
         options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
     });
 
-// Add services to the container.
-// Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
 
 
@@ -26,7 +25,9 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 
 var jwtSettings = builder.Configuration.GetSection("JwtSettings").Get<JwtSettings>();
 if (jwtSettings is null)
+{
     throw new InvalidOperationException("Brak konfiguracji JwtSettings");
+}
 
 builder.Services.AddSingleton(jwtSettings);
 
@@ -55,6 +56,30 @@ builder.Services.AddScoped<IFamilyAccessService, FamilyAccessService>();
 builder.Services.AddScoped<IAccessService, AccessService>();
 builder.Services.AddScoped<IGoogleFitService, GoogleFitService>();
 
+var accessCodeOptions = builder.Configuration.GetSection("AccessCodes").Get<AccessCodeOptions>() ?? new AccessCodeOptions();
+if (accessCodeOptions.Secret.Length < AccessCodeOptions.MinSecretLength)
+{
+    throw new InvalidOperationException("Brak konfiguracji AccessCodes:Secret (min. 32 znaki) — ustaw przez user-secrets");
+}
+
+builder.Services.AddSingleton(accessCodeOptions);
+builder.Services.AddScoped<IAccessCodeService, AccessCodeService>();
+
+// Limit prób użycia kodu: osobny licznik na każdy adres IP, okno 1 minuty. Po przekroczeniu -> 429.
+builder.Services.AddRateLimiter(options =>
+{
+    options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+    options.AddPolicy(RateLimitPolicies.AccessCode, httpContext =>
+        RateLimitPartition.GetFixedWindowLimiter(
+            httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+            _ => new FixedWindowRateLimiterOptions
+            {
+                PermitLimit = accessCodeOptions.AttemptsPerMinute,
+                Window = TimeSpan.FromMinutes(1),
+                QueueLimit = 0,
+            }));
+});
+
 builder.Services.Configure<GoogleFitOptions>(
     builder.Configuration.GetSection("GoogleFit"));
 
@@ -69,7 +94,6 @@ var app = builder.Build();
 
 app.UseExceptionHandler();
 
-// Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
@@ -83,6 +107,8 @@ if (!app.Environment.IsDevelopment())
 
 app.UseAuthentication();
 app.UseAuthorization();
+
+app.UseRateLimiter();
 
 app.MapControllers();
 

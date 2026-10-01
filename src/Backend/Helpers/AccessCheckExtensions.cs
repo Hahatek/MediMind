@@ -30,6 +30,23 @@ public static class AccessCheckExtensions
         return await ForbidOrNotFoundAsync(controller, accessService, callerId, ownerUserId, notFoundMessage);
     }
 
+    // Operacje zastrzeżone dla opiekuna Primary (opiekunowie, kody dostępu). 404 bez treści: nie zdradzamy, że profil istnieje.
+    public static async Task<ActionResult?> CheckIsPrimaryGuardianAsync(this ControllerBase controller,
+        IAccessService accessService, Guid callerId, Guid wardId)
+    {
+        if (await accessService.IsPrimaryGuardian(callerId, wardId))
+        {
+            return null;
+        }
+
+        if (await accessService.CanRead(callerId, wardId))
+        {
+            return controller.Forbid();
+        }
+
+        return controller.NotFound();
+    }
+
     private static async Task<ActionResult> ForbidOrNotFoundAsync(ControllerBase controller,
         IAccessService accessService, Guid callerId, Guid ownerUserId, string notFoundMessage)
     {
