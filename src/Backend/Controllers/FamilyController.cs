@@ -5,6 +5,7 @@ using Backend.Models;
 using Backend.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 
 namespace Backend.Controllers;
@@ -17,11 +18,13 @@ public class FamilyController : ControllerBase
     
     private readonly AppDbContext _context; 
     private readonly IFamilyAccessService _familyAccessService;
-    
-    public FamilyController(AppDbContext context, IFamilyAccessService familyAccessService)
+    private readonly IFamilyInviteService _familyInviteService;
+
+    public FamilyController(AppDbContext context, IFamilyAccessService familyAccessService, IFamilyInviteService familyInviteService)
     {
         _context = context;
         _familyAccessService = familyAccessService;
+        _familyInviteService = familyInviteService;
     }
 
     [HttpPost]
@@ -56,40 +59,96 @@ public class FamilyController : ControllerBase
     {
         var userId = this.GetUserId();
 
-        if (this.GetUserRole() == RoleUser.Child)
+        var birthDate = await _context.Users
+            .Where(u => u.Id == userId)
+            .Select(u => u.BirthDate)
+            .FirstAsync();
+
+        var age = AgeCategoryCalculator.Calculate(birthDate, PolandClock.Today());
+
+        if (age == AgeCategory.Child)
         {
             return Forbid();
         }
 
         var canInvite = await _context.FamilyMemberships
             .AnyAsync(m => m.FamilyId == familyId && m.UserId == userId && (m.IsOwner || m.IsParent));
+        
         if (!canInvite)
         {
             return Forbid();
         }
 
-        var invite = new FamilyInvite
-        {
-            Id = Guid.NewGuid(),
-            FamilyId = familyId,
-            CreatedByUserId = userId,
-            CreatedAt = DateTime.UtcNow,
-            ExpiresAt = DateTime.UtcNow.AddDays(7),
-        };
-        _context.FamilyInvites.Add(invite);
-        await _context.SaveChangesAsync();
-
-        return Ok(ToResponseInviteDto(invite));
+        var (invite, code) = await _familyInviteService.GenerateAsync(familyId, userId);
+        
+        return Ok(ToResponseInviteDto(invite, code));
     }
 
-    [HttpPost("invites/{inviteId}/accept")]
-    public async Task<IActionResult> AcceptInvite(Guid inviteId)
+    [HttpDelete("{familyId}/invites/{inviteId}")]
+    public async Task<IActionResult> CancelInvite(Guid familyId, Guid inviteId)
+    {
+        var userId = this.GetUserId();
+        
+        var canInvite = await _context.FamilyMemberships
+            .AnyAsync(m => m.FamilyId == familyId && m.UserId == userId && (m.IsOwner || m.IsParent));
+        
+        if (!canInvite)
+        {
+            return Forbid();
+        }
+
+        var invite = await _context.FamilyInvites.FirstOrDefaultAsync(i => i.Id == inviteId && i.FamilyId == familyId);
+
+        if (invite == null)
+        {
+            return NotFound();
+        }
+        
+        if (invite.RevokedAt != null)
+        {
+            return NoContent();
+        }
+
+        if (invite.ConsumedAt != null)
+        {
+            return Conflict("Zaproszenie zostało już wykorzystane");
+        }
+        
+        invite.RevokedAt = DateTime.UtcNow;
+
+        await _context.SaveChangesAsync();
+        
+        return NoContent();
+    }
+
+    [EnableRateLimiting(RateLimitPolicies.FamilyInviteAccept)]
+    [HttpPost("invites/accept")]
+    public async Task<IActionResult> AcceptInvite(AcceptInviteDto dto)
     {
         var userId = this.GetUserId();
 
-        var invite = await _context.FamilyInvites.FirstOrDefaultAsync(i => i.Id == inviteId);
+        var hasAccount = await _context.UserAccounts.AnyAsync(a => a.UserId == userId);
+        if (!hasAccount)
+        {
+            return Forbid();
+        }
 
-        if (invite == null || invite.RevokedAt != null || invite.ExpiresAt < DateTime.UtcNow)
+        var birthDate = await _context.Users
+            .Where(u => u.Id == userId)
+            .Select(u => u.BirthDate)
+            .FirstAsync();
+
+        var age = AgeCategoryCalculator.Calculate(birthDate, PolandClock.Today());
+
+        if (age == AgeCategory.Child)
+        {
+            return Forbid();
+        }
+
+        await using var transaction = await _context.Database.BeginTransactionAsync();
+
+        var invite = await _familyInviteService.ConsumeAsync(dto.Code, userId);
+        if (invite == null)
         {
             return NotFound("Zaproszenie jest nieprawidłowe lub wygasło");
         }
@@ -111,6 +170,8 @@ public class FamilyController : ControllerBase
             CreatedAt = DateTime.UtcNow,
         });
         await _context.SaveChangesAsync();
+
+        await transaction.CommitAsync();
 
         return NoContent();
     }
@@ -398,6 +459,6 @@ public class FamilyController : ControllerBase
     private static ResponseFamilyDto ToResponseDto(Family f) =>
         new() { Id = f.Id, CreatedAt = f.CreatedAt };
 
-    private static ResponseFamilyInviteDto ToResponseInviteDto(FamilyInvite i) =>
-        new() { Id = i.Id, FamilyId = i.FamilyId, ExpiresAt = i.ExpiresAt };
+    private static ResponseFamilyInviteDto ToResponseInviteDto(FamilyInvite i, string code) =>
+        new() { Id = i.Id, FamilyId = i.FamilyId, Code = code, ExpiresAt = i.ExpiresAt };
 }

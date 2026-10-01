@@ -8,7 +8,10 @@ public class FamilyInvite
     public DateTime CreatedAt { get; set; }
     public DateTime ExpiresAt { get; set; }
     public DateTime? RevokedAt { get; set; }
-
     public Family Family { get; set; }
     public User CreatedBy { get; set; }
+    public string CodeHash { get; set; }
+    public DateTime? ConsumedAt { get; set; }
+    public Guid? ConsumedByUserId { get; set; }
+    public User? ConsumedByUser { get; set; }
 }

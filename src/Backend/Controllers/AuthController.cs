@@ -61,8 +61,7 @@ public class AuthController : ControllerBase
 
         var role = CalculateAgeForRole(dto.BirthDate);
 
-        // User = osoba, UserAccount = dane logowania. User.Email zapisujemy jeszcze tylko
-        // dlatego, że kolumna legacy jest wymagana (do etapu 4). User.PasswordHash już nie.
+     
         var user = new User
         {
             Id = Guid.NewGuid(),
@@ -252,5 +251,96 @@ public class AuthController : ControllerBase
             Token = token,
             RefreshToken = refreshToken
         });
+    }
+    
+    [AllowAnonymous]
+    [EnableRateLimiting(RateLimitPolicies.AccessCode)]
+    [HttpPost("claim-profile")]
+    public async Task<ActionResult<AuthResponseDto>> ClaimProfile(ClaimProfileDto dto)
+    {
+        await using var transaction = await _context.Database.BeginTransactionAsync();
+        var email = NormalizeEmail(dto.Email);
+        var emailTaken = await _context.UserAccounts.AnyAsync(a => a.Email == email);
+        var accessCode = await _accessCodeService.ConsumeAsync(CodeActionType.ClaimProfile, dto.Code);
+        if ( accessCode == null)
+        {
+            return Unauthorized("Nieprawidłowy lub wygasły kod");
+        };
+
+        var user = await _context.Users
+            .Include(u => u.Account)
+            .FirstOrDefaultAsync(u => u.Id == accessCode.TargetUserId);
+        if (user == null)
+        {
+            return Unauthorized("Nieprawidłowy lub wygasły kod");
+        }
+
+        if (user.Account != null)
+        {
+            return Unauthorized("Nieprawidłowy lub wygasły kod"); 
+        }
+
+        if (AgeCategoryCalculator.Calculate(user.BirthDate, PolandClock.Today()) == AgeCategory.Child)
+        {
+            return Unauthorized("Nieprawidłowy lub wygasły kod");
+        }
+
+        if (emailTaken)
+        {
+            return Conflict("Użytkownik z podanym adresem email już istnieje");
+        }
+        
+        var newUser = new UserAccount
+        {
+            UserId = user.Id,
+            Email = email,
+            PasswordHash = BCrypt.Net.BCrypt.HashPassword(dto.Password),
+            CreatedAt = DateTime.UtcNow,
+        };
+
+        user.Email = email;
+        
+        await _context.UserDevices
+                .Where(d => d.UserId == user.Id && d.RevokedAt == null)
+                .ExecuteUpdateAsync(s => s.SetProperty(d => d.RevokedAt, DateTime.UtcNow));
+        
+        var userDevice = new UserDevice
+        {
+            Id = Guid.NewGuid(),
+            UserId = user.Id,
+            CreatedAt = DateTime.UtcNow,
+        };
+        
+        _context.UserAccounts.Add(newUser);
+        _context.UserDevices.Add(userDevice);
+        try
+        {
+            await _context.SaveChangesAsync();
+        }
+        
+        catch (DbUpdateException ex)
+        {
+            if (ex.InnerException is PostgresException postgresException &&
+                postgresException.SqlState == PostgresErrorCodes.UniqueViolation &&
+                (postgresException.ConstraintName == "IX_UserAccounts_Email" ||
+                 postgresException.ConstraintName == "IX_Users_Email"))
+            {
+                return Conflict("Użytkownik z podanym adresem email już istnieje");
+            }
+
+            throw;
+        }
+        
+        var token  = _tokenService.GenerateToken(user);
+        var (_, refreshToken) = await _tokenService.GenerateRefreshTokenAsync(user.Id, userDevice.Id);
+
+        await transaction.CommitAsync();
+
+        return Ok(new AuthResponseDto
+        {
+            Token = token,
+            RefreshToken = refreshToken
+        });
+        
     }
 }

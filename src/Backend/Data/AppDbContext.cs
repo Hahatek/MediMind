@@ -86,7 +86,31 @@ public class AppDbContext : DbContext
             .WithMany()
             .HasForeignKey(fi => fi.CreatedByUserId)
             .OnDelete(DeleteBehavior.Restrict);
-        
+
+        // Zaproszenie v2 = jednorazowy 6-cyfrowy kod (w bazie tylko HMAC). Osobny mechanizm niż ProfileAccessCode.
+        modelBuilder.Entity<FamilyInvite>(fi =>
+        {
+            fi.Property(x => x.CodeHash).HasMaxLength(64);
+
+            // Usunięcie osoby, która dołączyła, nie kasuje śladu zaproszenia — zostaje tylko bez wskazania kto.
+            fi.HasOne(x => x.ConsumedByUser)
+                .WithMany()
+                .HasForeignKey(x => x.ConsumedByUserId)
+                .OnDelete(DeleteBehavior.SetNull);
+
+            // Najwyżej jedno żywe (niezużyte, nieunieważnione) zaproszenie na rodzinę — nowe unieważnia poprzednie.
+            fi.HasIndex(x => x.FamilyId)
+                .IsUnique()
+                .HasFilter("\"ConsumedAt\" IS NULL AND \"RevokedAt\" IS NULL")
+                .HasDatabaseName("IX_FamilyInvites_FamilyId_Live");
+
+            // Kodu szukamy po samym HMAC, więc wśród żywych zaproszeń nie może być dwóch takich samych.
+            fi.HasIndex(x => x.CodeHash)
+                .IsUnique()
+                .HasFilter("\"ConsumedAt\" IS NULL AND \"RevokedAt\" IS NULL")
+                .HasDatabaseName("IX_FamilyInvites_CodeHash_Live");
+        });
+
         modelBuilder.Entity<ExaminationHide>()
             .HasOne(exh => exh.HiddenByUser)
             .WithMany()

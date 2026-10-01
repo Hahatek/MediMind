@@ -232,6 +232,17 @@ namespace Backend.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
+                    b.Property<string>("CodeHash")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)");
+
+                    b.Property<DateTime?>("ConsumedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid?>("ConsumedByUserId")
+                        .HasColumnType("uuid");
+
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
@@ -249,9 +260,19 @@ namespace Backend.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("CodeHash")
+                        .IsUnique()
+                        .HasDatabaseName("IX_FamilyInvites_CodeHash_Live")
+                        .HasFilter("\"ConsumedAt\" IS NULL AND \"RevokedAt\" IS NULL");
+
+                    b.HasIndex("ConsumedByUserId");
+
                     b.HasIndex("CreatedByUserId");
 
-                    b.HasIndex("FamilyId");
+                    b.HasIndex("FamilyId")
+                        .IsUnique()
+                        .HasDatabaseName("IX_FamilyInvites_FamilyId_Live")
+                        .HasFilter("\"ConsumedAt\" IS NULL AND \"RevokedAt\" IS NULL");
 
                     b.ToTable("FamilyInvites");
                 });
@@ -834,6 +855,11 @@ namespace Backend.Migrations
 
             modelBuilder.Entity("Backend.Models.FamilyInvite", b =>
                 {
+                    b.HasOne("Backend.Models.User", "ConsumedByUser")
+                        .WithMany()
+                        .HasForeignKey("ConsumedByUserId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
                     b.HasOne("Backend.Models.User", "CreatedBy")
                         .WithMany()
                         .HasForeignKey("CreatedByUserId")
@@ -845,6 +871,8 @@ namespace Backend.Migrations
                         .HasForeignKey("FamilyId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.Navigation("ConsumedByUser");
 
                     b.Navigation("CreatedBy");
 
