@@ -169,21 +169,28 @@ export default function ExaminationDetailsScreen({ navigation, route }: Props) {
           <Text className={statusStyle.text}>{statusStyle.label}</Text>
         </View>
       </View>
-      <Text className="text-foreground border-b-2 p-2 mb-2">
-        {examinationData.date}
-      </Text>
-      <DetailField
+      <View className="border border-line-1 rounded-xl bg-surface">
+        <View>
+          <Text className="">Data</Text>
+          <Text className="font-bold">{examinationData.date}</Text>
+        </View>
+        <View>
+          <Text>Godzina</Text>
+          <Text className="font-bold">{examinationData.time}</Text>
+        </View>
+      </View>
+      <View className="border border-line-1 rounded-xl bg-surface">
+        <DetailField
         icon={Hospital}
         label="Lokalizacja"
-        value={examinationData.location}
-      />
-      <DetailField icon={Clock} label="Godzina" value={examinationData.time} />
+        value={examinationData.location}/>
       <DetailField icon={User} label="Lekarz" value={examinationData.doctor} />
       <DetailField
         icon={SquareText}
         label="Przygotowanie"
         value={examinationData.preparation}
       />
+    </View>
       {examinationData.isCyclic && examinationData.cycleInterval != null && (
         <DetailField
           icon={Repeat}
