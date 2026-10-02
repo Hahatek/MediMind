@@ -16,16 +16,6 @@ type ExaminationCardProps = {
   onDelete?: () => void;
 };
 
-// const statusLabels: Record<ExaminationsStatus, string> = {
-//   Sudden: "Nagłe",
-//   Pending: "Oczekujące",
-//   Scheduled: "Umówione",
-//   InProgress: "W trakcie",
-//   Planned: "Zaplanowane",
-//   Skipped: "Pominięte",
-//   Completed: "Zakończone",
-// };
-
 export default function ExaminationCard({
   name,
   date,
