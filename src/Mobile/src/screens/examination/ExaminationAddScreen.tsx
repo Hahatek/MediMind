@@ -87,6 +87,7 @@ export default function ExaminationAddScreen({ navigation }: Props) {
     setInfo("");
     setStep(2);
   }
+
   function handlePreviosPage() {
     setInfo("");
     setStep(1);

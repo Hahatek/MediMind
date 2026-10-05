@@ -25,7 +25,6 @@ type Props = {
   route: RouteProp<MedicationStack, "EdytujLek">;
 };
 
-// Dane z API -> wartości tekstowe formularza (null -> "", 0.5 -> "0,5").
 function toInitialValues(
   medication: MedicationResponse,
   schedules: MedicationScheduleResponse[],
@@ -76,19 +75,21 @@ export default function MedicationEditScreen({ navigation, route }: Props) {
     load();
   }, [load]);
 
-  // Backend ma osobne endpointy dla leku i pór, więc zapis to kilka zapytań.
-  // Kolejność: najpierw usunięcia — 409 (pora z historią) zatrzyma zapis, zanim cokolwiek się zmieni.
-  // Błąd leci do MedicationForm, który go pokazuje.
   async function handleSave(values: MedicationFormValues) {
     if (!medication) return;
 
-    const keptIds = values.schedules.map((s) => s.id);
-    const removed = originalSchedules.filter((o) => !keptIds.includes(o.id));
-    for (const schedule of removed) {
+    const scheduleIds = values.schedules
+      .map((schedule) => schedule.id)
+      .filter(Boolean);
+
+    const removedSchedules = originalSchedules.filter(
+      (schedule) => !scheduleIds.includes(schedule.id),
+    );
+
+    for (const schedule of removedSchedules) {
       await medicationScheduleDelete(schedule.id);
     }
 
-    // PUT nadpisuje wszystkie pola — daty, których formularz nie edytuje, przepisujemy bez zmian
     await medicationPut(
       {
         name: values.name,
@@ -102,26 +103,34 @@ export default function MedicationEditScreen({ navigation, route }: Props) {
     );
 
     for (const schedule of values.schedules) {
-      const body = {
+      const scheduleData = {
         timeOfDay: schedule.timeOfDay,
         time: schedule.time,
         amount: schedule.amount,
       };
 
       if (!schedule.id) {
-        await medicationScheduleCreate({ ...body, medicationId });
+        await medicationScheduleCreate({
+          ...scheduleData,
+          medicationId,
+        });
+
         continue;
       }
 
-      const original = originalSchedules.find((o) => o.id === schedule.id);
-      const changed =
-        !original ||
-        original.time !== schedule.time ||
-        original.amount !== schedule.amount ||
-        original.timeOfDay !== schedule.timeOfDay;
-      if (changed) {
-        await medicationSchedulePut(body, schedule.id);
+      const original = originalSchedules.find(
+        (item) => item.id === schedule.id,
+      );
+
+      if (
+        original?.time === schedule.time &&
+        original.amount === schedule.amount &&
+        original.timeOfDay === schedule.timeOfDay
+      ) {
+        continue;
       }
+
+      await medicationSchedulePut(scheduleData, schedule.id);
     }
 
     navigation.goBack();

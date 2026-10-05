@@ -10,14 +10,11 @@ type Props = {
   onToggle?: () => void;
 };
 
-// Jedna dawka na liście „Dziś”: nazwa, szczegóły (godzina · moc · ilość · notatka)
-// i przycisk „Przyjmij” / „Przyjęte” (drugie kliknięcie cofa potwierdzenie).
 export default function TodayDoseRow({ dose, onToggle }: Props) {
   const taken = dose.status === "Taken";
   const iconColor = useThemeColor(taken ? "--on-brand" : "--brand-ink");
   const Icon = taken ? SquareCheck : Square;
 
-  // Puste kawałki (brak godziny, mocy, notatki) wypadają przez filter(Boolean)
   const details = [
     dose.time ? formatTime(dose.time) : null,
     dose.strength,
@@ -39,7 +36,7 @@ export default function TodayDoseRow({ dose, onToggle }: Props) {
         accessibilityRole="checkbox"
         accessibilityState={{ checked: taken }}
         accessibilityLabel={`${dose.medicationName}: ${taken ? "przyjęte" : "przyjmij"}`}
-        className={`flex-row items-center gap-2 px-4 justify-center active:opacity-70 border-l-2 border-l-line-2 ${
+        className={`flex-row items-center gap-2 px-4 justify-center active:opacity-70 border-l-1 border-border${
           taken ? "bg-primary" : ""
         }`}
       >

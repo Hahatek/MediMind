@@ -5,6 +5,7 @@ import FamilyInviteScreen from "../screens/FamilyInviteScreen";
 import FamilyAcceptInviteScreen from "../screens/FamilyAcceptInviteScreen";
 import FamilyAddProfileScreen from "../screens/FamilyAddProfileScreen";
 import FamilyAccessCodeScreen from "../screens/FamilyAccessCodeScreen";
+import FamilyMemberProfileScreen from "../screens/FamilyMemberProfileScreen";
 
 type Props = { onLogout: () => void };
 
@@ -20,6 +21,7 @@ export type HomeStackList = {
     firstName: string;
     lastName: string;
   };
+  ProfilCzlonkaRodziny: { familyId: string; userId: string };
 };
 
 const Stack = createNativeStackNavigator<HomeStackList>();
@@ -62,6 +64,14 @@ function HomeStack({ onLogout }: Props) {
       <Stack.Screen name="KodDostepu" options={{ title: "Kod dostępu" }}>
         {({ navigation, route }) => (
           <FamilyAccessCodeScreen navigation={navigation} route={route} />
+        )}
+      </Stack.Screen>
+      <Stack.Screen
+        name="ProfilCzlonkaRodziny"
+        options={{ title: "Profil czlonka rodziny" }}
+      >
+        {({ navigation, route }) => (
+          <FamilyMemberProfileScreen navigation={navigation} route={route} />
         )}
       </Stack.Screen>
     </Stack.Navigator>
