@@ -7,20 +7,20 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { MedicationStack } from "../navigation/MedicationsStack";
-import { MedicationListItem } from "../types/MedicationTypes";
+import { MedicationStack } from "../../navigation/MedicationsStack";
+import { MedicationListItem } from "../../types/MedicationTypes";
 import { useCallback, useState } from "react";
-import { medicationGet } from "../api/medication";
-import { getErrorMessage } from "../utils/errorMessage";
-import { formatDateLocal } from "../utils/dateFormat";
+import { medicationGet } from "../../api/medication";
+import { getErrorMessage } from "../../utils/errorMessage";
+import { formatDateLocal } from "../../utils/dateFormat";
 import { useFocusEffect } from "@react-navigation/native";
-import ErrorState from "../components/ErrorState";
-import MedicationCard from "../components/MedicationCard";
-import Button from "../components/Button";
+import ErrorState from "../../components/ErrorState";
+import MedicationCard from "../../components/MedicationCard";
+import Button from "../../components/Button";
 import { Plus } from "lucide-react-native";
-import { pluralize } from "../utils/pluralize";
-import SegmentedControl from "../components/SegmentedControl";
-import MedicationTodayView from "../components/MedicationTodayView";
+import { pluralize } from "../../utils/pluralize";
+import SegmentedControl from "../../components/SegmentedControl";
+import MedicationTodayView from "../../components/MedicationTodayView";
 
 type Props = {
   navigation: NativeStackNavigationProp<MedicationStack, "Leki">;

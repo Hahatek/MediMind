@@ -3,22 +3,22 @@ import { Text } from "react-native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { RouteProp } from "@react-navigation/native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { MedicationStack } from "../navigation/MedicationsStack";
+import { MedicationStack } from "../../navigation/MedicationsStack";
 import MedicationForm, {
   MedicationFormInitialValues,
   MedicationFormValues,
-} from "../components/MedicationForm";
-import ErrorState from "../components/ErrorState";
-import { medicationGetOne, medicationPut } from "../api/medication";
+} from "../../components/MedicationForm";
+import ErrorState from "../../components/ErrorState";
+import { medicationGetOne, medicationPut } from "../../api/medication";
 import {
   medicationScheduleCreate,
   medicationScheduleDelete,
   medicationScheduleGet,
   medicationSchedulePut,
-} from "../api/medicationSchedule";
-import { MedicationResponse } from "../types/MedicationTypes";
-import { MedicationScheduleResponse } from "../types/MedicationScheduleTypes";
-import { getErrorMessage } from "../utils/errorMessage";
+} from "../../api/medicationSchedule";
+import { MedicationResponse } from "../../types/MedicationTypes";
+import { MedicationScheduleResponse } from "../../types/MedicationScheduleTypes";
+import { getErrorMessage } from "../../utils/errorMessage";
 
 type Props = {
   navigation: NativeStackNavigationProp<MedicationStack, "EdytujLek">;
@@ -129,7 +129,10 @@ export default function MedicationEditScreen({ navigation, route }: Props) {
 
   if (loading) {
     return (
-      <SafeAreaView className="flex-1 bg-screen" edges={["bottom", "left", "right"]}>
+      <SafeAreaView
+        className="flex-1 bg-screen"
+        edges={["bottom", "left", "right"]}
+      >
         <Text className="text-foreground m-4">Ładowanie...</Text>
       </SafeAreaView>
     );
@@ -137,14 +140,23 @@ export default function MedicationEditScreen({ navigation, route }: Props) {
 
   if (loadError || !medication) {
     return (
-      <SafeAreaView className="flex-1 bg-screen" edges={["bottom", "left", "right"]}>
-        <ErrorState message={loadError ?? "Nie znaleziono leku"} onRetry={load} />
+      <SafeAreaView
+        className="flex-1 bg-screen"
+        edges={["bottom", "left", "right"]}
+      >
+        <ErrorState
+          message={loadError ?? "Nie znaleziono leku"}
+          onRetry={load}
+        />
       </SafeAreaView>
     );
   }
 
   return (
-    <SafeAreaView className="flex-1 bg-screen" edges={["bottom", "left", "right"]}>
+    <SafeAreaView
+      className="flex-1 bg-screen"
+      edges={["bottom", "left", "right"]}
+    >
       <MedicationForm
         initialValues={toInitialValues(medication, originalSchedules)}
         onSubmit={handleSave}

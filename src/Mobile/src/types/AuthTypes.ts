@@ -20,3 +20,14 @@ export interface AuthResponse {
   token: string;
   refreshToken: string;
 }
+
+export interface LinkDeviceRequest {
+  code: string;
+}
+
+export interface ClaimProfileRequest {
+  code: string;
+  email: string;
+  password: string;
+  confirmPassword: string;
+}

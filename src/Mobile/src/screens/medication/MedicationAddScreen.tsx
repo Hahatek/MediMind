@@ -1,9 +1,9 @@
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
-import { MedicationStack } from "../navigation/MedicationsStack";
+import { MedicationStack } from "../../navigation/MedicationsStack";
 import { SafeAreaView } from "react-native-safe-area-context";
-import MedicationForm from "../components/MedicationForm";
-import { CreateMedication } from "../types/MedicationTypes";
-import { medicationCreate } from "../api/medication";
+import MedicationForm from "../../components/MedicationForm";
+import { CreateMedication } from "../../types/MedicationTypes";
+import { medicationCreate } from "../../api/medication";
 
 type Props = {
   navigation: NativeStackNavigationProp<MedicationStack, "DodajLek">;

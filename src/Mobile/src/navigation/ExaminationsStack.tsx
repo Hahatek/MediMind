@@ -1,8 +1,8 @@
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
-import ExaminationsListScreen from "../screens/ExaminationsListScreen";
-import ExaminationAddScreen from "../screens/ExaminationAddScreen";
-import ExaminationDetailsScreen from "../screens/ExaminationDetailsScreen";
-import ExaminationEditScreen from "../screens/ExaminationEditScreen";
+import ExaminationsListScreen from "../screens/examination/ExaminationsListScreen";
+import ExaminationAddScreen from "../screens/examination/ExaminationAddScreen";
+import ExaminationDetailsScreen from "../screens/examination/ExaminationDetailsScreen";
+import ExaminationEditScreen from "../screens/examination/ExaminationEditScreen";
 
 type Props = {
   onLoginSuccess: () => void;

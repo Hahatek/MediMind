@@ -3,12 +3,15 @@ import { Pressable, Text, View } from "react-native";
 import { getMe } from "../api/user";
 import { endSession } from "../api/auth";
 import ThemeSelector from "../components/ThemeSelector";
+import { HomeStackList } from "../navigation/HomeStack";
+import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 
 type Props = {
+  navigation: NativeStackNavigationProp<HomeStackList, "Home">;
   onLogout: () => void;
 };
 
-export default function HomeScreen({ onLogout }: Props) {
+export default function HomeScreen({ navigation, onLogout }: Props) {
   const [nameUser, setNameUser] = useState("");
 
   useEffect(() => {
@@ -31,6 +34,11 @@ export default function HomeScreen({ onLogout }: Props) {
       <View className="w-64 mt-6">
         <ThemeSelector />
       </View>
+
+      <Pressable onPress={() => navigation.navigate("Rodzina")}>
+        <Text>Przejdź do Rodziny</Text>
+      </Pressable>
+
       <Pressable
         className="p-2 bg-primary rounded-xl mt-10"
         onPress={() => handleLogout()}

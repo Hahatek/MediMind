@@ -1,11 +1,9 @@
-import HomeScreen from "../screens/HomeScreen";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
-import ExaminationsListScreen from "../screens/ExaminationsListScreen";
 import ExaminationsStack from "./ExaminationsStack";
 import { ClipboardPlus, Home, Pill, User } from "lucide-react-native";
 import UserScreen from "../screens/UserScreen";
-import MedicationListScreen from "../screens/MedicationListScreen";
 import MedicationsStack from "./MedicationsStack";
+import HomeStack from "./HomeStack";
 
 type Props = {
   onLogout: () => void;
@@ -35,7 +33,7 @@ function AppStack({ onLogout }: Props) {
           tabBarIcon: ({ color, size }) => <Home color={color} size={size} />,
         }}
       >
-        {() => <HomeScreen onLogout={onLogout} />}
+        {() => <HomeStack onLogout={onLogout} />}
       </Tab.Screen>
       <Tab.Screen
         name="Badania"

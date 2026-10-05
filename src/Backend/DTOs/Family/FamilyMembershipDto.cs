@@ -7,4 +7,7 @@ public class FamilyMembershipDto
     public string LastName { get; set; }
     public bool IsOwner { get; set; }
     public bool IsParent { get; set; }
+    public bool HasAccount { get; set; }
+    public bool IsChild { get; set; }
+    public bool IsPrimaryGuardianForMe { get; set; }
 }
