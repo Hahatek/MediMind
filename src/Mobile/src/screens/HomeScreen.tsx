@@ -5,6 +5,9 @@ import { endSession } from "../api/auth";
 import ThemeSelector from "../components/ThemeSelector";
 import { HomeStackList } from "../navigation/HomeStack";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { ChevronRight, UserRoundGroup } from "lucide-react-native";
+import { green } from "react-native-reanimated/lib/typescript/Colors";
 
 type Props = {
   navigation: NativeStackNavigationProp<HomeStackList, "Home">;
@@ -28,15 +31,24 @@ export default function HomeScreen({ navigation, onLogout }: Props) {
   }
 
   return (
-    <View className="flex-1 items-center justify-center bg-screen">
+    <SafeAreaView className="flex-1 items-center justify-center bg-screen m-4">
       <Text className="text-foreground">SIEMA</Text>
       <Text className="text-muted-foreground">{nameUser}</Text>
       <View className="w-64 mt-6">
         <ThemeSelector />
       </View>
 
-      <Pressable onPress={() => navigation.navigate("Rodzina")}>
-        <Text>Przejdź do Rodziny</Text>
+      <Pressable
+        className="bg-surface w-full border border-border rounded-xl mt-8"
+        onPress={() => navigation.navigate("Rodzina")}
+      >
+        <View className="flex flex-row justify-between items-center p-4">
+          <View className="flex flex-row items-center">
+            <UserRoundGroup color="#087B8C" size={22} />
+            <Text className="pl-4">Moja rodzina</Text>
+          </View>
+          <ChevronRight />
+        </View>
       </Pressable>
 
       <Pressable
@@ -45,6 +57,6 @@ export default function HomeScreen({ navigation, onLogout }: Props) {
       >
         <Text className="text-primary-foreground">Wyloguj się</Text>
       </Pressable>
-    </View>
+    </SafeAreaView>
   );
 }

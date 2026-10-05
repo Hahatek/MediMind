@@ -15,14 +15,14 @@ import {
   familyCreate,
   familyDelete,
   familyGet,
-  familyGiveRoleParent,
   familyLeave,
-  familyTransferOwnership,
 } from "../api/family";
 import { getErrorMessage } from "../utils/errorMessage";
 import { useFocusEffect } from "@react-navigation/native";
 import ErrorState from "../components/ErrorState";
 import Button from "../components/Button";
+import { ChevronRight } from "lucide-react-native";
+import { useThemeColor } from "../theme";
 
 type Props = {
   navigation: NativeStackNavigationProp<HomeStackList, "Rodzina">;
@@ -32,6 +32,7 @@ export default function FamilyScreen({ navigation }: Props) {
   const [families, setFamilies] = useState<FamilyDetailsResponse[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const chevronColor = useThemeColor("--ink-4");
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -107,83 +108,6 @@ export default function FamilyScreen({ navigation }: Props) {
     ]);
   }
 
-  async function handleGiveRoleParent(familyId: string, userId: string) {
-    setLoading(true);
-    try {
-      await familyGiveRoleParent(familyId, userId);
-      await load();
-    } catch (e) {
-      setError(getErrorMessage(e, "Nie udało się nadać roli rodzic"));
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  function confirmGiveRoleParent(
-    familyId: string,
-    userId: string,
-    firstName: string,
-    lastName: string,
-  ) {
-    Alert.alert(
-      "Nadaj rolę rodzic",
-      `Czy na pewno chcesz nadać ${firstName} ${lastName} rolę rodzica? ` +
-        "Ta osoba będzie mogła zapraszać do rodziny i dodawać profile zarządzane. " +
-        "Tej zmiany nie da się cofnąć w aplikacji.",
-      [
-        { text: "Anuluj", style: "cancel" },
-        {
-          text: "Nadaj",
-          onPress: () => handleGiveRoleParent(familyId, userId),
-        },
-      ],
-    );
-  }
-
-  async function handleTransferOwnership(
-    familyId: string,
-    userId: string,
-    alsoLeaveFamily: boolean,
-  ) {
-    setLoading(true);
-    try {
-      await familyTransferOwnership(familyId, {
-        newOwnerId: userId,
-        alsoLeaveFamily,
-      });
-      await load();
-    } catch (e) {
-      setError(getErrorMessage(e, "Nie udało się przekazać roli właściciela"));
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  function confirmTransferOwnership(
-    familyId: string,
-    userId: string,
-    firstName: string,
-    lastName: string,
-  ) {
-    Alert.alert(
-      "Przekaż rolę właściciela rodziny",
-      `Czy na pewno chcesz przekazać ${firstName} ${lastName} rolę właściciela? ` +
-        "Ta osoba stanie się właścicielem rodziny. ",
-      [
-        { text: "Anuluj", style: "cancel" },
-        {
-          text: "Przekaż",
-          onPress: () => handleTransferOwnership(familyId, userId, false),
-        },
-        {
-          text: "Przekaż i opuść",
-          style: "destructive",
-          onPress: () => handleTransferOwnership(familyId, userId, true),
-        },
-      ],
-    );
-  }
-
   if (loading && families.length === 0) {
     return (
       <SafeAreaView>
@@ -219,102 +143,105 @@ export default function FamilyScreen({ navigation }: Props) {
   }
 
   return (
-    <SafeAreaView>
+    <SafeAreaView className="flex-1 m-4" edges={["bottom", "left", "right"]}>
       <FlatList
+        className="flex-1"
         data={families}
         keyExtractor={(f) => f.id}
         renderItem={({ item }) => (
-          <View>
-            {item.members.map((member) => (
-              <View key={member.userId}>
-                <Text>
-                  {member.firstName} {member.lastName}
-                </Text>
-                {member.isOwner && <Text>Właściciel</Text>}
-                {member.isParent && <Text>Rodzic</Text>}
-                {!member.hasAccount && <Text>Brak konta</Text>}
-                {item.isOwner && !member.isParent && (
-                  <View className="mt-5">
-                    <Button
-                      title="Nadaj rolę rodzica"
-                      onPress={() =>
-                        confirmGiveRoleParent(
-                          item.id,
-                          member.userId,
-                          member.firstName,
-                          member.lastName,
-                        )
-                      }
-                    />
+          <View className="bg-surface border border-border rounded-2xl overflow-hidden">
+            {item.members.map((member, index) => (
+              <Pressable
+                key={member.userId}
+                onPress={() =>
+                  navigation.navigate("ProfilCzlonkaRodziny", {
+                    familyId: item.id,
+                    userId: member.userId,
+                  })
+                }
+                className={`flex-row justify-between items-center p-4 ${
+                  index > 0 ? "border-t border-border" : ""
+                }`}
+              >
+                <View>
+                  <Text className="text-xl font-bold">
+                    {member.firstName} {member.lastName}
+                  </Text>
+
+                  <View className="flex-row gap-2 mt-1">
+                    {member.isOwner && (
+                      <View className="px-2 py-0.5 rounded-md bg-tint-1">
+                        <Text className="text-xs">Właściciel</Text>
+                      </View>
+                    )}
+
+                    {member.isParent && (
+                      <View className="px-2 py-0.5 rounded-md bg-tint-1">
+                        <Text className="text-xs">Rodzic</Text>
+                      </View>
+                    )}
+
+                    {member.isChild && (
+                      <View className="px-2 py-0.5 rounded-md bg-tint-1">
+                        <Text className="text-xs">Dziecko</Text>
+                      </View>
+                    )}
+
+                    {!member.hasAccount && (
+                      <View className="px-2 py-0.5 rounded-md bg-tint-1">
+                        <Text className="text-xs">Bez konta</Text>
+                      </View>
+                    )}
                   </View>
-                )}
-                {item.isOwner && member.isParent && !member.isOwner && (
-                  <View className="mt-5">
-                    <Button
-                      title="Przekaż rolę właściciela"
-                      onPress={() =>
-                        confirmTransferOwnership(
-                          item.id,
-                          member.userId,
-                          member.firstName,
-                          member.lastName,
-                        )
-                      }
-                    />
-                  </View>
-                )}
-                {!member.hasAccount && member.isPrimaryGuardianForMe && (
-                  <View className="mt-5">
-                    <Button
-                      title="Przekaż kod"
-                      onPress={() =>
-                        navigation.navigate("KodDostepu", {
-                          userId: member.userId,
-                          isChild: member.isChild,
-                          firstName: member.firstName,
-                          lastName: member.lastName,
-                        })
-                      }
-                    />
-                  </View>
-                )}
-              </View>
+                </View>
+
+                <ChevronRight size={18} color={chevronColor} />
+              </Pressable>
             ))}
-            {(item.isOwner || item.isParent) && (
-              <View className="mt-5 flex flex-col gap-4">
-                <Button
-                  title="Zaproś do rodziny"
-                  onPress={() =>
-                    navigation.navigate("Zaproszenie", { familyId: item.id })
-                  }
-                />
-                <Button
-                  title="Dodaj profil bez telefonu"
-                  onPress={() =>
-                    navigation.navigate("DodajProfil", { familyId: item.id })
-                  }
-                />
-              </View>
-            )}
-            {!item.isOwner && (
-              <View className="mt-5">
-                <Button
-                  title="Opuść rodzinę"
-                  onPress={() => confirmLeaveFamily(item.id)}
-                />
-              </View>
-            )}
-            {item.isOwner && (
-              <View className="mt-5">
-                <Button
-                  title="Usuń rodzinę"
-                  onPress={() => confirmDeleteFamily(item.id)}
-                />
-              </View>
-            )}
           </View>
         )}
       />
+
+      {families.map((item) => (
+        <View key={item.id} className="gap-4 pt-4">
+          {(item.isOwner || item.isParent) && (
+            <>
+              <Button
+                title="Zaproś do rodziny"
+                onPress={() =>
+                  navigation.navigate("Zaproszenie", {
+                    familyId: item.id,
+                  })
+                }
+              />
+
+              <Button
+                title="Dodaj profil bez telefonu"
+                onPress={() =>
+                  navigation.navigate("DodajProfil", {
+                    familyId: item.id,
+                  })
+                }
+              />
+            </>
+          )}
+
+          {!item.isOwner && (
+            <Button
+              title="Opuść rodzinę"
+              onPress={() => confirmLeaveFamily(item.id)}
+            />
+          )}
+
+          {item.isOwner && (
+            <Button
+              title="Usuń rodzinę"
+              onPress={() => confirmDeleteFamily(item.id)}
+              variant="danger"
+            />
+          )}
+        </View>
+      ))}
     </SafeAreaView>
   );
 }
