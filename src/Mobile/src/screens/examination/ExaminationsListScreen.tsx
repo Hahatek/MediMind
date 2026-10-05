@@ -8,25 +8,25 @@ import {
   SectionList,
 } from "react-native";
 
-import { examinationDelete, examinationGet } from "../api/examination";
-import { ExaminationResponse } from "../types/ExaminationTypes";
+import { examinationDelete, examinationGet } from "../../api/examination";
+import { ExaminationResponse } from "../../types/ExaminationTypes";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
-import { ExaminationStack } from "../navigation/ExaminationsStack";
+import { ExaminationStack } from "../../navigation/ExaminationsStack";
 import { useFocusEffect } from "@react-navigation/native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Plus } from "lucide-react-native";
-import ExaminationCard from "../components/ExaminationCard";
-import ErrorState from "../components/ErrorState";
-import { getErrorMessage } from "../utils/errorMessage";
-import Button from "../components/Button";
+import ExaminationCard from "../../components/ExaminationCard";
+import ErrorState from "../../components/ErrorState";
+import { getErrorMessage } from "../../utils/errorMessage";
+import Button from "../../components/Button";
 import {
   examinationSectionByStatus,
   getExaminationDisplayStatus,
   getExaminationDateTime,
-} from "../utils/examinationDisplayStatus";
-import SegmentedControl from "../components/SegmentedControl";
-import ExaminationsHistoryView from "../components/ExaminationsHistoryView";
-import ExaminationsCalendarView from "../components/ExaminationsCalendarView";
+} from "../../utils/examinationDisplayStatus";
+import SegmentedControl from "../../components/SegmentedControl";
+import ExaminationsHistoryView from "../../components/ExaminationsHistoryView";
+import ExaminationsCalendarView from "../../components/ExaminationsCalendarView";
 
 type Props = {
   navigation: NativeStackNavigationProp<ExaminationStack, "Badania">;
@@ -48,8 +48,6 @@ export default function ExaminationsListScreen({ navigation }: Props) {
   const [loading, setLoading] = useState(false);
   const [tab, setTab] = useState("list");
 
-  // Osobna funkcja (a nie schowana w useFocusEffect), żeby przycisk
-  // "Spróbuj ponownie" mógł ją wywołać drugi raz.
   const load = useCallback(async () => {
     setLoading(true);
     try {

@@ -10,6 +10,7 @@ type TextFieldProps = {
   secureTextEntry?: boolean;
   keyboardType?: KeyboardTypeOptions;
   autoCapitalize?: "none" | "sentences" | "words" | "characters";
+  maxLength?: number;
 };
 
 export default function TextField({
@@ -22,6 +23,7 @@ export default function TextField({
   secureTextEntry,
   keyboardType,
   autoCapitalize,
+  maxLength,
 }: TextFieldProps) {
   return (
     <View className="mb-4 w-full">
@@ -37,6 +39,7 @@ export default function TextField({
         secureTextEntry={secureTextEntry}
         keyboardType={keyboardType}
         autoCapitalize={autoCapitalize}
+        maxLength={maxLength}
       ></TextInput>
       {error && <Text className="text-danger mt-1">{error}</Text>}
     </View>

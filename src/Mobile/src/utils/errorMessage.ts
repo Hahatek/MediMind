@@ -1,8 +1,5 @@
 import axios from "axios";
 
-// Zamienia błąd z API (axios) na komunikat dla użytkownika.
-// `fallback` opisuje, CO się nie udało (np. "Nie udało się pobrać badań"),
-// a status HTTP / brak odpowiedzi mówi DLACZEGO.
 export function getErrorMessage(e: unknown, fallback: string): string {
   if (!axios.isAxiosError(e)) {
     return fallback;

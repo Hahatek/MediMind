@@ -1,8 +1,8 @@
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
-import MedicationListScreen from "../screens/MedicationListScreen";
-import MedicationDetailsScreen from "../screens/MedicationDetailsScreen";
-import MedicationAddScreen from "../screens/MedicationAddScreen";
-import MedicationEditScreen from "../screens/MedicationEditScreen";
+import MedicationListScreen from "../screens/medication/MedicationListScreen";
+import MedicationDetailsScreen from "../screens/medication/MedicationDetailsScreen";
+import MedicationAddScreen from "../screens/medication/MedicationAddScreen";
+import MedicationEditScreen from "../screens/medication/MedicationEditScreen";
 
 export type MedicationStack = {
   Leki: undefined;

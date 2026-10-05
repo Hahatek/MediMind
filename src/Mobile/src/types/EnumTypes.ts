@@ -26,6 +26,9 @@ export type ChangeRequestStatus = "Pending" | "Approved" | "Rejected";
 export type IntakeStatus = "Taken" | "Skipped";
 export type TodayIntakeStatus = "Pending" | "Taken" | "Skipped";
 // Wyliczany przez backend dla daty przekazanej z telefonu
-export type MedicationStatus = "Planned" | "Active" | "Finished" | "Discontinued";
+export type MedicationStatus =
+  "Planned" | "Active" | "Finished" | "Discontinued";
 // Active = Planned + Active, History = Finished + Discontinued
 export type MedicationListScope = "Active" | "History" | "All";
+
+export type CodeActionType = "LinkDevice" | "ClaimProfile";

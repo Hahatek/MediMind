@@ -187,6 +187,24 @@ public class FamilyController : ControllerBase
             .ThenInclude(m => m.User)
             .ToListAsync();
         
+        var memberIds = families.SelectMany(f => f.Memberships)
+            .Select(m => m.UserId)
+            .Distinct()
+            .ToList();
+        
+        var withAccount = await _context.UserAccounts
+            .Where(a => memberIds.Contains(a.UserId))
+            .Select(a => a.UserId)
+            .ToHashSetAsync();
+        
+        var myPrimaryWards = await _context.Guardianships
+            .Where(g => g.GuardianUserId == userId && g.IsPrimary)
+            .Select(g => g.WardUserId)
+            .ToHashSetAsync();
+
+        var today = PolandClock.Today();
+        
+        
         var result = families.Select(f =>
         {
             var caller = f.Memberships.First(m => m.UserId == userId);
@@ -202,7 +220,10 @@ public class FamilyController : ControllerBase
                     FirstName = m.User.FirstName,
                     LastName = m.User.LastName,
                     IsOwner = m.IsOwner,
-                    IsParent = m.IsParent
+                    IsParent = m.IsParent,
+                    HasAccount = withAccount.Contains(m.UserId),
+                    IsChild = AgeCategoryCalculator.Calculate(m.User.BirthDate, today) == AgeCategory.Child,
+                    IsPrimaryGuardianForMe = myPrimaryWards.Contains(m.UserId),
                 }).ToList()
             };
         }).ToList();
@@ -450,8 +471,10 @@ public class FamilyController : ControllerBase
             FirstName = user.FirstName,
             LastName = user.LastName,
             IsOwner = membership.IsOwner,
-            IsParent = membership.IsParent
-            
+            IsParent = membership.IsParent,
+            HasAccount = false,
+            IsChild = category == AgeCategory.Child,
+            IsPrimaryGuardianForMe = guardianShip.IsPrimary,
         });
     }
 

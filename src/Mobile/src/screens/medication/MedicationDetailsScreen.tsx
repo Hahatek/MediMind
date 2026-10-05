@@ -14,23 +14,27 @@ import {
   SquareText,
   Trash,
 } from "lucide-react-native";
-import { getErrorMessage } from "../utils/errorMessage";
-import { formatDate, formatDateLocal, formatTime } from "../utils/dateFormat";
-import { formatDose } from "../utils/medicationForms";
-import { timeOfDayLabels } from "../utils/medicationTime";
-import { useThemeColor } from "../theme/useThemeColor";
-import ErrorState from "../components/ErrorState";
-import Button from "../components/Button";
-import { MedicationStack } from "../navigation/MedicationsStack";
-import { MedicationResponse } from "../types/MedicationTypes";
-import { MedicationScheduleResponse } from "../types/MedicationScheduleTypes";
+import { getErrorMessage } from "../../utils/errorMessage";
+import {
+  formatDate,
+  formatDateLocal,
+  formatTime,
+} from "../../utils/dateFormat";
+import { formatDose } from "../../utils/medicationForms";
+import { timeOfDayLabels } from "../../utils/medicationTime";
+import { useThemeColor } from "../../theme/useThemeColor";
+import ErrorState from "../../components/ErrorState";
+import Button from "../../components/Button";
+import { MedicationStack } from "../../navigation/MedicationsStack";
+import { MedicationResponse } from "../../types/MedicationTypes";
+import { MedicationScheduleResponse } from "../../types/MedicationScheduleTypes";
 import {
   medicationDelete,
   medicationDiscontinue,
   medicationGetOne,
   medicationResume,
-} from "../api/medication";
-import { medicationScheduleGet } from "../api/medicationSchedule";
+} from "../../api/medication";
+import { medicationScheduleGet } from "../../api/medicationSchedule";
 
 type Props = {
   navigation: NativeStackNavigationProp<MedicationStack, "SzczegolyLeku">;
@@ -109,7 +113,10 @@ export default function MedicationDetailsScreen({ navigation, route }: Props) {
       navigation.goBack();
     } catch (e) {
       // 409 = lek ma historię przyjęć; backend sam podpowiada, żeby go odstawić
-      Alert.alert("Nie można usunąć", getErrorMessage(e, "Nie udało się usunąć leku."));
+      Alert.alert(
+        "Nie można usunąć",
+        getErrorMessage(e, "Nie udało się usunąć leku."),
+      );
     } finally {
       setActing(false);
     }
@@ -209,7 +216,11 @@ export default function MedicationDetailsScreen({ navigation, route }: Props) {
 
       <View className="mt-3">
         <DetailField icon={Pill} label="Moc i postać" value={strengthAndForm} />
-        <DetailField icon={SquareText} label="Notatka" value={medication.notes} />
+        <DetailField
+          icon={SquareText}
+          label="Notatka"
+          value={medication.notes}
+        />
         <DetailField
           icon={CalendarPlus}
           label="Data rozpoczęcia"

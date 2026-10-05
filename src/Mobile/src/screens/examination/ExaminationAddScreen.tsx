@@ -1,22 +1,22 @@
 import { useState } from "react";
 import { Text, View, Pressable, TextInput, Switch } from "react-native";
-import { examinationCreate } from "../api/examination";
+import { examinationCreate } from "../../api/examination";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
-import { ExaminationStack } from "../navigation/ExaminationsStack";
+import { ExaminationStack } from "../../navigation/ExaminationsStack";
 import { ChevronLeft, ChevronRight, Plus } from "lucide-react-native";
-import { CreateExamination } from "../types/ExaminationTypes";
-import PickerField from "../components/PickerField";
-import ExaminationCard from "../components/ExaminationCard";
-import { examColors } from "../theme/examColors";
+import { CreateExamination } from "../../types/ExaminationTypes";
+import PickerField from "../../components/PickerField";
+import ExaminationCard from "../../components/ExaminationCard";
+import { examColors } from "../../theme/examColors";
 import {
   CycleUnit,
   cycleUnitLabels,
   parseCycleValue,
   toMonths,
-} from "../utils/cycleInterval";
-import { getErrorMessage } from "../utils/errorMessage";
-import Button from "../components/Button";
-import TextField from "../components/TextField";
+} from "../../utils/cycleInterval";
+import { getErrorMessage } from "../../utils/errorMessage";
+import Button from "../../components/Button";
+import TextField from "../../components/TextField";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 type Props = {

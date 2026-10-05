@@ -1,14 +1,14 @@
 import { useCallback, useEffect, useState } from "react";
 import { Text, View, Pressable, TextInput } from "react-native";
-import { examinationGetOne, examinationPut } from "../api/examination";
+import { examinationGetOne, examinationPut } from "../../api/examination";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
-import { ExaminationStack } from "../navigation/ExaminationsStack";
+import { ExaminationStack } from "../../navigation/ExaminationsStack";
 import { RouteProp } from "@react-navigation/native";
-import { ExaminationResponse } from "../types/ExaminationTypes";
+import { ExaminationResponse } from "../../types/ExaminationTypes";
 import { SafeAreaView } from "react-native-safe-area-context";
-import ErrorState from "../components/ErrorState";
-import PickerField from "../components/PickerField";
-import { getErrorMessage } from "../utils/errorMessage";
+import ErrorState from "../../components/ErrorState";
+import PickerField from "../../components/PickerField";
+import { getErrorMessage } from "../../utils/errorMessage";
 
 type Props = {
   navigation: NativeStackNavigationProp<ExaminationStack, "EdytujBadanie">;

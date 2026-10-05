@@ -4,10 +4,10 @@ import {
   examinationComplete,
   examinationDelete,
   examinationGetOne,
-} from "../api/examination";
-import { ExaminationResponse } from "../types/ExaminationTypes";
+} from "../../api/examination";
+import { ExaminationResponse } from "../../types/ExaminationTypes";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
-import { ExaminationStack } from "../navigation/ExaminationsStack";
+import { ExaminationStack } from "../../navigation/ExaminationsStack";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { RouteProp, useFocusEffect } from "@react-navigation/native";
 import {
@@ -20,12 +20,12 @@ import {
   Repeat,
   Pencil,
 } from "lucide-react-native";
-import { formatCycleInterval } from "../utils/cycleInterval";
-import { getErrorMessage } from "../utils/errorMessage";
-import ErrorState from "../components/ErrorState";
-import Button from "../components/Button";
-import { getExaminationDisplayStatus } from "../utils/examinationDisplayStatus";
-import { getExamStatusStyle } from "../theme/examStatus";
+import { formatCycleInterval } from "../../utils/cycleInterval";
+import { getErrorMessage } from "../../utils/errorMessage";
+import ErrorState from "../../components/ErrorState";
+import Button from "../../components/Button";
+import { getExaminationDisplayStatus } from "../../utils/examinationDisplayStatus";
+import { getExamStatusStyle } from "../../theme/examStatus";
 
 type Props = {
   navigation: NativeStackNavigationProp<ExaminationStack, "SzczegolyBadania">;
@@ -161,43 +161,50 @@ export default function ExaminationDetailsScreen({ navigation, route }: Props) {
 
   return (
     <SafeAreaView className="flex-1 m-4" edges={["bottom", "left", "right"]}>
-      <View className="flex flex-row justify-between items-center">
-        <Text className="text-foreground text-xl p-2 mb-2">
-          {examinationData.name}
-        </Text>
-        <View className={`px-3 py-1 rounded-full ${statusStyle.container}`}>
-          <Text className={statusStyle.text}>{statusStyle.label}</Text>
+      <View className="flex flex-1">
+        <View className="flex flex-row justify-between items-center">
+          <Text className="text-foreground text-xl p-2 mb-2">
+            {examinationData.name}
+          </Text>
+          <View className={`px-3 py-1 rounded-full ${statusStyle.container}`}>
+            <Text className={statusStyle.text}>{statusStyle.label}</Text>
+          </View>
         </View>
+        <View className="border border-line-1 rounded-xl bg-surface flex flex-row justify-between">
+          <View>
+            <Text className="">Data</Text>
+            <Text className="font-bold">{examinationData.date}</Text>
+          </View>
+          <View>
+            <Text>Godzina</Text>
+            <Text className="font-bold">{examinationData.time}</Text>
+          </View>
+        </View>
+        <View className="border border-line-1 rounded-xl bg-surface mt-40">
+          <DetailField
+            icon={Hospital}
+            label="Lokalizacja"
+            value={examinationData.location}
+          />
+          <DetailField
+            icon={User}
+            label="Lekarz"
+            value={examinationData.doctor}
+          />
+          <DetailField
+            icon={SquareText}
+            label="Przygotowanie"
+            value={examinationData.preparation}
+          />
+        </View>
+        {examinationData.isCyclic && examinationData.cycleInterval != null && (
+          <DetailField
+            icon={Repeat}
+            label="Cykliczność"
+            value={formatCycleInterval(examinationData.cycleInterval)}
+          />
+        )}
       </View>
-      <View className="border border-line-1 rounded-xl bg-surface">
-        <View>
-          <Text className="">Data</Text>
-          <Text className="font-bold">{examinationData.date}</Text>
-        </View>
-        <View>
-          <Text>Godzina</Text>
-          <Text className="font-bold">{examinationData.time}</Text>
-        </View>
-      </View>
-      <View className="border border-line-1 rounded-xl bg-surface">
-        <DetailField
-        icon={Hospital}
-        label="Lokalizacja"
-        value={examinationData.location}/>
-      <DetailField icon={User} label="Lekarz" value={examinationData.doctor} />
-      <DetailField
-        icon={SquareText}
-        label="Przygotowanie"
-        value={examinationData.preparation}
-      />
-    </View>
-      {examinationData.isCyclic && examinationData.cycleInterval != null && (
-        <DetailField
-          icon={Repeat}
-          label="Cykliczność"
-          value={formatCycleInterval(examinationData.cycleInterval)}
-        />
-      )}
       <View className="mt-20 flex flex-row justify-between">
         <Button
           title="Edytuj Badanie"

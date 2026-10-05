@@ -1,37 +1,47 @@
-import { BloodType, Gender, RoleUser } from './EnumTypes';
+import { BloodType, CodeActionType, Gender, RoleUser } from "./EnumTypes";
 
 export interface UpdateUser {
-    firstName: string,
-    lastName: string,
-    birthDate?: string | null,   // "YYYY-MM-DD"
-    gender?: Gender | null,
-    height?: number | null,
-    weight?: number | null,
-    bloodType?: BloodType | null,
-    avatar?: string | null
+  firstName: string;
+  lastName: string;
+  birthDate?: string | null; // "YYYY-MM-DD"
+  gender?: Gender | null;
+  height?: number | null;
+  weight?: number | null;
+  bloodType?: BloodType | null;
+  avatar?: string | null;
 }
 
 export interface PatchUser {
-    firstName?: string,
-    lastName?: string,
-    birthDate?: string,
-    gender?: Gender,
-    height?: number,
-    weight?: number,
-    bloodType?: BloodType,
-    avatar?: string
+  firstName?: string;
+  lastName?: string;
+  birthDate?: string;
+  gender?: Gender;
+  height?: number;
+  weight?: number;
+  bloodType?: BloodType;
+  avatar?: string;
 }
 
 export interface UserResponse {
-    id: string,
-    email: string | null,   // null = profil bez konta (UserAccount)
-    firstName: string,
-    lastName: string,
-    birthDate?: string | null,
-    gender?: Gender | null,
-    height?: number | null,
-    weight?: number | null,
-    role: RoleUser,
-    bloodType?: BloodType | null,
-    avatar?: string | null
+  id: string;
+  email: string | null; // null = profil bez konta (UserAccount)
+  firstName: string;
+  lastName: string;
+  birthDate?: string | null;
+  gender?: Gender | null;
+  height?: number | null;
+  weight?: number | null;
+  role: RoleUser;
+  bloodType?: BloodType | null;
+  avatar?: string | null;
+}
+
+export interface CreateAccessCode {
+  actionType: CodeActionType;
+}
+
+export interface AccessCodeResponse {
+  code: string;
+  actionType: CodeActionType;
+  expiresAt: string;
 }
