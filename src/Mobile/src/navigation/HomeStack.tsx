@@ -6,6 +6,9 @@ import FamilyAcceptInviteScreen from "../screens/FamilyAcceptInviteScreen";
 import FamilyAddProfileScreen from "../screens/FamilyAddProfileScreen";
 import FamilyAccessCodeScreen from "../screens/FamilyAccessCodeScreen";
 import FamilyMemberProfileScreen from "../screens/FamilyMemberProfileScreen";
+import ExaminationsStack from "./ExaminationsStack";
+import MedicationsStack from "./MedicationsStack";
+import { PersonContext } from "../types/FamilyTypes";
 
 type Props = { onLogout: () => void };
 
@@ -22,6 +25,8 @@ export type HomeStackList = {
     lastName: string;
   };
   ProfilCzlonkaRodziny: { familyId: string; userId: string };
+  BadaniaCzlonka: PersonContext;
+  LekiCzlonka: PersonContext;
 };
 
 const Stack = createNativeStackNavigator<HomeStackList>();
@@ -73,6 +78,12 @@ function HomeStack({ onLogout }: Props) {
         {({ navigation, route }) => (
           <FamilyMemberProfileScreen navigation={navigation} route={route} />
         )}
+      </Stack.Screen>
+      <Stack.Screen name="BadaniaCzlonka" options={{ headerShown: false }}>
+        {({ route }) => <ExaminationsStack person={route.params} />}
+      </Stack.Screen>
+      <Stack.Screen name="LekiCzlonka" options={{ headerShown: false }}>
+        {({ route }) => <MedicationsStack person={route.params} />}
       </Stack.Screen>
     </Stack.Navigator>
   );

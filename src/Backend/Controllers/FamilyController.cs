@@ -19,12 +19,14 @@ public class FamilyController : ControllerBase
     private readonly AppDbContext _context; 
     private readonly IFamilyAccessService _familyAccessService;
     private readonly IFamilyInviteService _familyInviteService;
+    private readonly IAccessService _accessService;
 
-    public FamilyController(AppDbContext context, IFamilyAccessService familyAccessService, IFamilyInviteService familyInviteService)
+    public FamilyController(AppDbContext context, IFamilyAccessService familyAccessService, IFamilyInviteService familyInviteService,  IAccessService accessService)
     {
         _context = context;
         _familyAccessService = familyAccessService;
         _familyInviteService = familyInviteService;
+        _accessService = accessService;
     }
 
     [HttpPost]
@@ -202,6 +204,15 @@ public class FamilyController : ControllerBase
             .Select(g => g.WardUserId)
             .ToHashSetAsync();
 
+        var manageableIds = new HashSet<Guid>();
+        foreach (var memberId in memberIds)
+        {
+            if (await _accessService.CanManage(userId, memberId))
+            {
+                manageableIds.Add(memberId);
+            }
+        }
+        
         var today = PolandClock.Today();
         
         
@@ -224,6 +235,8 @@ public class FamilyController : ControllerBase
                     HasAccount = withAccount.Contains(m.UserId),
                     IsChild = AgeCategoryCalculator.Calculate(m.User.BirthDate, today) == AgeCategory.Child,
                     IsPrimaryGuardianForMe = myPrimaryWards.Contains(m.UserId),
+                    IsMe = m.UserId == userId,
+                    CanManage = manageableIds.Contains(m.UserId),
                 }).ToList()
             };
         }).ToList();
@@ -475,6 +488,8 @@ public class FamilyController : ControllerBase
             HasAccount = false,
             IsChild = category == AgeCategory.Child,
             IsPrimaryGuardianForMe = guardianShip.IsPrimary,
+            IsMe = false,
+            CanManage = true,
         });
     }
 

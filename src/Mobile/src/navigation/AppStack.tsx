@@ -25,6 +25,7 @@ function AppStack({ onLogout }: Props) {
         headerShown: false,
         tabBarActiveTintColor: "#178E9D",
         tabBarInactiveTintColor: "#999999",
+        popToTopOnBlur: true,
       }}
     >
       <Tab.Screen

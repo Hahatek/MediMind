@@ -21,9 +21,11 @@ import { Plus } from "lucide-react-native";
 import { pluralize } from "../../utils/pluralize";
 import SegmentedControl from "../../components/SegmentedControl";
 import MedicationTodayView from "../../components/MedicationTodayView";
+import { PersonContext } from "../../types/FamilyTypes";
 
 type Props = {
   navigation: NativeStackNavigationProp<MedicationStack, "Leki">;
+  person?: PersonContext;
 };
 
 const TABS = [
@@ -31,7 +33,7 @@ const TABS = [
   { value: "leki", label: "Lista leków" },
 ];
 
-export default function MedicationListScreen({ navigation }: Props) {
+export default function MedicationListScreen({ navigation, person }: Props) {
   const [medicationResponse, setMedicationResponse] = useState<
     MedicationListItem[]
   >([]);
@@ -39,11 +41,14 @@ export default function MedicationListScreen({ navigation }: Props) {
   const [error, setError] = useState<string | null>(null);
   const [tab, setTab] = useState("today");
 
+  const canManage = !person || person.canManage;
+
   const load = useCallback(async () => {
     setLoading(true);
     try {
       const medicationData = await medicationGet({
         date: formatDateLocal(new Date()),
+        userId: person?.userId,
       });
       setMedicationResponse(medicationData);
       setError(null);
@@ -52,7 +57,7 @@ export default function MedicationListScreen({ navigation }: Props) {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [person?.userId]);
 
   useFocusEffect(
     useCallback(() => {
@@ -106,27 +111,34 @@ export default function MedicationListScreen({ navigation }: Props) {
                     form={item.form}
                     schedules={item.schedules}
                     notes={item.notes}
-                    onEdit={() =>
-                      navigation.navigate("EdytujLek", {
-                        medicationId: item.id,
-                      })
+                    onEdit={
+                      canManage
+                        ? () =>
+                            navigation.navigate("EdytujLek", {
+                              medicationId: item.id,
+                            })
+                        : undefined
                     }
                   />
                 </Pressable>
               )}
             />
           </View>
-          <View className="">
-            <Button
-              title="Dodaj lek"
-              variant="primary"
-              iconLeft={Plus}
-              onPress={() => navigation.navigate("DodajLek")}
-            />
-          </View>
+          {canManage && (
+            <View>
+              <Button
+                title="Dodaj lek"
+                variant="primary"
+                iconLeft={Plus}
+                onPress={() => navigation.navigate("DodajLek")}
+              />
+            </View>
+          )}
         </>
       )}
-      {tab === "today" && <MedicationTodayView />}
+      {tab === "today" && (
+        <MedicationTodayView userId={person?.userId} canManage={canManage} />
+      )}
     </SafeAreaView>
   );
 }

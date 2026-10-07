@@ -33,6 +33,7 @@ export default function TodayDoseRow({ dose, onToggle }: Props) {
 
       <Pressable
         onPress={onToggle}
+        disabled={!onToggle}
         accessibilityRole="checkbox"
         accessibilityState={{ checked: taken }}
         accessibilityLabel={`${dose.medicationName}: ${taken ? "przyjęte" : "przyjmij"}`}

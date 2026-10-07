@@ -83,15 +83,38 @@ public class ExaminationController : ControllerBase
     }
 
     [HttpGet] // ResponseExamination
-    public async Task<ActionResult<IEnumerable<ResponseExaminationDto>>> GetExaminations()
+    public async Task<ActionResult<IEnumerable<ResponseExaminationDto>>> GetExaminations([FromQuery] Guid? userId,
+        [FromQuery] bool includeFamily = false)
     {
-        var userId = this.GetUserId();
-        var readableUserIds = await _accessService.GetReadableUserIds(userId);
-        var examinations = await _context.Examinations
-            .Where(e => readableUserIds.Contains(e.UserId))
-            .Where(e => !_context.ExaminationsHide.Any(h => h.ExaminationId == e.Id && h.HiddenForUserId == userId))
-            .ToListAsync();
+        var callerId = this.GetUserId();
+        if (userId.HasValue && includeFamily)
+        {
+            return BadRequest("Nie można jednocześnie podać userId i includeFamily");
+        }
+        
+        List<Guid> targetUsersIds;
+        if (includeFamily)
+        {
+            targetUsersIds = await _accessService.GetReadableUserIds(callerId);
+        }
+        else
+        {
+            var targetUserId = userId ?? callerId;
 
+            if (!await _accessService.CanRead(callerId, targetUserId))
+            {
+                return NotFound("Nie znaleziono użytkownika");
+            }
+            
+            targetUsersIds = new List<Guid> { targetUserId };
+
+        }
+        
+        var examinations = await _context.Examinations
+            .Where(e => targetUsersIds.Contains(e.UserId))
+            .Where(e => !_context.ExaminationsHide.Any(h => h.ExaminationId == e.Id && h.HiddenForUserId == callerId))
+            .ToListAsync();
+        
         return Ok(examinations.Select(ToResponseDto));
     }
 

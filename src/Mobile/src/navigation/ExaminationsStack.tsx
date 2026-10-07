@@ -3,10 +3,10 @@ import ExaminationsListScreen from "../screens/examination/ExaminationsListScree
 import ExaminationAddScreen from "../screens/examination/ExaminationAddScreen";
 import ExaminationDetailsScreen from "../screens/examination/ExaminationDetailsScreen";
 import ExaminationEditScreen from "../screens/examination/ExaminationEditScreen";
+import { PersonContext } from "../types/FamilyTypes";
 
 type Props = {
-  onLoginSuccess: () => void;
-  onRegisterSuccess: () => void;
+  person?: PersonContext;
 };
 
 export type ExaminationStack = {
@@ -17,22 +17,39 @@ export type ExaminationStack = {
 };
 
 const Stack = createNativeStackNavigator<ExaminationStack>();
-// { onLoginSuccess, onRegisterSuccess }: Props
-function ExaminationsStack() {
+function ExaminationsStack({ person }: Props) {
   return (
     <Stack.Navigator screenOptions={{ headerShown: true }}>
-      <Stack.Screen name="Badania" options={{ title: "Badania" }}>
-        {({ navigation }) => <ExaminationsListScreen navigation={navigation} />}
+      <Stack.Screen
+        name="Badania"
+        options={{ title: person ? `Badania ${person.firstName}` : "Badania" }}
+      >
+        {({ navigation }) => (
+          <ExaminationsListScreen navigation={navigation} person={person} />
+        )}
       </Stack.Screen>
-      <Stack.Screen name="DodajBadanie" options={{ title: "Dodaj badanie" }}>
-        {({ navigation }) => <ExaminationAddScreen navigation={navigation} />}
+      <Stack.Screen
+        name="DodajBadanie"
+        options={{
+          title: person
+            ? `Dodaj badanie: ${person.firstName}`
+            : "Dodaj badanie",
+        }}
+      >
+        {({ navigation }) => (
+          <ExaminationAddScreen navigation={navigation} person={person} />
+        )}
       </Stack.Screen>
       <Stack.Screen
         name="SzczegolyBadania"
         options={{ title: "Szczegóły badania" }}
       >
         {({ navigation, route }) => (
-          <ExaminationDetailsScreen navigation={navigation} route={route} />
+          <ExaminationDetailsScreen
+            navigation={navigation}
+            route={route}
+            person={person}
+          />
         )}
       </Stack.Screen>
       <Stack.Screen name="EdytujBadanie" options={{ title: "Edytuj badanie" }}>

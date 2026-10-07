@@ -3,6 +3,12 @@ export interface FamilyResponse {
   createdAt: string;
 }
 
+export interface PersonContext {
+  userId: string;
+  firstName: string;
+  canManage: boolean;
+}
+
 export interface FamilyMembership {
   userId: string;
   firstName: string;
@@ -12,6 +18,8 @@ export interface FamilyMembership {
   hasAccount: boolean;
   isChild: boolean;
   isPrimaryGuardianForMe: boolean;
+  isMe: boolean;
+  canManage: boolean;
 }
 
 export interface FamilyDetailsResponse {

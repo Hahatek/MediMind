@@ -65,3 +65,8 @@ export interface ExaminationResponse {
   completedAt: string | null;
   completedByUserId: string | null;
 }
+
+export interface ExaminationListParams {
+  userId?: string;
+  includeFamily?: boolean;
+}

@@ -4,14 +4,16 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import MedicationForm from "../../components/MedicationForm";
 import { CreateMedication } from "../../types/MedicationTypes";
 import { medicationCreate } from "../../api/medication";
+import { PersonContext } from "../../types/FamilyTypes";
 
 type Props = {
   navigation: NativeStackNavigationProp<MedicationStack, "DodajLek">;
+  person?: PersonContext;
 };
 
-export default function MedicationAddScreen({ navigation }: Props) {
+export default function MedicationAddScreen({ navigation, person }: Props) {
   async function handleCreate(medication: CreateMedication) {
-    await medicationCreate(medication);
+    await medicationCreate({ ...medication, forUserId: person?.userId });
     navigation.goBack();
   }
 

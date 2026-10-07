@@ -18,9 +18,11 @@ import { getErrorMessage } from "../../utils/errorMessage";
 import Button from "../../components/Button";
 import TextField from "../../components/TextField";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { PersonContext } from "../../types/FamilyTypes";
 
 type Props = {
   navigation: NativeStackNavigationProp<ExaminationStack, "DodajBadanie">;
+  person?: PersonContext;
 };
 
 const cycleUnits = [
@@ -28,7 +30,7 @@ const cycleUnits = [
   { value: "years", label: cycleUnitLabels.years },
 ] as const satisfies readonly { value: CycleUnit; label: string }[];
 
-export default function ExaminationAddScreen({ navigation }: Props) {
+export default function ExaminationAddScreen({ navigation, person }: Props) {
   const [step, setStep] = useState<1 | 2>(1);
   const [nameTextExamination, setNameTextExamination] = useState("");
   const [dateExamination, setDateExamination] = useState("");
@@ -61,6 +63,7 @@ export default function ExaminationAddScreen({ navigation }: Props) {
         isCyclicExamination && cycleValue !== null
           ? toMonths(cycleValue, cycleUnitExamination)
           : null,
+      forUserId: person?.userId,
     };
     setInfo("");
     setLoading(true);
