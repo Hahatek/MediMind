@@ -13,7 +13,12 @@ import { timeOfDayLabels } from "../utils/medicationTime";
 import TodayDoseRow from "./TodayDoseRow";
 import ErrorState from "./ErrorState";
 
-export default function MedicationTodayView() {
+type Props = {
+  userId?: string;
+  canManage: boolean;
+};
+
+export default function MedicationTodayView({ userId, canManage }: Props) {
   const [doses, setDoses] = useState<TodayMedicationIntake[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -23,7 +28,7 @@ export default function MedicationTodayView() {
     const date = formatDateLocal(new Date());
 
     try {
-      const todayDoses = await medicationIntakeToday(date);
+      const todayDoses = await medicationIntakeToday(date, userId);
       setDoses(todayDoses);
       setError(null);
     } catch (e) {
@@ -31,7 +36,7 @@ export default function MedicationTodayView() {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [userId]);
 
   useFocusEffect(
     useCallback(() => {
@@ -103,7 +108,10 @@ export default function MedicationTodayView() {
         )
       }
       renderItem={({ item }) => (
-        <TodayDoseRow dose={item} onToggle={() => handleToggle(item)} />
+        <TodayDoseRow
+          dose={item}
+          onToggle={canManage ? () => handleToggle(item) : undefined}
+        />
       )}
     />
   );

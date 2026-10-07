@@ -26,10 +26,12 @@ import ErrorState from "../../components/ErrorState";
 import Button from "../../components/Button";
 import { getExaminationDisplayStatus } from "../../utils/examinationDisplayStatus";
 import { getExamStatusStyle } from "../../theme/examStatus";
+import { PersonContext } from "../../types/FamilyTypes";
 
 type Props = {
   navigation: NativeStackNavigationProp<ExaminationStack, "SzczegolyBadania">;
   route: RouteProp<ExaminationStack, "SzczegolyBadania">;
+  person?: PersonContext;
 };
 
 function DetailField({
@@ -52,7 +54,12 @@ function DetailField({
   );
 }
 
-export default function ExaminationDetailsScreen({ navigation, route }: Props) {
+export default function ExaminationDetailsScreen({
+  navigation,
+  route,
+  person,
+}: Props) {
+  const canManage = !person || person.canManage;
   const [examinationData, setExaminationData] =
     useState<ExaminationResponse | null>(null);
   const [loading, setLoading] = useState(false);
@@ -205,34 +212,38 @@ export default function ExaminationDetailsScreen({ navigation, route }: Props) {
           />
         )}
       </View>
-      <View className="mt-20 flex flex-row justify-between">
-        <Button
-          title="Edytuj Badanie"
-          onPress={() =>
-            navigation.navigate("EdytujBadanie", {
-              examinationId: route.params.examinationId,
-            })
-          }
-          iconLeft={Pencil}
-        />
-
-        <Button
-          title="Usuń badanie"
-          onPress={handleDelete}
-          iconLeft={Trash}
-          variant="danger"
-        />
-      </View>
-
-      <View className="mt-4">
-        {displayStatus === "awaitingConfirmation" && (
+      {canManage && (
+        <View className="mt-20 flex flex-row justify-between">
           <Button
-            title="Potwierdź odbycie badania"
-            onPress={handleConfirm}
-            disabled={confirming}
+            title="Edytuj Badanie"
+            onPress={() =>
+              navigation.navigate("EdytujBadanie", {
+                examinationId: route.params.examinationId,
+              })
+            }
+            iconLeft={Pencil}
           />
-        )}
-      </View>
+
+          <Button
+            title="Usuń badanie"
+            onPress={handleDelete}
+            iconLeft={Trash}
+            variant="danger"
+          />
+        </View>
+      )}
+
+      {canManage && (
+        <View className="mt-4">
+          {displayStatus === "awaitingConfirmation" && (
+            <Button
+              title="Potwierdź odbycie badania"
+              onPress={handleConfirm}
+              disabled={confirming}
+            />
+          )}
+        </View>
+      )}
     </SafeAreaView>
   );
 }

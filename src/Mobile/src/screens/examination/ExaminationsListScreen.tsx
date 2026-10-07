@@ -27,12 +27,12 @@ import {
 import SegmentedControl from "../../components/SegmentedControl";
 import ExaminationsHistoryView from "../../components/ExaminationsHistoryView";
 import ExaminationsCalendarView from "../../components/ExaminationsCalendarView";
+import { PersonContext } from "../../types/FamilyTypes";
 
 type Props = {
   navigation: NativeStackNavigationProp<ExaminationStack, "Badania">;
+  person?: PersonContext;
 };
-
-// TODO: po wejściu w szczeguły badania i zmienieniu tab zawsze pojawie sie nam lista z badaniami ani nie szczegóły badan
 
 const TABS = [
   { value: "list", label: "Lista" },
@@ -40,7 +40,7 @@ const TABS = [
   { value: "history", label: "Historia" },
 ];
 
-export default function ExaminationsListScreen({ navigation }: Props) {
+export default function ExaminationsListScreen({ navigation, person }: Props) {
   const [examinationsRespons, setExaminationsRespons] = useState<
     ExaminationResponse[]
   >([]);
@@ -48,10 +48,20 @@ export default function ExaminationsListScreen({ navigation }: Props) {
   const [loading, setLoading] = useState(false);
   const [tab, setTab] = useState("list");
 
+  let canManage = false;
+
+  if (person == null) {
+    canManage = true;
+  } else {
+    canManage = person.canManage;
+  }
+
   const load = useCallback(async () => {
     setLoading(true);
     try {
-      const examinationData = await examinationGet();
+      const examinationData = await examinationGet(
+        person ? { userId: person.userId } : {},
+      );
       setExaminationsRespons(examinationData);
       setError(null);
     } catch (e) {
@@ -59,7 +69,7 @@ export default function ExaminationsListScreen({ navigation }: Props) {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [person?.userId]);
 
   useFocusEffect(
     useCallback(() => {
@@ -158,12 +168,15 @@ export default function ExaminationsListScreen({ navigation }: Props) {
                 color={item.color}
                 status={getExaminationDisplayStatus(item, day)}
                 time={item.time}
-                onEdit={() =>
-                  navigation.navigate("EdytujBadanie", {
-                    examinationId: item.id,
-                  })
+                onEdit={
+                  canManage
+                    ? () =>
+                        navigation.navigate("EdytujBadanie", {
+                          examinationId: item.id,
+                        })
+                    : undefined
                 }
-                onDelete={() => handleDelete(item.id)}
+                onDelete={canManage ? () => handleDelete(item.id) : undefined}
               />
             </Pressable>
           )}
@@ -182,14 +195,16 @@ export default function ExaminationsListScreen({ navigation }: Props) {
         />
       )}
 
-      <View className="m-4">
-        <Button
-          title={"Dodaj badanie"}
-          onPress={() => navigation.navigate("DodajBadanie")}
-          iconLeft={Plus}
-          variant="primary"
-        />
-      </View>
+      {canManage && (
+        <View className="m-4">
+          <Button
+            title={"Dodaj badanie"}
+            onPress={() => navigation.navigate("DodajBadanie")}
+            iconLeft={Plus}
+            variant="primary"
+          />
+        </View>
+      )}
     </SafeAreaView>
   );
 }

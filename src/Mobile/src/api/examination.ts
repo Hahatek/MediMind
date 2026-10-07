@@ -1,14 +1,17 @@
 import {
   CreateExamination,
+  ExaminationListParams,
   ExaminationResponse,
   PatchExamination,
   UpdateExamination,
 } from "../types/ExaminationTypes";
 import instance from "./client";
 
-export async function examinationGet() {
-  const response =
-    await instance.get<ExaminationResponse[]>(`/api/examination`);
+export async function examinationGet(params: ExaminationListParams = {}) {
+  const response = await instance.get<ExaminationResponse[]>(
+    `/api/examination`,
+    { params },
+  );
   return response.data;
 }
 

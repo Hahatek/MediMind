@@ -35,10 +35,12 @@ import {
   medicationResume,
 } from "../../api/medication";
 import { medicationScheduleGet } from "../../api/medicationSchedule";
+import { PersonContext } from "../../types/FamilyTypes";
 
 type Props = {
   navigation: NativeStackNavigationProp<MedicationStack, "SzczegolyLeku">;
   route: RouteProp<MedicationStack, "SzczegolyLeku">;
+  person?: PersonContext;
 };
 
 function DetailField({
@@ -71,7 +73,12 @@ function scheduleLabel(schedule: MedicationScheduleResponse) {
     : timeOfDayLabels[schedule.timeOfDay];
 }
 
-export default function MedicationDetailsScreen({ navigation, route }: Props) {
+export default function MedicationDetailsScreen({
+  navigation,
+  route,
+  person,
+}: Props) {
+  const canManage = !person || person.canManage;
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   // Osobno od loading, żeby akcja (odstaw/usuń) nie zamieniała całego ekranu na "Ładowanie..."
@@ -251,32 +258,34 @@ export default function MedicationDetailsScreen({ navigation, route }: Props) {
         ))
       )}
 
-      <View className="mt-auto gap-3">
-        {medication.discontinuedOn ? (
+      {canManage && (
+        <View className="mt-auto gap-3">
+          {medication.discontinuedOn ? (
+            <Button
+              title="Wznów lek"
+              variant="secondary"
+              iconLeft={RotateCcw}
+              onPress={handleResume}
+              disabled={acting}
+            />
+          ) : (
+            <Button
+              title="Odstaw lek"
+              variant="secondary"
+              iconLeft={CalendarOff}
+              onPress={handleDiscontinue}
+              disabled={acting}
+            />
+          )}
           <Button
-            title="Wznów lek"
-            variant="secondary"
-            iconLeft={RotateCcw}
-            onPress={handleResume}
+            title="Usuń lek"
+            variant="danger"
+            iconLeft={Trash}
+            onPress={handleDelete}
             disabled={acting}
           />
-        ) : (
-          <Button
-            title="Odstaw lek"
-            variant="secondary"
-            iconLeft={CalendarOff}
-            onPress={handleDiscontinue}
-            disabled={acting}
-          />
-        )}
-        <Button
-          title="Usuń lek"
-          variant="danger"
-          iconLeft={Trash}
-          onPress={handleDelete}
-          disabled={acting}
-        />
-      </View>
+        </View>
+      )}
     </SafeAreaView>
   );
 }
