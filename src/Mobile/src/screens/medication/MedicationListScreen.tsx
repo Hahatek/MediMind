@@ -24,7 +24,7 @@ import MedicationTodayView from "../../components/MedicationTodayView";
 import { PersonContext } from "../../types/FamilyTypes";
 
 type Props = {
-  navigation: NativeStackNavigationProp<MedicationStack, "Leki">;
+  navigation: NativeStackNavigationProp<MedicationStack, "ListaLekow">;
   person?: PersonContext;
 };
 

@@ -1,4 +1,4 @@
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import {
   Text,
   Pressable,
@@ -6,15 +6,19 @@ import {
   Alert,
   ActivityIndicator,
   SectionList,
+  Modal,
 } from "react-native";
 
 import { examinationDelete, examinationGet } from "../../api/examination";
-import { ExaminationResponse } from "../../types/ExaminationTypes";
+import {
+  ExaminationListParams,
+  ExaminationResponse,
+} from "../../types/ExaminationTypes";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { ExaminationStack } from "../../navigation/ExaminationsStack";
 import { useFocusEffect } from "@react-navigation/native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { Plus } from "lucide-react-native";
+import { Check, Plus, SlidersHorizontal } from "lucide-react-native";
 import ExaminationCard from "../../components/ExaminationCard";
 import ErrorState from "../../components/ErrorState";
 import { getErrorMessage } from "../../utils/errorMessage";
@@ -27,10 +31,12 @@ import {
 import SegmentedControl from "../../components/SegmentedControl";
 import ExaminationsHistoryView from "../../components/ExaminationsHistoryView";
 import ExaminationsCalendarView from "../../components/ExaminationsCalendarView";
-import { PersonContext } from "../../types/FamilyTypes";
+import { FamilyMembership, PersonContext } from "../../types/FamilyTypes";
+import { familyGet } from "../../api/family";
+import { useThemeColor } from "../../theme/useThemeColor";
 
 type Props = {
-  navigation: NativeStackNavigationProp<ExaminationStack, "Badania">;
+  navigation: NativeStackNavigationProp<ExaminationStack, "ListaBadan">;
   person?: PersonContext;
 };
 
@@ -47,6 +53,19 @@ export default function ExaminationsListScreen({ navigation, person }: Props) {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [tab, setTab] = useState("list");
+  const [members, setMembers] = useState<FamilyMembership[]>([]);
+  const [filterOpen, setFilterOpen] = useState(false);
+  const [selectIds, setSelectIds] = useState<string[]>([]);
+  const checkColor = useThemeColor("--on-brand");
+
+  function buildParams(
+    person: PersonContext | undefined,
+  ): ExaminationListParams {
+    if (person) {
+      return { userId: person.userId };
+    }
+    return { includeFamily: true };
+  }
 
   let canManage = false;
 
@@ -59,9 +78,7 @@ export default function ExaminationsListScreen({ navigation, person }: Props) {
   const load = useCallback(async () => {
     setLoading(true);
     try {
-      const examinationData = await examinationGet(
-        person ? { userId: person.userId } : {},
-      );
+      const examinationData = await examinationGet(buildParams(person));
       setExaminationsRespons(examinationData);
       setError(null);
     } catch (e) {
@@ -77,8 +94,18 @@ export default function ExaminationsListScreen({ navigation, person }: Props) {
     }, [load]),
   );
 
+  function canManageFor(userId: string): boolean {
+    const owner = members.find((m) => m.userId === userId);
+    return person ? canManage : (owner?.canManage ?? true);
+  }
+
   function handleExaminationDetails(examinationId: string) {
-    navigation.navigate("SzczegolyBadania", { examinationId });
+    const exam = examinationsRespons.find((e) => e.id === examinationId);
+
+    navigation.navigate("SzczegolyBadania", {
+      examinationId,
+      canManage: exam ? canManageFor(exam.userId) : false,
+    });
   }
 
   async function handleDeleteExamination(examinationId: string) {
@@ -103,9 +130,52 @@ export default function ExaminationsListScreen({ navigation, person }: Props) {
     ]);
   }
 
+  function toggleSelect(userId: string) {
+    if (selectIds.includes(userId)) {
+      if (selectIds.length <= 1) {
+        Alert.alert("Filtr", "Musisz mieć zaznaczoną co najmniej jedną osobę.");
+        return;
+      }
+      setSelectIds(selectIds.filter((id) => id !== userId));
+    } else {
+      setSelectIds([...selectIds, userId]);
+    }
+  }
+
+  function renderPersonRow(p: FamilyMembership) {
+    const isSelected = selectIds.includes(p.userId);
+
+    return (
+      <Pressable
+        key={p.userId}
+        className="flex-row items-center gap-3 py-3"
+        onPress={() => toggleSelect(p.userId)}
+      >
+        <View
+          className={`w-6 h-6 rounded-md border-2 items-center justify-center ${
+            isSelected ? "bg-primary border-primary" : "border-line-2"
+          }`}
+        >
+          {isSelected && <Check size={16} color={checkColor} />}
+        </View>
+        <Text className="text-foreground">
+          {p.firstName} {p.lastName}
+        </Text>
+      </Pressable>
+    );
+  }
+
   const day = new Date();
 
-  const awaitingExaminations = examinationsRespons
+  const visibleExamination =
+    selectIds.length === 0
+      ? examinationsRespons
+      : examinationsRespons.filter((e) => selectIds.includes(e.userId));
+
+  const myPeople = members.filter((m) => m.isMe || m.canManage);
+  const otherPeople = members.filter((m) => !m.isMe && !m.canManage);
+
+  const awaitingExaminations = visibleExamination
     .filter(
       (item) =>
         examinationSectionByStatus[getExaminationDisplayStatus(item, day)] ===
@@ -117,7 +187,7 @@ export default function ExaminationsListScreen({ navigation, person }: Props) {
         getExaminationDateTime(b).getTime(),
     );
 
-  const upcomingExaminations = examinationsRespons
+  const upcomingExaminations = visibleExamination
     .filter(
       (item) =>
         examinationSectionByStatus[getExaminationDisplayStatus(item, day)] ===
@@ -133,6 +203,32 @@ export default function ExaminationsListScreen({ navigation, person }: Props) {
     { title: "Do potwierdzenia", data: awaitingExaminations },
     { title: "Nadchodzące", data: upcomingExaminations },
   ].filter((section) => section.data.length > 0);
+
+  useEffect(() => {
+    if (person) {
+      return;
+    }
+
+    async function loadMembers() {
+      try {
+        const response = (await familyGet())
+          .flatMap((family) => family.members)
+          .filter(
+            (item, index, array) =>
+              array.findIndex((m) => m.userId === item.userId) === index,
+          );
+        setMembers(response);
+        const me = response.find((m) => m.isMe);
+        if (me) {
+          setSelectIds([me.userId]);
+        }
+      } catch (e) {
+        console.log(e);
+      }
+    }
+
+    loadMembers();
+  }, [person]);
 
   return (
     <SafeAreaView className="flex-1 mt-4" edges={["bottom", "left", "right"]}>
@@ -159,52 +255,104 @@ export default function ExaminationsListScreen({ navigation, person }: Props) {
               {section.title} ({section.data.length})
             </Text>
           )}
-          renderItem={({ item }) => (
-            <Pressable onPress={() => handleExaminationDetails(item.id)}>
-              <ExaminationCard
-                name={item.name}
-                location={item.location}
-                date={item.date}
-                color={item.color}
-                status={getExaminationDisplayStatus(item, day)}
-                time={item.time}
-                onEdit={
-                  canManage
-                    ? () =>
-                        navigation.navigate("EdytujBadanie", {
-                          examinationId: item.id,
-                        })
-                    : undefined
-                }
-                onDelete={canManage ? () => handleDelete(item.id) : undefined}
-              />
-            </Pressable>
-          )}
+          renderItem={({ item }) => {
+            const canManageItem = canManageFor(item.userId);
+            const owner = members.find((m) => m.userId === item.userId);
+            const ownerName =
+              owner && !owner.isMe ? owner.firstName : undefined;
+
+            return (
+              <Pressable onPress={() => handleExaminationDetails(item.id)}>
+                <ExaminationCard
+                  ownerName={ownerName}
+                  name={item.name}
+                  location={item.location}
+                  date={item.date}
+                  color={item.color}
+                  status={getExaminationDisplayStatus(item, day)}
+                  time={item.time}
+                  onEdit={
+                    canManageItem
+                      ? () =>
+                          navigation.navigate("EdytujBadanie", {
+                            examinationId: item.id,
+                          })
+                      : undefined
+                  }
+                  onDelete={
+                    canManageItem ? () => handleDelete(item.id) : undefined
+                  }
+                />
+              </Pressable>
+            );
+          }}
         />
       )}
       {tab === "calendar" && (
         <ExaminationsCalendarView
-          examinations={examinationsRespons}
+          examinations={visibleExamination}
           onPressExamination={handleExaminationDetails}
         />
       )}
       {tab === "history" && (
         <ExaminationsHistoryView
-          examinations={examinationsRespons}
+          examinations={visibleExamination}
           onPressExamination={handleExaminationDetails}
         />
       )}
 
-      {canManage && (
-        <View className="m-4">
-          <Button
-            title={"Dodaj badanie"}
-            onPress={() => navigation.navigate("DodajBadanie")}
-            iconLeft={Plus}
-            variant="primary"
-          />
-        </View>
-      )}
+      <View className="m-4 flex flex-row gap-2">
+        {!person && (
+          <View className="w-16">
+            <Button
+              variant="neutral"
+              iconRight={SlidersHorizontal}
+              onPress={() => setFilterOpen(true)}
+            />
+          </View>
+        )}
+
+        {canManage && (
+          <View className="flex flex-1">
+            <Button
+              title={"Dodaj badanie"}
+              onPress={() => navigation.navigate("DodajBadanie")}
+              iconLeft={Plus}
+              variant="primary"
+            />
+          </View>
+        )}
+      </View>
+
+      <Modal
+        visible={filterOpen}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setFilterOpen(false)}
+      >
+        <Pressable
+          className="flex flex-1 justify-end bg-black/40"
+          onPress={() => setFilterOpen(false)}
+        >
+          <Pressable className="bg-surface rounded-t-2xl p-4 pb-8">
+            <Text className="text-lg font-semibold text-foreground">
+              Filtr badań
+            </Text>
+            <View>
+              <Text className="text-xs text-ink-3 mt-4 mb-2">
+                Ty i osoby pod twoją opieką
+              </Text>
+              {myPeople.map(renderPersonRow)}
+            </View>
+            <View>
+              <Text className="text-xs text-ink-3 mt-4 mb-2">
+                Pozostali członkowie rodziny
+              </Text>
+              {otherPeople.map(renderPersonRow)}
+            </View>
+          </Pressable>
+        </Pressable>
+      </Modal>
     </SafeAreaView>
   );
 }

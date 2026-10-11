@@ -10,7 +10,7 @@ import { ChevronRight, UserRoundGroup } from "lucide-react-native";
 import { green } from "react-native-reanimated/lib/typescript/Colors";
 
 type Props = {
-  navigation: NativeStackNavigationProp<HomeStackList, "Home">;
+  navigation: NativeStackNavigationProp<HomeStackList, "StronaGlowna">;
   onLogout: () => void;
 };
 
