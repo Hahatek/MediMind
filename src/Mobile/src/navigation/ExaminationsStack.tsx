@@ -10,9 +10,9 @@ type Props = {
 };
 
 export type ExaminationStack = {
-  Badania: undefined;
+  ListaBadan: undefined;
   DodajBadanie: undefined;
-  SzczegolyBadania: { examinationId: string };
+  SzczegolyBadania: { examinationId: string; canManage: boolean };
   EdytujBadanie: { examinationId: string };
 };
 
@@ -21,7 +21,7 @@ function ExaminationsStack({ person }: Props) {
   return (
     <Stack.Navigator screenOptions={{ headerShown: true }}>
       <Stack.Screen
-        name="Badania"
+        name="ListaBadan"
         options={{ title: person ? `Badania ${person.firstName}` : "Badania" }}
       >
         {({ navigation }) => (
@@ -45,11 +45,7 @@ function ExaminationsStack({ person }: Props) {
         options={{ title: "Szczegóły badania" }}
       >
         {({ navigation, route }) => (
-          <ExaminationDetailsScreen
-            navigation={navigation}
-            route={route}
-            person={person}
-          />
+          <ExaminationDetailsScreen navigation={navigation} route={route} />
         )}
       </Stack.Screen>
       <Stack.Screen name="EdytujBadanie" options={{ title: "Edytuj badanie" }}>

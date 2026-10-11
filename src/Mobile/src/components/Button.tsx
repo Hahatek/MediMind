@@ -6,7 +6,7 @@ export type ButtonVariant =
   "primary" | "secondary" | "neutral" | "danger" | "dangerSolid" | "ghost";
 
 type ButtonProps = {
-  title: string;
+  title?: string;
   onPress: () => void;
   variant?: ButtonVariant;
   disabled?: boolean;
@@ -60,7 +60,7 @@ export default function Button({
       disabled={disabled}
     >
       {IconLeft && <IconLeft size={18} color={iconColor} />}
-      <Text className={textClasses[variant]}>{title}</Text>
+      {title && <Text className={textClasses[variant]}>{title}</Text>}
       {IconRight && <IconRight size={18} color={iconColor} />}
     </Pressable>
   );

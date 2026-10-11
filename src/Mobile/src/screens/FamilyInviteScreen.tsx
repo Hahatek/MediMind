@@ -2,7 +2,7 @@ import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { HomeStackList } from "../navigation/HomeStack";
 import { RouteProp } from "@react-navigation/native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { ActivityIndicator, Pressable, Text } from "react-native";
+import { ActivityIndicator, Pressable, Text, View } from "react-native";
 import { useState } from "react";
 import { FamilyInviteResponse } from "../types/FamilyTypes";
 import { inviteAccept, inviteCancel, inviteCreate } from "../api/family";
@@ -63,14 +63,36 @@ export default function FamilyInviteScreen({ navigation, route }: Props) {
 
   if (invite !== null) {
     return (
-      <SafeAreaView>
-        <Text>{invite.code}</Text>
-        <Text>{new Date(invite.expiresAt).toLocaleString()}</Text>
-        <Button
-          onPress={() => handleDelete(invite.id)}
-          title="Usuń kod"
-          variant={"danger"}
-        />
+      <SafeAreaView
+        className="flex flex-1 m-4"
+        edges={["bottom", "left", "right"]}
+      >
+        <View className="flex bg-surface border border-border rounded-2xl p-4 justify-center items-center gap-4">
+          <View className="flex flex-row gap-2">
+            {invite.code.split("").map((digit, index) => (
+              <View
+                key={index}
+                className="flex flex-1 h-16 bg-tint-1 rounded-xl items-center justify-center"
+              >
+                <Text className="text-3xl font-semibold text-foreground">
+                  {digit}
+                </Text>
+              </View>
+            ))}
+          </View>
+          <View>
+            <Text className="">
+              Kod wygaśnie: {new Date(invite.expiresAt).toLocaleString()}
+            </Text>
+          </View>
+        </View>
+        <View className="mt-4">
+          <Button
+            onPress={() => handleDelete(invite.id)}
+            title="Usuń kod"
+            variant={"danger"}
+          />
+        </View>
       </SafeAreaView>
     );
   }

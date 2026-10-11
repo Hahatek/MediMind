@@ -1,5 +1,5 @@
-import { useCallback, useEffect, useState } from "react";
-import { Text, View, Pressable, Alert } from "react-native";
+import { useCallback, useState } from "react";
+import { Text, View, Alert, ScrollView } from "react-native";
 import {
   examinationComplete,
   examinationDelete,
@@ -11,14 +11,15 @@ import { ExaminationStack } from "../../navigation/ExaminationsStack";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { RouteProp, useFocusEffect } from "@react-navigation/native";
 import {
-  Clock,
-  Hospital,
+  Building2,
+  CircleCheck,
+  Flag,
   LucideIcon,
-  User,
-  SquareText,
-  Trash,
+  Info,
   Repeat,
+  Trash,
   Pencil,
+  User,
 } from "lucide-react-native";
 import { formatCycleInterval } from "../../utils/cycleInterval";
 import { getErrorMessage } from "../../utils/errorMessage";
@@ -26,40 +27,53 @@ import ErrorState from "../../components/ErrorState";
 import Button from "../../components/Button";
 import { getExaminationDisplayStatus } from "../../utils/examinationDisplayStatus";
 import { getExamStatusStyle } from "../../theme/examStatus";
-import { PersonContext } from "../../types/FamilyTypes";
+import { formatDate, formatTime } from "../../utils/dateFormat";
+import { useThemeColor } from "../../theme/useThemeColor";
 
 type Props = {
   navigation: NativeStackNavigationProp<ExaminationStack, "SzczegolyBadania">;
   route: RouteProp<ExaminationStack, "SzczegolyBadania">;
-  person?: PersonContext;
 };
 
-function DetailField({
-  icon,
+function capitalize(str: string) {
+  return str.charAt(0).toUpperCase() + str.slice(1);
+}
+
+function getNextDate(dateStr: string, cycleIntervalMonths: number): string {
+  const [year, month, day] = dateStr.split("-").map(Number);
+  const d = new Date(year, month - 1 + cycleIntervalMonths, day);
+  return formatDate(
+    `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`,
+  );
+}
+
+function DetailRow({
+  icon: Icon,
   label,
   value,
+  last = false,
 }: {
   icon: LucideIcon;
   label: string;
   value?: string | null;
+  last?: boolean;
 }) {
-  const Icon = icon;
+  const iconColor = useThemeColor("--ink-3");
   return (
-    <View className="flex flex-row items-center">
-      <Icon size={24} />
-      <Text className="text-foreground mb-2">
-        {label}: {value ?? "Nie podano"}
+    <View
+      className={`flex flex-row items-center px-4 py-3 gap-3 ${!last ? "border-b border-line-2" : ""}`}
+    >
+      <Icon size={18} color={iconColor} />
+      <Text className="text-ink-3 text-sm flex-1">{label}</Text>
+      <Text className="text-foreground font-semibold text-sm">
+        {value ?? "brak"}
       </Text>
     </View>
   );
 }
 
-export default function ExaminationDetailsScreen({
-  navigation,
-  route,
-  person,
-}: Props) {
-  const canManage = !person || person.canManage;
+export default function ExaminationDetailsScreen({ navigation, route }: Props) {
+  const canManage = route.params.canManage;
   const [examinationData, setExaminationData] =
     useState<ExaminationResponse | null>(null);
   const [loading, setLoading] = useState(false);
@@ -67,6 +81,9 @@ export default function ExaminationDetailsScreen({
   const [confirming, setConfirming] = useState(false);
 
   const day = new Date();
+
+  const brandColor = useThemeColor("--brand");
+  const warnColor = useThemeColor("--warn-ink");
 
   const dataExamination = useCallback(async () => {
     setLoading(true);
@@ -104,11 +121,7 @@ export default function ExaminationDetailsScreen({
   function handleDelete() {
     Alert.alert("Usuń badanie", "Czy na pewno chcesz usunąć badanie?", [
       { text: "Anuluj", style: "cancel" },
-      {
-        text: "Usuń",
-        style: "destructive",
-        onPress: handleDeleteExamination,
-      },
+      { text: "Usuń", style: "destructive", onPress: handleDeleteExamination },
     ]);
   }
 
@@ -120,10 +133,7 @@ export default function ExaminationDetailsScreen({
     } catch (e) {
       Alert.alert(
         "Błąd",
-        getErrorMessage(
-          e,
-          "Nie udało się potwierdzić odbycia terminu badania.",
-        ),
+        getErrorMessage(e, "Nie udało się potwierdzić odbycia terminu badania."),
       );
     } finally {
       setConfirming(false);
@@ -133,19 +143,14 @@ export default function ExaminationDetailsScreen({
   function handleConfirm() {
     Alert.alert("Potwierdzenie badania", "Czy potwierdzasz odbycie badania?", [
       { text: "Anuluj", style: "cancel" },
-      {
-        text: "Tak",
-        style: "default",
-        onPress: handleConfirmExamination,
-      },
+      { text: "Tak", style: "default", onPress: handleConfirmExamination },
     ]);
   }
 
-  // Guard clauses odrzucamy przypadki, w których nie możemy kontynuować. Potem piszemy główną logikę bez niepotrzebnych zagnieżdżeń.
   if (loading) {
     return (
       <SafeAreaView className="flex-1" edges={["bottom", "left", "right"]}>
-        <Text className="text-foreground">Ładowanie...</Text>
+        <Text className="text-foreground p-4">Ładowanie...</Text>
       </SafeAreaView>
     );
   }
@@ -162,86 +167,135 @@ export default function ExaminationDetailsScreen({
     return null;
   }
 
-  // Liczone po guardach — tu examinationData na pewno nie jest null.
   const displayStatus = getExaminationDisplayStatus(examinationData, day);
   const statusStyle = getExamStatusStyle(displayStatus);
 
   return (
-    <SafeAreaView className="flex-1 m-4" edges={["bottom", "left", "right"]}>
-      <View className="flex flex-1">
-        <View className="flex flex-row justify-between items-center">
-          <Text className="text-foreground text-xl p-2 mb-2">
+    <SafeAreaView className="flex-1 bg-screen" edges={["bottom", "left", "right"]}>
+      <ScrollView
+        className="flex-1 px-4 pt-4"
+        contentContainerStyle={{ paddingBottom: 16 }}
+      >
+        {/* Tytuł + status */}
+        <View className="flex flex-row justify-between items-start mb-4">
+          <Text className="text-foreground text-2xl font-bold flex-1 mr-3">
             {examinationData.name}
           </Text>
-          <View className={`px-3 py-1 rounded-full ${statusStyle.container}`}>
-            <Text className={statusStyle.text}>{statusStyle.label}</Text>
+          <View className={`px-3 py-1 rounded-full mt-1 ${statusStyle.container}`}>
+            <Text className={`text-xs font-medium ${statusStyle.text}`}>
+              {statusStyle.label}
+            </Text>
           </View>
         </View>
-        <View className="border border-line-1 rounded-xl bg-surface flex flex-row justify-between">
-          <View>
-            <Text className="">Data</Text>
-            <Text className="font-bold">{examinationData.date}</Text>
+
+        {/* Data i godzina */}
+        <View className="rounded-xl bg-surface border border-line-2 flex flex-row mb-3 overflow-hidden">
+          <View className="flex-1 p-4">
+            <Text className="text-ink-3 text-xs mb-1">Data</Text>
+            <Text className="text-foreground font-bold text-base">
+              {formatDate(examinationData.date)}
+            </Text>
           </View>
-          <View>
-            <Text>Godzina</Text>
-            <Text className="font-bold">{examinationData.time}</Text>
+          <View className="w-px bg-line-2" />
+          <View className="flex-1 p-4">
+            <Text className="text-ink-3 text-xs mb-1">Godzina</Text>
+            <Text className="text-foreground font-bold text-base">
+              {examinationData.time ? formatTime(examinationData.time) : "—"}
+            </Text>
           </View>
         </View>
-        <View className="border border-line-1 rounded-xl bg-surface mt-40">
-          <DetailField
-            icon={Hospital}
-            label="Lokalizacja"
+
+        {/* Badanie cykliczne */}
+        {examinationData.isCyclic && examinationData.cycleInterval != null && (
+          <View className="rounded-xl bg-tint-2 p-4 mb-3 flex flex-row items-center gap-4">
+            <View className="w-10 h-10 rounded-full bg-surface items-center justify-center">
+              <Repeat size={20} color={brandColor} />
+            </View>
+            <View className="flex-1">
+              <Text className="text-ink-3 text-xs mb-0.5">Badanie cykliczne</Text>
+              <Text className="text-foreground font-semibold text-sm">
+                {capitalize(formatCycleInterval(examinationData.cycleInterval))}
+              </Text>
+              <Text className="text-ink-3 text-xs mt-0.5">
+                Następne:{" "}
+                {getNextDate(
+                  examinationData.date,
+                  examinationData.cycleInterval,
+                )}
+              </Text>
+            </View>
+          </View>
+        )}
+
+        {/* Przygotowanie */}
+        {examinationData.preparation && (
+          <View className="rounded-xl bg-warn-bg border border-warn-line p-4 mb-3">
+            <View className="flex flex-row items-center gap-2 mb-2">
+              <Info size={16} color={warnColor} />
+              <Text className="text-warn-ink font-semibold text-sm">
+                Przygotowanie
+              </Text>
+            </View>
+            <Text className="text-warn-ink text-sm leading-5">
+              {examinationData.preparation}
+            </Text>
+          </View>
+        )}
+
+        {/* Szczegóły */}
+        <View className="rounded-xl bg-surface border border-line-2 overflow-hidden mb-3">
+          <DetailRow
+            icon={Building2}
+            label="Placówka"
             value={examinationData.location}
           />
-          <DetailField
+          <DetailRow
             icon={User}
             label="Lekarz"
             value={examinationData.doctor}
           />
-          <DetailField
-            icon={SquareText}
-            label="Przygotowanie"
-            value={examinationData.preparation}
+          <DetailRow
+            icon={Flag}
+            label="Opis"
+            value={examinationData.description}
+            last
           />
         </View>
-        {examinationData.isCyclic && examinationData.cycleInterval != null && (
-          <DetailField
-            icon={Repeat}
-            label="Cykliczność"
-            value={formatCycleInterval(examinationData.cycleInterval)}
-          />
-        )}
-      </View>
-      {canManage && (
-        <View className="mt-20 flex flex-row justify-between">
-          <Button
-            title="Edytuj Badanie"
-            onPress={() =>
-              navigation.navigate("EdytujBadanie", {
-                examinationId: route.params.examinationId,
-              })
-            }
-            iconLeft={Pencil}
-          />
+      </ScrollView>
 
-          <Button
-            title="Usuń badanie"
-            onPress={handleDelete}
-            iconLeft={Trash}
-            variant="danger"
-          />
-        </View>
-      )}
-
+      {/* Przyciski na dole */}
       {canManage && (
-        <View className="mt-4">
+        <View className="px-4 pt-2 pb-2 gap-2">
           {displayStatus === "awaitingConfirmation" && (
             <Button
               title="Potwierdź odbycie badania"
               onPress={handleConfirm}
               disabled={confirming}
+              iconLeft={CircleCheck}
             />
           )}
+          <View className="flex flex-row gap-2">
+            <View className="flex-1">
+              <Button
+                title="Edytuj"
+                onPress={() =>
+                  navigation.navigate("EdytujBadanie", {
+                    examinationId: route.params.examinationId,
+                  })
+                }
+                iconLeft={Pencil}
+                variant="neutral"
+              />
+            </View>
+            <View className="flex-1">
+              <Button
+                title="Usuń"
+                onPress={handleDelete}
+                iconLeft={Trash}
+                variant="danger"
+              />
+            </View>
+          </View>
         </View>
       )}
     </SafeAreaView>

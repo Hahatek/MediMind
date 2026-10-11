@@ -13,7 +13,7 @@ import { PersonContext } from "../types/FamilyTypes";
 type Props = { onLogout: () => void };
 
 export type HomeStackList = {
-  Home: undefined;
+  StronaGlowna: undefined;
   Rodzina: undefined;
   Zaproszenie: { familyId: string };
   AkceptacjaZaproszenia: undefined;
@@ -35,7 +35,7 @@ function HomeStack({ onLogout }: Props) {
   return (
     <Stack.Navigator screenOptions={{ headerShown: true }}>
       <Stack.Screen
-        name="Home"
+        name="StronaGlowna"
         options={{ title: "Strona główna", headerShown: false }}
       >
         {({ navigation }) => (

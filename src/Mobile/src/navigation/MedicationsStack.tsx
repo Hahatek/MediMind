@@ -10,7 +10,7 @@ type Props = {
 };
 
 export type MedicationStack = {
-  Leki: undefined;
+  ListaLekow: undefined;
   DodajLek: undefined;
   SzczegolyLeku: { medicationId: string };
   EdytujLek: { medicationId: string };
@@ -21,7 +21,7 @@ function MedicationsStack({ person }: Props) {
   return (
     <Stack.Navigator screenOptions={{ headerShown: true }}>
       <Stack.Screen
-        name="Leki"
+        name="ListaLekow"
         options={{ title: person ? `Leki ${person.firstName}` : "Leki" }}
       >
         {({ navigation }) => (
