@@ -1,30 +1,33 @@
 import { RouteProp, useFocusEffect } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { useCallback, useState } from "react";
-import { HomeStackList } from "../navigation/HomeStack";
+import { HomeStackList } from "../../navigation/HomeStack";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { ActivityIndicator, Alert, Pressable, Text, View } from "react-native";
-import { FamilyDetailsResponse, FamilyMembership } from "../types/FamilyTypes";
+import {
+  FamilyDetailsResponse,
+  FamilyMembership,
+} from "../../types/FamilyTypes";
 import {
   familyGet,
   familyGiveRoleParent,
   familyTransferOwnership,
-} from "../api/family";
-import { getErrorMessage } from "../utils/errorMessage";
-import ErrorState from "../components/ErrorState";
+} from "../../api/family";
+import { getErrorMessage } from "../../utils/errorMessage";
+import ErrorState from "../../components/ErrorState";
 import { Crown, KeyRound, Plus, UserCog, UserPlus } from "lucide-react-native";
-import ActionList, { ActionItem } from "../components/ActionList";
-import { GuardianResponse } from "../types/GuardianTypes";
+import ActionList, { ActionItem } from "../../components/ActionList";
+import { GuardianResponse } from "../../types/GuardianTypes";
 import {
   guardianAdd,
   guardianGet,
   guardianMakePrimary,
   guardianRemove,
-} from "../api/guardian";
-import Button from "../components/Button";
-import { DeviceResponse } from "../types/DeviceTypes";
-import { deviceDelete, deviceGet } from "../api/device";
-import { formatDate, formatDateLocal } from "../utils/dateFormat";
+} from "../../api/guardian";
+import Button from "../../components/Button";
+import { DeviceResponse } from "../../types/DeviceTypes";
+import { deviceDelete, deviceGet } from "../../api/device";
+import { formatDate, formatDateLocal } from "../../utils/dateFormat";
 
 type Props = {
   navigation: NativeStackNavigationProp<HomeStackList, "ProfilCzlonkaRodziny">;
@@ -375,22 +378,22 @@ export default function FamilyMemberProfileScreen({
         <View className="flex-row gap-2 mt-1">
           {member.isOwner && (
             <View className="px-2 py-0.5 rounded-md bg-tint-1">
-              <Text className="text-xs">Właściciel</Text>
+              <Text className="text-xs dark:text-foreground">Właściciel</Text>
             </View>
           )}
           {member.isParent && (
             <View className="px-2 py-0.5 rounded-md bg-tint-1">
-              <Text className="text-xs">Rodzic</Text>
+              <Text className="text-xs dark:text-foreground">Rodzic</Text>
             </View>
           )}
           {member.isChild && (
             <View className="px-2 py-0.5 rounded-md bg-tint-1 ">
-              <Text className="text-xs">Dziecko</Text>
+              <Text className="text-xs dark:text-foreground">Dziecko</Text>
             </View>
           )}
           {!member.hasAccount && (
             <View className="px-2 py-0.5 rounded-md bg-tint-1">
-              <Text className="text-xs">Bez konta</Text>
+              <Text className="text-xs dark:text-foreground">Bez konta</Text>
             </View>
           )}
         </View>
@@ -406,7 +409,7 @@ export default function FamilyMemberProfileScreen({
             })
           }
         >
-          <Text className="font-bold">Zobacz badania</Text>
+          <Text className="font-bold dark:text-foreground">Zobacz badania</Text>
         </Pressable>
         <Pressable
           className="bg-surface border border-border rounded-xl flex-1 p-4"
@@ -418,7 +421,7 @@ export default function FamilyMemberProfileScreen({
             })
           }
         >
-          <Text className="font-bold">Zobacz leki</Text>
+          <Text className="font-bold dark:text-foreground">Zobacz leki</Text>
         </Pressable>
       </View>
       <View className="mt-4">
@@ -443,7 +446,7 @@ export default function FamilyMemberProfileScreen({
                 </Text>
                 {guardian.isPrimary && (
                   <View className="px-2 py-0.5 rounded-md bg-tint-1">
-                    <Text className="text-xs">Główny</Text>
+                    <Text className="text-xs dark:text-foreground">Główny</Text>
                   </View>
                 )}
               </Pressable>
@@ -459,6 +462,7 @@ export default function FamilyMemberProfileScreen({
               <View className="mt-2">
                 <Button
                   title="Anuluj"
+                  variant="ghost"
                   onPress={() => setPickingGuardian(false)}
                 />
               </View>
@@ -477,7 +481,7 @@ export default function FamilyMemberProfileScreen({
           <View className="bg-surface border border-border rounded-2xl overflow-hidden">
             {devices.length === 0 ? (
               <View className="p-4">
-                <Text>Brak podłączonych urządzeń</Text>
+                <Text className="dark:text-foreground">Brak podłączonych urządzeń</Text>
               </View>
             ) : (
               devices.map((device, index) => (
@@ -485,7 +489,7 @@ export default function FamilyMemberProfileScreen({
                   key={device.id}
                   className={`p-4 flex flex-row items-center justify-between ${index > 0 ? "border-t border-border" : ""}`}
                 >
-                  <Text>
+                  <Text className="dark:text-foreground">
                     Telefon połączony od{" "}
                     {formatDate(formatDateLocal(new Date(device.createdAt)))}
                   </Text>

@@ -1,8 +1,10 @@
 import { useEffect, useState } from "react";
-import { Pressable, Text, View } from "react-native";
+import { Text, View } from "react-native";
 import { getMe } from "../api/user";
 import { endSession } from "../api/auth";
 import ThemeSelector from "../components/ThemeSelector";
+import Button from "../components/Button";
+import { LogOut } from "lucide-react-native";
 
 type Props = {
   onLogout: () => void;
@@ -31,12 +33,18 @@ export default function UserScreen({ onLogout }: Props) {
       <Text className="text-muted-foreground">{nameUser}</Text>
       <Text className="text-muted-foreground">{emailUser}</Text>
 
-      <Pressable
-        className="p-2 bg-primary rounded-xl mt-10"
-        onPress={() => handleLogout()}
-      >
-        <Text className="text-primary-foreground">Wyloguj się</Text>
-      </Pressable>
+      <View className="w-64 mt-6">
+        <ThemeSelector />
+      </View>
+
+      <View className="w-64 mt-10">
+        <Button
+          title="Wyloguj się"
+          variant="danger"
+          iconLeft={LogOut}
+          onPress={handleLogout}
+        />
+      </View>
     </View>
   );
 }

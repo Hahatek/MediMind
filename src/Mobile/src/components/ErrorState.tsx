@@ -1,4 +1,5 @@
-import { View, Text, Pressable } from "react-native";
+import { View, Text } from "react-native";
+import Button from "./Button";
 
 type ErrorStateProps = {
   message: string;
@@ -12,12 +13,13 @@ export default function ErrorState({ message, onRetry }: ErrorStateProps) {
     <View className="m-4 p-4 rounded-xl border border-danger-line bg-danger-bg">
       <Text className="text-danger-ink">{message}</Text>
       {onRetry && (
-        <Pressable
-          onPress={onRetry}
-          className="mt-3 self-start px-4 py-2 rounded-xl bg-primary"
-        >
-          <Text className="text-primary-foreground">Spróbuj ponownie</Text>
-        </Pressable>
+        <View className="mt-3 self-start">
+          <Button
+            title="Spróbuj ponownie"
+            variant="primary"
+            onPress={onRetry}
+          />
+        </View>
       )}
     </View>
   );

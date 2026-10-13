@@ -340,7 +340,8 @@ export default function MedicationForm({ onSubmit, initialValues }: Props) {
           title="Zapisz"
           variant="primary"
           onPress={handleSubmit}
-          disabled={saving}
+          loading={saving}
+          loadingTitle="Zapisuję..."
         />
       </View>
     </View>

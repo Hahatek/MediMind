@@ -11,6 +11,8 @@ type TextFieldProps = {
   keyboardType?: KeyboardTypeOptions;
   autoCapitalize?: "none" | "sentences" | "words" | "characters";
   maxLength?: number;
+  returnKeyType?: "next" | "go";
+  onSubmitEditing?: () => void;
 };
 
 export default function TextField({
@@ -24,6 +26,8 @@ export default function TextField({
   keyboardType,
   autoCapitalize,
   maxLength,
+  returnKeyType,
+  onSubmitEditing,
 }: TextFieldProps) {
   return (
     <View className="mb-4 w-full">
@@ -40,6 +44,8 @@ export default function TextField({
         keyboardType={keyboardType}
         autoCapitalize={autoCapitalize}
         maxLength={maxLength}
+        returnKeyType={returnKeyType}
+        onSubmitEditing={onSubmitEditing}
       ></TextInput>
       {error && <Text className="text-danger mt-1">{error}</Text>}
     </View>

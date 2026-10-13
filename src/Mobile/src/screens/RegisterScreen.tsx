@@ -124,15 +124,16 @@ export default function RegisterScreen({
 
         <View className="flex flex-col gap-2">
           <Button
-            title={loading ? "Tworzenie konta..." : "Zarejestruj się"}
-            disabled={loading}
+            title="Zarejestruj się"
+            loadingTitle="Tworzenie konta..."
+            loading={loading}
             onPress={handleRegister}
           />
           <View className="flex-row justify-center mt-5">
             <Text className="text-ink-3">Masz konto?</Text>
 
             <Pressable onPress={() => navigation.navigate("Login")}>
-              <Text className="text-primary font-semibold"> Zaloguj się</Text>
+              <Text className="text-link font-semibold"> Zaloguj się</Text>
             </Pressable>
           </View>
         </View>

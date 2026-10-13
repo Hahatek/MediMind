@@ -14,147 +14,152 @@
     --chrome: #005868;
     --brand: #005868;
     --brand-ink: #005868;
-    --brand-deep: #00414E;
-    --brand-deep-ink: #00414E;
-    --brand-soft: #4D9DA8;
-    --brand-hover: #00B3C2;
-    --accent: #00B3C2;
-    --info: #00A6F4;
-    --violet: #554AC7;
-    --on-brand: #FFFFFF;
-    --on-brand-soft: #A9D6DE;
-    --on-brand-dim: #8FC7D2;
+    --brand-deep: #00414e;
+    --brand-deep-ink: #00414e;
+    --brand-soft: #4d9da8;
+    --brand-hover: #00b3c2;
+    --accent: #00b3c2;
+    --info: #00a6f4;
+    --violet: #554ac7;
+    --on-brand: #ffffff;
+    --on-brand-soft: #a9d6de;
+    --on-brand-dim: #8fc7d2;
     /* Powierzchnie i tła */
-    --surface: #FFFFFF;
-    --screen: #F3FCFE;
-    --desk: #E7EDEF;
-    --field: #F8FBFD;
-    --bg-1: #EDF3F5;
-    --bg-2: #F4F8F9;
-    --tint-1: #D6F1F8;
-    --tint-2: #E3F2F6;
-    --tint-3: #C9EBF4;
-    --tint-4: #E6F1F4;
+    --surface: #ffffff;
+    --screen: #f3fcfe;
+    --desk: #e7edef;
+    --field: #f8fbfd;
+    --bg-1: #edf3f5;
+    --bg-2: #f4f8f9;
+    --tint-1: #d6f1f8;
+    --tint-2: #e3f2f6;
+    --tint-3: #c9ebf4;
+    --tint-4: #e6f1f4;
     /* Tekst */
-    --ink-1: #001F26;
-    --ink-2: #00252E;
-    --ink-3: #4E6166;
-    --ink-4: #5C7075;
+    --ink-1: #001f26;
+    --ink-2: #00252e;
+    --ink-3: #4e6166;
+    --ink-4: #5c7075;
     --ink-5: #657579;
-    --ink-6: #7C8C90;
-    --ink-7: #98ABAB;
-    --ink-8: #8C9B9F;
+    --ink-6: #7c8c90;
+    --ink-7: #98abab;
+    --ink-8: #8c9b9f;
     /* Krawędzie */
-    --line-1: #E6ECEE;
-    --line-2: #DEE6E9;
-    --line-3: #E2E9EB;
-    --line-4: #CFDADD;
-    --line-5: #BCC8CC;
+    --line-1: #e6ecee;
+    --line-2: #dee6e9;
+    --line-3: #e2e9eb;
+    --line-4: #cfdadd;
+    --line-5: #bcc8cc;
+    --input-border: #657579; /* = ink-5; osobno, bo w ciemnym placeholder ≠ ramka */
     /* Błąd */
-    --danger: #B2453B;
-    --danger-solid: #DD766F;
-    --danger-bg: #FBEAE8;
-    --danger-line: #F0CCC8;
+    --danger: #b2453b;
+    --danger-solid: #dd766f;
+    --danger-bg: #fbeae8;
+    --danger-line: #f0ccc8;
     --danger-ink: #660008;
     /* Ostrzeżenie */
-    --warn: #F0B655;
-    --warn-solid: #FFDF20;
-    --warn-bg: #FDF2E0;
-    --warn-bg-soft: #FEF9F0;
-    --warn-line: #F0D3A3;
-    --warn-line-strong: #D9A04A;
-    --warn-ink: #7A5200;
-    --warn-ink-strong: #5C3E00;
+    --warn: #f0b655;
+    --warn-solid: #ffdf20;
+    --warn-bg: #fdf2e0;
+    --warn-bg-soft: #fef9f0;
+    --warn-line: #f0d3a3;
+    --warn-line-strong: #d9a04a;
+    --warn-ink: #7a5200;
+    --warn-ink-strong: #5c3e00;
     /* Sukces */
-    --ok: #00762D;
-    --ok-solid: #00A63E;
-    --ok-bg: #DDF3E4;
-    --ok-bg-soft: #EFFAF2;
-    --ok-line: #B9E4C7;
-    --ok-ink: #05602A;
+    --ok: #00762d;
+    --ok-solid: #00a63e;
+    --ok-bg: #ddf3e4;
+    --ok-bg-soft: #effaf2;
+    --ok-line: #b9e4c7;
+    --ok-ink: #05602a;
     /* Statusy badań */
-    --status-planned-bg: #EFF0EE;
-    --status-planned-fg: #55554F;
-    --status-scheduled-bg: #EAE8F9;
-    --status-scheduled-fg: #443BA0;
-    --status-in-progress-bg: #E3F1FB;
-    --status-in-progress-fg: #0C447C;
-    --status-awaiting-result-bg: #FDF2E0;
-    --status-awaiting-result-fg: #7A5200;
-    --status-closed-bg: #F4F6F6;
+    --status-planned-bg: #eff0ee;
+    --status-planned-fg: #55554f;
+    --status-scheduled-bg: #eae8f9;
+    --status-scheduled-fg: #443ba0;
+    --status-in-progress-bg: #e3f1fb;
+    --status-in-progress-fg: #0c447c;
+    --status-awaiting-result-bg: #fdf2e0;
+    --status-awaiting-result-fg: #7a5200;
+    --status-closed-bg: #f4f6f6;
     --status-closed-fg: #657579;
-    --status-urgent-bg: #E71958;
-    --status-urgent-fg: #FFFFFF;
+    --status-urgent-bg: #e71958;
+    --status-urgent-fg: #ffffff;
   }
 
   @media (prefers-color-scheme: dark) {
     :root {
-      /* --- Z MAKIETY (nadpisania motywu ciemnego) --- */
-      --surface: #132A31;
-      --screen: #0B1A1F;
-      --field: #18333B;
-      --tint-1: #123A44;
-      --line-2: #2B5159;
-      --line-5: #3A6E79;
-      --ink-1: #EAF7F9;
-      --ink-3: #AFCBD1;
-      --ink-6: #7E9CA3;
-      --chrome: #063A45;
-      --brand: #0E6B7C;
-      --brand-ink: #7FD7E4;
-      --brand-deep: #08434F;
-      --brand-soft: #43B6C4;
-      --brand-hover: #7DE9F2;
-      --accent: #00B3C2;
-      --info: #4FB8F7;
-      --violet: #9084F0;
-      --danger: #FFA093;
-      --warn: #F2CE3C;
-      --ok: #3FCB77;
-      /* --- UZUPEŁNIONE podczas implementacji (brak w makiecie, sprawdzone WCAG AA) --- */
-      --brand-deep-ink: #9EE3EE;
-      --desk: #050F13;
-      --bg-1: #0F2228;
-      --bg-2: #0D1E23;
-      --tint-2: #17414C;
-      --tint-3: #1B4A56;
+      /* --- Z PALETY Claude Design (granatowy motyw ciemny) --- */
+      --screen: #0f1624; /* background */
+      --surface: #131f3b; /* surface */
+      --tint-2: #202a3e; /* surfaceSecondary */
+      --ink-1: #e8edf5; /* foreground */
+      --ink-3: #a2aec2; /* mutedForeground */
+      --brand: #3a6db5; /* primary */
+      --on-brand: #ffffff; /* primaryForeground */
+      --tint-1: #1e2c47; /* secondary */
+      --line-2: #26324a; /* border */
+      --field: #121a2a; /* inputBackground */
+      --input-border: #35425c; /* inputBorder */
+      --line-5: #35425c; /* inputBorder (border-strong) */
+      --danger: #f08a86; /* destructive */
+      --ok: #5dc79b; /* success */
+      --warn: #e6bc64; /* warning */
+      --warn-ink: #e6bc64; /* warning */
+      --line-4: #222c3e; /* disabled */
+      /* --- POCHODNE (brak w palecie, dobrane do granatu, WCAG AA dla tekstu) --- */
+      --brand-ink: #8db4ee; /* accent — primary jako tekst/link — #3A6DB5 ma tylko ~3.5:1 */
+      --ink-2: #dce3ee;
+      --ink-4: #95a2b8;
+      --ink-5: #808ca2; /* textMuted (placeholder) */
+      --ink-6: #7a879c;
+      --ink-7: #6f7c92;
+      --ink-8: #7d8aa0;
+      --line-1: #1f2a3f;
+      --line-3: #232e45;
+      /* --- Nieużywane w kodzie — wartości z poprzedniego motywu --- */
+      --chrome: #063a45;
+      --brand-deep: #08434f;
+      --brand-soft: #43b6c4;
+      --brand-hover: #7de9f2;
+      --accent: #00b3c2;
+      --info: #4fb8f7;
+      --violet: #9084f0;
+      --brand-deep-ink: #9ee3ee;
+      --desk: #050f13;
+      --bg-1: #0f2228;
+      --bg-2: #0d1e23;
+      --tint-3: #1b4a56;
       --tint-4: #143540;
-      --ink-2: #DDF0F3;
-      --ink-4: #9DBBC1;
-      --ink-5: #8FAFB6;
-      --ink-7: #7A989F;
-      --ink-8: #86A4AB;
-      --line-1: #22434A;
-      --line-3: #27484F;
-      --line-4: #33606A;
-      --danger-solid: #B94A40;
-      --danger-bg: #3A1A18;
-      --danger-line: #6B302B;
-      --danger-ink: #FFC9C1;
-      --warn-bg: #33260F;
-      --warn-bg-soft: #261D0C;
-      --warn-line: #6B5222;
-      --warn-line-strong: #A87A2E;
-      --warn-ink: #F5D77A;
-      --warn-ink-strong: #FFE7A3;
-      --ok-solid: #1E9C50;
-      --ok-bg: #12331F;
-      --ok-bg-soft: #0F2718;
-      --ok-line: #1F5A35;
-      --ok-ink: #8BE3AB;
-      /* Statusy badań (z makiety) */
-      --status-planned-bg: #25302F;
-      --status-planned-fg: #BEC7C4;
-      --status-scheduled-bg: #241F45;
-      --status-scheduled-fg: #B3A9FA;
-      --status-in-progress-bg: #132A42;
-      --status-in-progress-fg: #8CD8F8;
+      /* --- Stany (tła/linie pasują do granatu, bez zmian) --- */
+      --danger-solid: #b94a40;
+      --danger-bg: #3a1a18;
+      --danger-line: #6b302b;
+      --danger-ink: #ffc9c1;
+      --warn-bg: #33260f;
+      --warn-bg-soft: #261d0c;
+      --warn-line: #6b5222;
+      --warn-line-strong: #a87a2e;
+      --warn-ink-strong: #ffe7a3;
+      --ok-solid: #1e9c50;
+      --ok-bg: #12331f;
+      --ok-bg-soft: #0f2718;
+      --ok-line: #1f5a35;
+      --ok-ink: #8be3ab;
+      /* Statusy badań (z makiety; tła planned/closed przetonowane do granatu) */
+      --status-planned-bg: #232d40;
+      --status-planned-fg: #bec7c4;
+      --status-scheduled-bg: #241f45;
+      --status-scheduled-fg: #b3a9fa;
+      --status-in-progress-bg: #132a42;
+      --status-in-progress-fg: #8cd8f8;
       --status-awaiting-result-bg: #332711;
-      --status-awaiting-result-fg: #F0C87E;
-      --status-closed-bg: #1C282C;
-      --status-closed-fg: #9B8AAB;
-      --status-urgent-bg: #B01043;
-      --status-urgent-fg: #FFE7EE;
+      --status-awaiting-result-fg: #f0c87e;
+      --status-closed-bg: #1d2638;
+      --status-closed-fg: #9b8aab;
+      --status-urgent-bg: #b01043;
+      --status-urgent-fg: #ffe7ee;
     }
   }
 }

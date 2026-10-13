@@ -60,10 +60,16 @@ export default function LoginScreen({ onLoginSuccess, navigation }: Props) {
   return (
     <SafeAreaView className="flex-1 bg-screen" edges={["top"]}>
       <KeyboardAvoidingView
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
         className="flex-1"
-        behavior={Platform.OS === "ios" ? "padding" : undefined}
       >
-        <ScrollView>
+        <ScrollView
+          className="flex-1"
+          contentContainerStyle={{ flexGrow: 1 }}
+          keyboardShouldPersistTaps="handled"
+          keyboardDismissMode="on-drag"
+          showsVerticalScrollIndicator={false}
+        >
           <View className="items-center">
             <Image
               source={require("../../assets/LoginScreenPhoto.png")}
@@ -88,6 +94,7 @@ export default function LoginScreen({ onLoginSuccess, navigation }: Props) {
               value={emailText}
               onChangeText={setEmailText}
               placeholder="jan.kowalski@example.com"
+              returnKeyType="next"
             />
 
             <TextField
@@ -96,14 +103,17 @@ export default function LoginScreen({ onLoginSuccess, navigation }: Props) {
               value={passwordText}
               onChangeText={setPasswordText}
               placeholder="••••••••"
+              returnKeyType="go"
+              onSubmitEditing={handleLogin}
             />
 
             {info !== "" && <Text className="text-danger mb-4">{info}</Text>}
 
             <Button
-              title={loading ? "Logowanie..." : "Zaloguj się"}
+              title="Zaloguj się"
+              loadingTitle="Logowanie..."
               onPress={handleLogin}
-              disabled={loading}
+              loading={loading}
               variant="primary"
             />
 
@@ -111,16 +121,14 @@ export default function LoginScreen({ onLoginSuccess, navigation }: Props) {
               <Text className="text-ink-3">Nie masz konta? </Text>
 
               <Pressable onPress={() => navigation.navigate("Register")}>
-                <Text className="text-primary font-semibold">
-                  Zarejestruj się
-                </Text>
+                <Text className="text-link font-semibold">Zarejestruj się</Text>
               </Pressable>
             </View>
             <View className="flex-row justify-center mt-5">
               <Text className="text-ink-3">Posiadasz kod od rodziny? </Text>
 
               <Pressable onPress={() => navigation.navigate("MamKod")}>
-                <Text className="text-primary font-semibold">Wpisz kod</Text>
+                <Text className="text-link font-semibold">Wpisz kod</Text>
               </Pressable>
             </View>
           </View>

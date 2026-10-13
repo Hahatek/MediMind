@@ -270,7 +270,8 @@ export default function ExaminationDetailsScreen({ navigation, route }: Props) {
             <Button
               title="Potwierdź odbycie badania"
               onPress={handleConfirm}
-              disabled={confirming}
+              loading={confirming}
+              loadingTitle="Potwierdzanie..."
               iconLeft={CircleCheck}
             />
           )}

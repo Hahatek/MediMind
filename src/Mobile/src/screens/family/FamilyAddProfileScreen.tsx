@@ -1,15 +1,15 @@
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
-import { HomeStackList } from "../navigation/HomeStack";
+import { HomeStackList } from "../../navigation/HomeStack";
 import { SafeAreaView } from "react-native-safe-area-context";
-import TextField from "../components/TextField";
+import TextField from "../../components/TextField";
 import { useState } from "react";
-import { getErrorMessage } from "../utils/errorMessage";
-import { familyCreateProfile } from "../api/family";
+import { getErrorMessage } from "../../utils/errorMessage";
+import { familyCreateProfile } from "../../api/family";
 import { RouteProp } from "@react-navigation/native";
-import { CreateManagedProfile } from "../types/FamilyTypes";
+import { CreateManagedProfile } from "../../types/FamilyTypes";
 import { Text, View } from "react-native";
-import PickerField from "../components/PickerField";
-import Button from "../components/Button";
+import PickerField from "../../components/PickerField";
+import Button from "../../components/Button";
 
 type Props = {
   navigation: NativeStackNavigationProp<HomeStackList, "DodajProfil">;
@@ -97,7 +97,8 @@ export default function FamilyAddProfileScreen({ navigation, route }: Props) {
         <Button
           title="Dodaj"
           onPress={() => handleCreateNewProfile()}
-          disabled={loading}
+          loading={loading}
+          loadingTitle="Dodawanie..."
         />
         {error && (
           <Text className="font-bold text-destructive mt-4">{error}</Text>
