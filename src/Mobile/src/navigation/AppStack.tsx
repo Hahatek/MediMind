@@ -1,17 +1,20 @@
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
-import ExaminationsStack from "./ExaminationsStack";
+import ExaminationsStack, { ExaminationStack } from "./ExaminationsStack";
 import { ClipboardPlus, Home, Pill, User } from "lucide-react-native";
 import UserScreen from "../screens/UserScreen";
 import MedicationsStack from "./MedicationsStack";
 import HomeStack from "./HomeStack";
+import { useColorScheme } from "nativewind";
+import { useThemeColor } from "../theme";
+import { NavigatorScreenParams } from "@react-navigation/native";
 
 type Props = {
   onLogout: () => void;
 };
 
-type AppStackList = {
+export type AppStackList = {
   Home: undefined;
-  Badania: undefined;
+  Badania: NavigatorScreenParams<ExaminationStack> | undefined;
   Profil: undefined;
   Leki: undefined;
 };
@@ -19,12 +22,18 @@ type AppStackList = {
 const Tab = createBottomTabNavigator<AppStackList>();
 
 function AppStack({ onLogout }: Props) {
+  const { colorScheme } = useColorScheme();
+  const dark = colorScheme === "dark";
+  const brandInk = useThemeColor("--brand-ink");
+
+  const inkMuted = useThemeColor("--ink-5");
+
   return (
     <Tab.Navigator
       screenOptions={{
         headerShown: false,
-        tabBarActiveTintColor: "#178E9D",
-        tabBarInactiveTintColor: "#999999",
+        tabBarActiveTintColor: dark ? brandInk : "#178E9D",
+        tabBarInactiveTintColor: dark ? inkMuted : "#999999",
         popToTopOnBlur: true,
       }}
     >

@@ -70,7 +70,7 @@ const semantic = {
   border: v("line-2"),
   "border-strong": v("line-5"),
   input: v("field"),
-  "input-border": v("ink-5"),
+  "input-border": v("input-border"),
   placeholder: v("ink-5"),
   destructive: v("danger"),
   success: v("ok"),

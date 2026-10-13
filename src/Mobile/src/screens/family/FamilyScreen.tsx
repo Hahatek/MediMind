@@ -8,21 +8,21 @@ import {
   Text,
   View,
 } from "react-native";
-import { HomeStackList } from "../navigation/HomeStack";
+import { HomeStackList } from "../../navigation/HomeStack";
 import { useCallback, useState } from "react";
-import { FamilyDetailsResponse } from "../types/FamilyTypes";
+import { FamilyDetailsResponse } from "../../types/FamilyTypes";
 import {
   familyCreate,
   familyDelete,
   familyGet,
   familyLeave,
-} from "../api/family";
-import { getErrorMessage } from "../utils/errorMessage";
+} from "../../api/family";
+import { getErrorMessage } from "../../utils/errorMessage";
 import { useFocusEffect } from "@react-navigation/native";
-import ErrorState from "../components/ErrorState";
-import Button from "../components/Button";
+import ErrorState from "../../components/ErrorState";
+import Button from "../../components/Button";
 import { ChevronRight } from "lucide-react-native";
-import { useThemeColor } from "../theme";
+import { useThemeColor } from "../../theme";
 
 type Props = {
   navigation: NativeStackNavigationProp<HomeStackList, "Rodzina">;
@@ -127,16 +127,22 @@ export default function FamilyScreen({ navigation }: Props) {
   if (families.length === 0) {
     return (
       <SafeAreaView className="flex-1" edges={["bottom", "left", "right"]}>
-        <Text>Nie należysz jeszcze do rodziny</Text>
-        <View className="flex flex-row justify-between">
-          <Pressable onPress={handleCreateFamily}>
-            <Text>Utwórz rodzinę</Text>
-          </Pressable>
-          <Button
-            title="Dołącz"
-            onPress={() => navigation.navigate("AkceptacjaZaproszenia")}
-            variant={"primary"}
-          />
+        <Text className="dark:text-foreground">Nie należysz jeszcze do rodziny</Text>
+        <View className="flex flex-row gap-2 mt-4 px-4">
+          <View className="flex-1">
+            <Button
+              title="Utwórz rodzinę"
+              variant="secondary"
+              onPress={handleCreateFamily}
+            />
+          </View>
+          <View className="flex-1">
+            <Button
+              title="Dołącz"
+              onPress={() => navigation.navigate("AkceptacjaZaproszenia")}
+              variant="primary"
+            />
+          </View>
         </View>
       </SafeAreaView>
     );
@@ -164,32 +170,32 @@ export default function FamilyScreen({ navigation }: Props) {
                 }`}
               >
                 <View>
-                  <Text className="text-xl font-bold">
+                  <Text className="text-xl font-bold dark:text-foreground">
                     {member.firstName} {member.lastName}
                   </Text>
 
                   <View className="flex-row gap-2 mt-1">
                     {member.isOwner && (
                       <View className="px-2 py-0.5 rounded-md bg-tint-1">
-                        <Text className="text-xs">Właściciel</Text>
+                        <Text className="text-xs dark:text-foreground">Właściciel</Text>
                       </View>
                     )}
 
                     {member.isParent && (
                       <View className="px-2 py-0.5 rounded-md bg-tint-1">
-                        <Text className="text-xs">Rodzic</Text>
+                        <Text className="text-xs dark:text-foreground">Rodzic</Text>
                       </View>
                     )}
 
                     {member.isChild && (
                       <View className="px-2 py-0.5 rounded-md bg-tint-1">
-                        <Text className="text-xs">Dziecko</Text>
+                        <Text className="text-xs dark:text-foreground">Dziecko</Text>
                       </View>
                     )}
 
                     {!member.hasAccount && (
                       <View className="px-2 py-0.5 rounded-md bg-tint-1">
-                        <Text className="text-xs">Bez konta</Text>
+                        <Text className="text-xs dark:text-foreground">Bez konta</Text>
                       </View>
                     )}
                   </View>
@@ -208,6 +214,7 @@ export default function FamilyScreen({ navigation }: Props) {
             <>
               <Button
                 title="Zaproś do rodziny"
+                variant="secondary"
                 onPress={() =>
                   navigation.navigate("Zaproszenie", {
                     familyId: item.id,
@@ -217,6 +224,7 @@ export default function FamilyScreen({ navigation }: Props) {
 
               <Button
                 title="Dodaj profil bez telefonu"
+                variant="secondary"
                 onPress={() =>
                   navigation.navigate("DodajProfil", {
                     familyId: item.id,
@@ -229,6 +237,7 @@ export default function FamilyScreen({ navigation }: Props) {
           {!item.isOwner && (
             <Button
               title="Opuść rodzinę"
+              variant="danger"
               onPress={() => confirmLeaveFamily(item.id)}
             />
           )}

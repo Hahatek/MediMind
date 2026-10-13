@@ -266,7 +266,7 @@ export default function MedicationDetailsScreen({
               variant="secondary"
               iconLeft={RotateCcw}
               onPress={handleResume}
-              disabled={acting}
+              loading={acting}
             />
           ) : (
             <Button
@@ -274,7 +274,7 @@ export default function MedicationDetailsScreen({
               variant="secondary"
               iconLeft={CalendarOff}
               onPress={handleDiscontinue}
-              disabled={acting}
+              loading={acting}
             />
           )}
           <Button
@@ -282,7 +282,7 @@ export default function MedicationDetailsScreen({
             variant="danger"
             iconLeft={Trash}
             onPress={handleDelete}
-            disabled={acting}
+            loading={acting}
           />
         </View>
       )}

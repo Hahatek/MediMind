@@ -1,11 +1,11 @@
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
-import { HomeStackList } from "../navigation/HomeStack";
+import { HomeStackList } from "../../navigation/HomeStack";
 import { SafeAreaView } from "react-native-safe-area-context";
-import TextField from "../components/TextField";
+import TextField from "../../components/TextField";
 import { useState } from "react";
-import { getErrorMessage } from "../utils/errorMessage";
-import { inviteAccept } from "../api/family";
-import Button from "../components/Button";
+import { getErrorMessage } from "../../utils/errorMessage";
+import { inviteAccept } from "../../api/family";
+import Button from "../../components/Button";
 
 type Props = {
   navigation: NativeStackNavigationProp<HomeStackList, "AkceptacjaZaproszenia">;
@@ -47,7 +47,8 @@ export default function FamilyAcceptInviteScreen({ navigation }: Props) {
         title="Dołącz"
         variant="primary"
         onPress={handleAcceptInvite}
-        disabled={loading}
+        loading={loading}
+        loadingTitle="Dołączanie..."
       />
     </SafeAreaView>
   );

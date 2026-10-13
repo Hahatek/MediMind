@@ -1,14 +1,14 @@
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
-import { HomeStackList } from "../navigation/HomeStack";
+import { HomeStackList } from "../../navigation/HomeStack";
 import { RouteProp } from "@react-navigation/native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { ActivityIndicator, Pressable, Text, View } from "react-native";
 import { useState } from "react";
-import { FamilyInviteResponse } from "../types/FamilyTypes";
-import { inviteAccept, inviteCancel, inviteCreate } from "../api/family";
-import { getErrorMessage } from "../utils/errorMessage";
-import ErrorState from "../components/ErrorState";
-import Button from "../components/Button";
+import { FamilyInviteResponse } from "../../types/FamilyTypes";
+import { inviteAccept, inviteCancel, inviteCreate } from "../../api/family";
+import { getErrorMessage } from "../../utils/errorMessage";
+import ErrorState from "../../components/ErrorState";
+import Button from "../../components/Button";
 
 type Props = {
   navigation: NativeStackNavigationProp<HomeStackList, "Zaproszenie">;
@@ -81,7 +81,7 @@ export default function FamilyInviteScreen({ navigation, route }: Props) {
             ))}
           </View>
           <View>
-            <Text className="">
+            <Text className="dark:text-foreground">
               Kod wygaśnie: {new Date(invite.expiresAt).toLocaleString()}
             </Text>
           </View>

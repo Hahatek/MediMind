@@ -119,13 +119,13 @@ export default function ExaminationAddScreen({ navigation, person }: Props) {
             <View className="flex-row gap-2 w-full mb-6">
               <View
                 className={`flex-1 h-1 rounded-full ${
-                  step >= 1 ? "bg-primary" : "bg-gray-300"
+                  step >= 1 ? "bg-primary" : "bg-gray-300 dark:bg-line-4"
                 }`}
               />
 
               <View
                 className={`flex-1 h-1 rounded-full ${
-                  step >= 2 ? "bg-primary" : "bg-gray-300"
+                  step >= 2 ? "bg-primary" : "bg-gray-300 dark:bg-line-4"
                 }`}
               />
             </View>
@@ -195,13 +195,13 @@ export default function ExaminationAddScreen({ navigation, person }: Props) {
         <View className="flex-row gap-2 w-full mb-6">
           <View
             className={`flex-1 h-1 rounded-full ${
-              step >= 1 ? "bg-gray-300" : "bg-primary"
+              step >= 1 ? "bg-gray-300 dark:bg-line-4" : "bg-primary"
             }`}
           />
 
           <View
             className={`flex-1 h-1 rounded-full ${
-              step >= 2 ? "bg-primary" : "bg-gray-300"
+              step >= 2 ? "bg-primary" : "bg-gray-300 dark:bg-line-4"
             }`}
           />
         </View>
@@ -290,7 +290,8 @@ export default function ExaminationAddScreen({ navigation, person }: Props) {
           <Button
             title="Zapisz badanie"
             onPress={handleConfirmCreateExamination}
-            disabled={loading}
+            loading={loading}
+            loadingTitle="Zapisuję..."
           />
         </View>
       </View>

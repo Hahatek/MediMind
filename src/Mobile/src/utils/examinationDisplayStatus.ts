@@ -76,3 +76,21 @@ export const examinationSectionByStatus: Record<
   scheduled: "upcoming",
   pending: "upcoming",
 };
+
+export function getUpcomingExaminations(
+  examintaons: ExaminationResponse[],
+  now: Date,
+): ExaminationResponse[] {
+  const upcomingExaminations = examintaons
+    .filter(
+      (item) =>
+        examinationSectionByStatus[getExaminationDisplayStatus(item, now)] ===
+        "upcoming",
+    )
+    .sort(
+      (a, b) =>
+        getExaminationDateTime(a).getTime() -
+        getExaminationDateTime(b).getTime(),
+    );
+  return upcomingExaminations;
+}

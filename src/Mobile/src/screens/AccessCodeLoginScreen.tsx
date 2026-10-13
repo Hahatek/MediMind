@@ -145,7 +145,8 @@ export default function AccessCodeLoginScreen({
         title="Dołącz"
         variant="primary"
         onPress={handleSubmit}
-        disabled={loading}
+        loading={loading}
+        loadingTitle="Dołączanie..."
       />
     </SafeAreaView>
   );

@@ -1,13 +1,15 @@
 import { useCallback, useEffect, useState } from "react";
-import { Text, View, Pressable, TextInput } from "react-native";
+import { Text, View } from "react-native";
 import { examinationGetOne, examinationPut } from "../../api/examination";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { ExaminationStack } from "../../navigation/ExaminationsStack";
 import { RouteProp } from "@react-navigation/native";
 import { ExaminationResponse } from "../../types/ExaminationTypes";
 import { SafeAreaView } from "react-native-safe-area-context";
+import Button from "../../components/Button";
 import ErrorState from "../../components/ErrorState";
 import PickerField from "../../components/PickerField";
+import TextField from "../../components/TextField";
 import { getErrorMessage } from "../../utils/errorMessage";
 
 type Props = {
@@ -117,10 +119,15 @@ export default function ExaminationEditScreen({ navigation, route }: Props) {
   }
 
   return (
-    <SafeAreaView className="flex-1" edges={["bottom", "left", "right"]}>
-      <TextInput
-        className="text-foreground text-xl border-b-2 p-2 mb-2"
-        placeholder="Nazwa Badania"
+    <SafeAreaView
+      className="flex flex-1 m-4"
+      edges={["bottom", "left", "right"]}
+    >
+      <TextField
+        label="Nazwa Badania"
+        placeholder="Morfologia"
+        required
+        autoCapitalize="none"
         value={name}
         onChangeText={setName}
       />
@@ -137,33 +144,35 @@ export default function ExaminationEditScreen({ navigation, route }: Props) {
         value={time}
         onChange={setTime}
       />
-      <TextInput
-        className="text-foreground border-b-2 p-2 mb-2"
-        placeholder="Lokalizacja"
+      <TextField
+        label="Lokalizacja badania"
+        placeholder="np. Przychodnia Zdrowia Toruń"
+        autoCapitalize="none"
         value={location}
         onChangeText={setLocation}
       />
-      <TextInput
-        className="text-foreground border-b-2 p-2 mb-2"
-        placeholder="Lekarz"
+      <TextField
+        label="Doktor przeprowadzający badanie"
+        placeholder="np. Doktor Nowak"
+        autoCapitalize="none"
         value={doctor}
         onChangeText={setDoctor}
       />
-      <TextInput
-        className="text-foreground border-b-2 p-2 mb-2"
-        placeholder="Opis"
+      <TextField
+        label="Opis"
+        placeholder="Dodatkowe informacje"
         value={description}
         onChangeText={setDescription}
       />
-      <Pressable
-        onPress={handleSave}
-        disabled={saving}
-        className="mt-8 bg-neutral-600 p-2 rounded-xl"
-      >
-        <Text className="text-primary-foreground">
-          {saving ? "Zapisywanie..." : "Zapisz zmiany"}
-        </Text>
-      </Pressable>
+      <View className="mt-8">
+        <Button
+          title="Zapisz zmiany"
+          loadingTitle="Zapisywanie..."
+          variant="primary"
+          onPress={handleSave}
+          loading={saving}
+        />
+      </View>
       {saveError && <Text className="text-danger mt-2">{saveError}</Text>}
     </SafeAreaView>
   );

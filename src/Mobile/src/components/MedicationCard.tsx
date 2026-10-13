@@ -1,5 +1,7 @@
 import { View, Text, Pressable } from "react-native";
 import { PencilIcon } from "lucide-react-native";
+import { useColorScheme } from "nativewind";
+import { useThemeColor } from "../theme";
 import { MedicationScheduleResponse } from "../types/MedicationScheduleTypes";
 import { formatTime } from "../utils/dateFormat";
 import { timeOfDayLabels } from "../utils/medicationTime";
@@ -23,6 +25,8 @@ export default function MedicationCard({
   notes,
   form,
 }: MedicationProps) {
+  const { colorScheme } = useColorScheme();
+  const foreground = useThemeColor("--ink-1");
   const times = schedules
     .map((schedule) => {
       const label = timeOfDayLabels[schedule.timeOfDay];
@@ -45,8 +49,8 @@ export default function MedicationCard({
           <Text className="text-foreground pb-2">
             {strength ? `${strength} ${form}` : form}
           </Text>
-          {notes ? <Text>{notes}</Text> : null}
-          <Text>{times}</Text>
+          {notes ? <Text className="dark:text-foreground">{notes}</Text> : null}
+          <Text className="dark:text-foreground">{times}</Text>
         </View>
       </View>
       <View>
@@ -55,8 +59,11 @@ export default function MedicationCard({
             className="flex flex-row items-center justify-center h-12 border-t border-t-line-2 gap-2"
             onPress={onEdit}
           >
-            <PencilIcon />
-            <Text>Edytuj</Text>
+            {/* W jasnym motywie domyślny kolor ikony, jak dotąd. */}
+            <PencilIcon
+              color={colorScheme === "dark" ? foreground : undefined}
+            />
+            <Text className="dark:text-foreground">Edytuj</Text>
           </Pressable>
         )}
       </View>

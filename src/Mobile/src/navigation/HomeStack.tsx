@@ -1,11 +1,11 @@
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import HomeScreen from "../screens/HomeScreen";
-import FamilyScreen from "../screens/FamilyScreen";
-import FamilyInviteScreen from "../screens/FamilyInviteScreen";
-import FamilyAcceptInviteScreen from "../screens/FamilyAcceptInviteScreen";
-import FamilyAddProfileScreen from "../screens/FamilyAddProfileScreen";
-import FamilyAccessCodeScreen from "../screens/FamilyAccessCodeScreen";
-import FamilyMemberProfileScreen from "../screens/FamilyMemberProfileScreen";
+import FamilyScreen from "../screens/family/FamilyScreen";
+import FamilyInviteScreen from "../screens/family/FamilyInviteScreen";
+import FamilyAcceptInviteScreen from "../screens/family/FamilyAcceptInviteScreen";
+import FamilyAddProfileScreen from "../screens/family/FamilyAddProfileScreen";
+import FamilyAccessCodeScreen from "../screens/family/FamilyAccessCodeScreen";
+import FamilyMemberProfileScreen from "../screens/family/FamilyMemberProfileScreen";
 import ExaminationsStack from "./ExaminationsStack";
 import MedicationsStack from "./MedicationsStack";
 import { PersonContext } from "../types/FamilyTypes";
@@ -38,9 +38,7 @@ function HomeStack({ onLogout }: Props) {
         name="StronaGlowna"
         options={{ title: "Strona główna", headerShown: false }}
       >
-        {({ navigation }) => (
-          <HomeScreen navigation={navigation} onLogout={onLogout} />
-        )}
+        {({ navigation }) => <HomeScreen navigation={navigation} />}
       </Stack.Screen>
       <Stack.Screen name="Rodzina" options={{ title: "Rodzina" }}>
         {({ navigation }) => <FamilyScreen navigation={navigation} />}
