@@ -9,6 +9,7 @@ import { getErrorMessage } from "../../utils/errorMessage";
 import { CodeActionType } from "../../types/EnumTypes";
 import { AccessCodeResponse, CreateAccessCode } from "../../types/UserTypes";
 import Button from "../../components/Button";
+import { typography } from "../../theme/typography";
 import ErrorState from "../../components/ErrorState";
 
 type Props = {
@@ -75,28 +76,33 @@ export default function FamilyAccessCodeScreen({ navigation, route }: Props) {
                 key={index}
                 className="flex flex-1 h-16 bg-tint-1 rounded-xl items-center justify-center"
               >
-                <Text className="text-3xl font-semibold text-foreground">
+                <Text className="text-foreground" style={typography["code.digit"]}>
                   {digit}
                 </Text>
               </View>
             ))}
           </View>
-          <Text className="text-foreground">
+          <Text className="text-foreground" style={typography.caption}>
             Ważny do: {new Date(accessCode.expiresAt).toLocaleString()}
           </Text>
         </View>
-        <Text className="text-foreground text-xl mt-4">
+        <Text className="text-foreground mt-4" style={typography["card.title"]}>
           Wpisz na wybranym urządzeniu
         </Text>
         <View className="gap-3 mt-3">
           {steps.map((step, index) => (
             <View key={index} className="flex-row items-center gap-3">
               <View className="w-7 h-7 rounded-full bg-primary items-center justify-center">
-                <Text className="text-primary-foreground font-semibold">
+                <Text
+                  className="text-primary-foreground"
+                  style={typography["field.label"]}
+                >
                   {index + 1}
                 </Text>
               </View>
-              <Text className="flex-1 text-foreground">{step}</Text>
+              <Text className="flex-1 text-foreground" style={typography.body}>
+                {step}
+              </Text>
             </View>
           ))}
         </View>
@@ -112,7 +118,7 @@ export default function FamilyAccessCodeScreen({ navigation, route }: Props) {
 
   return (
     <SafeAreaView className="m-4" edges={["bottom", "left", "right"]}>
-      <Text className="text-foreground">
+      <Text className="text-foreground" style={typography.body}>
         Kod dla: {route.params.firstName} {route.params.lastName}
       </Text>
       <View className="gap-3 mt-4">

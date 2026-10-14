@@ -19,6 +19,7 @@ import Button from "../../components/Button";
 import TextField from "../../components/TextField";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { PersonContext } from "../../types/FamilyTypes";
+import { typography } from "../../theme/typography";
 
 type Props = {
   navigation: NativeStackNavigationProp<ExaminationStack, "DodajBadanie">;
@@ -129,7 +130,7 @@ export default function ExaminationAddScreen({ navigation, person }: Props) {
                 }`}
               />
             </View>
-            <Text className="text-ink-4 mb-8">
+            <Text className="text-ink-4 mb-8" style={typography.caption}>
               Termin i miejsce, krok 1 z 2{" "}
             </Text>
 
@@ -171,7 +172,11 @@ export default function ExaminationAddScreen({ navigation, person }: Props) {
               onChangeText={setDoctorExamination}
             />
 
-            {info && <Text className="text-danger">{info}</Text>}
+            {info && (
+              <Text className="text-danger" style={typography["field.error"]}>
+                {info}
+              </Text>
+            )}
           </View>
           <View className="w-full">
             <Button
@@ -205,7 +210,7 @@ export default function ExaminationAddScreen({ navigation, person }: Props) {
             }`}
           />
         </View>
-        <Text className="text-ink-4 mb-8">
+        <Text className="text-ink-4 mb-8" style={typography.caption}>
           Wygląd i przygotowanie, krok 2 z 2{" "}
         </Text>
         <View className="flex-1">
@@ -224,7 +229,9 @@ export default function ExaminationAddScreen({ navigation, person }: Props) {
             onChangeText={setPreparationExamination}
           />
           <View className="flex flex-row gap-2 items-center">
-            <Text className="text-foreground">Badanie cykliczne</Text>
+            <Text className="text-foreground" style={typography["option.label"]}>
+              Badanie cykliczne
+            </Text>
             <Switch
               value={isCyclicExamination}
               onValueChange={setIsCyclicExamination}
@@ -256,6 +263,7 @@ export default function ExaminationAddScreen({ navigation, person }: Props) {
                         ? "text-primary-foreground"
                         : "text-foreground"
                     }
+                    style={typography["option.label"]}
                   >
                     {label}
                   </Text>
@@ -263,7 +271,11 @@ export default function ExaminationAddScreen({ navigation, person }: Props) {
               ))}
             </View>
           )}
-          {info && <Text className="text-danger mb-4">{info}</Text>}
+          {info && (
+            <Text className="text-danger mb-4" style={typography["field.error"]}>
+              {info}
+            </Text>
+          )}
           <View className="flex flex-row gap-4">
             {examColors.map((colorExamination) => (
               <Pressable
@@ -281,18 +293,23 @@ export default function ExaminationAddScreen({ navigation, person }: Props) {
         </View>
 
         <View className="flex flex-row gap-2 mt-4 justify-between">
-          <Button
-            title="Wróć"
-            variant="secondary"
-            iconLeft={ChevronLeft}
-            onPress={handlePreviosPage}
-          />
-          <Button
-            title="Zapisz badanie"
-            onPress={handleConfirmCreateExamination}
-            loading={loading}
-            loadingTitle="Zapisuję..."
-          />
+          {/* shrink: przy większym tekście przyciski zwężają się i zawijają etykietę zamiast wyjść poza ekran */}
+          <View className="shrink">
+            <Button
+              title="Wróć"
+              variant="secondary"
+              iconLeft={ChevronLeft}
+              onPress={handlePreviosPage}
+            />
+          </View>
+          <View className="shrink">
+            <Button
+              title="Zapisz badanie"
+              onPress={handleConfirmCreateExamination}
+              loading={loading}
+              loadingTitle="Zapisuję..."
+            />
+          </View>
         </View>
       </View>
     </SafeAreaView>

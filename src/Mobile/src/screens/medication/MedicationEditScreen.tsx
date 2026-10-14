@@ -19,6 +19,7 @@ import {
 import { MedicationResponse } from "../../types/MedicationTypes";
 import { MedicationScheduleResponse } from "../../types/MedicationScheduleTypes";
 import { getErrorMessage } from "../../utils/errorMessage";
+import { typography } from "../../theme/typography";
 
 type Props = {
   navigation: NativeStackNavigationProp<MedicationStack, "EdytujLek">;
@@ -142,7 +143,9 @@ export default function MedicationEditScreen({ navigation, route }: Props) {
         className="flex-1 bg-screen"
         edges={["bottom", "left", "right"]}
       >
-        <Text className="text-foreground m-4">Ładowanie...</Text>
+        <Text className="text-foreground m-4" style={typography.body}>
+          Ładowanie...
+        </Text>
       </SafeAreaView>
     );
   }

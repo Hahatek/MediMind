@@ -4,6 +4,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { AuthStackList } from "../navigation/AuthStack";
 import { View, Text, Pressable } from "react-native";
 import Button from "../components/Button";
+import { typography } from "../theme";
 
 type Props = {
   navigation: NativeStackNavigationProp<AuthStackList, "WyborKodu">;
@@ -17,7 +18,7 @@ export default function AccessCodeChoiceScreen({ navigation }: Props) {
       className="flex flex-1 m-4"
       edges={["bottom", "left", "right"]}
     >
-      <Text className="text-ink-3">
+      <Text className="text-ink-3" style={typography.body}>
         Wybierz, co chcesz zrobić. Kod dostaniesz od rodzica albo opiekuna.
       </Text>
       <View className="gap-3 mt-6">
@@ -26,10 +27,10 @@ export default function AccessCodeChoiceScreen({ navigation }: Props) {
           className={`flex flex-row items-start gap-3 bg-surface rounded-2xl p-4 ${mode === "link" ? "border-2 border-primary" : "border border-border"}`}
         >
           <View className="flex flex-1 gap-1">
-            <Text className="text-foreground font-semibold">
+            <Text className="text-foreground" style={typography["option.label"]}>
               Zaloguj ten telefon
             </Text>
-            <Text className="text-ink-3">
+            <Text className="text-ink-3" style={typography["body.sm"]}>
               Masz już konto w rodzinie. Telefon zaloguje się na nie bez hasła.
             </Text>
           </View>
@@ -46,10 +47,10 @@ export default function AccessCodeChoiceScreen({ navigation }: Props) {
           className={`flex flex-row items-start gap-3 bg-surface rounded-2xl p-4 ${mode === "claim" ? "border-2 border-primary" : "border border-border"}`}
         >
           <View className="flex flex-1 gap-1">
-            <Text className="text-foreground font-semibold">
+            <Text className="text-foreground" style={typography["option.label"]}>
               Przejmij swój profil
             </Text>
-            <Text className="text-ink-3">
+            <Text className="text-ink-3" style={typography["body.sm"]}>
               Rodzina założyła Ci profil. Po przejęciu będzie Twój i przejdzie
               na ten telefon.
             </Text>

@@ -1,5 +1,6 @@
 import { DarkTheme, DefaultTheme, type Theme } from "@react-navigation/native";
 import { useColorScheme, useUnstableNativeVariable } from "nativewind";
+import { fonts } from "./typography";
 
 // React Navigation wymaga kolorów jako wartości JS — odczytujemy zmienne CSS
 // z global.css, więc nie ma drugiej kopii palety.
@@ -21,6 +22,14 @@ export function useNavigationTheme(): Theme {
   return {
     ...base,
     dark,
+    // Font aplikacji zamiast systemowego w elementach rysowanych przez React Navigation.
+    // fontWeight "normal" — grubość wynika z pliku fontu (patrz typography.ts).
+    fonts: {
+      regular: { fontFamily: fonts.regular, fontWeight: "normal" },
+      medium: { fontFamily: fonts.medium, fontWeight: "normal" },
+      bold: { fontFamily: fonts.semibold, fontWeight: "normal" },
+      heavy: { fontFamily: fonts.semibold, fontWeight: "normal" },
+    },
     colors: {
       primary: pick(primary, base.colors.primary),
       background: pick(background, base.colors.background),

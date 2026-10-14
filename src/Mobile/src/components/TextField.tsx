@@ -1,4 +1,5 @@
 import { View, Text, TextInput, KeyboardTypeOptions } from "react-native";
+import { typography } from "../theme/typography";
 
 type TextFieldProps = {
   label: string;
@@ -31,12 +32,16 @@ export default function TextField({
 }: TextFieldProps) {
   return (
     <View className="mb-4 w-full">
-      <Text className="text-foreground font-semibold text-sm mb-1">
+      <Text
+        className="text-foreground mb-1"
+        style={typography["field.label"]}
+      >
         {label}
         {required && <Text className="text-danger"> *</Text>}
       </Text>
       <TextInput
         className={`rounded-2xl px-4 py-3 bg-input text-foreground placeholder:text-placeholder border ${error ? "border-danger" : "border-line-2"}`}
+        style={typography["input.text"]}
         onChangeText={onChangeText}
         placeholder={placeholder}
         value={value}
@@ -47,7 +52,11 @@ export default function TextField({
         returnKeyType={returnKeyType}
         onSubmitEditing={onSubmitEditing}
       ></TextInput>
-      {error && <Text className="text-danger mt-1">{error}</Text>}
+      {error && (
+        <Text className="text-danger mt-1" style={typography["field.error"]}>
+          {error}
+        </Text>
+      )}
     </View>
   );
 }

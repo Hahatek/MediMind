@@ -1,5 +1,10 @@
 import { Pressable, Text, View } from "react-native";
-import { setThemeMode, useThemeMode, type ThemeMode } from "../theme";
+import {
+  setThemeMode,
+  typography,
+  useThemeMode,
+  type ThemeMode,
+} from "../theme";
 
 const OPTIONS: { value: ThemeMode; label: string }[] = [
   { value: "system", label: "System" },
@@ -31,6 +36,7 @@ export default function ThemeSelector() {
           >
             <Text
               className={selected ? "text-primary-foreground" : "text-foreground"}
+              style={typography["option.label"]}
             >
               {o.label}
             </Text>

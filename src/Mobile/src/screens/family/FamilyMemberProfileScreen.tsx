@@ -25,6 +25,7 @@ import {
   guardianRemove,
 } from "../../api/guardian";
 import Button from "../../components/Button";
+import { typography } from "../../theme/typography";
 import { DeviceResponse } from "../../types/DeviceTypes";
 import { deviceDelete, deviceGet } from "../../api/device";
 import { formatDate, formatDateLocal } from "../../utils/dateFormat";
@@ -372,28 +373,28 @@ export default function FamilyMemberProfileScreen({
   return (
     <SafeAreaView className="flex-1 m-4" edges={["bottom", "left", "right"]}>
       <View>
-        <Text className="font-bold text-2xl text-foreground">
+        <Text className="text-foreground" style={typography["title.member"]}>
           {member.firstName} {member.lastName}
         </Text>
         <View className="flex-row gap-2 mt-1">
           {member.isOwner && (
             <View className="px-2 py-0.5 rounded-md bg-tint-1">
-              <Text className="text-xs text-foreground">Właściciel</Text>
+              <Text className="text-foreground" style={typography.badge}>Właściciel</Text>
             </View>
           )}
           {member.isParent && (
             <View className="px-2 py-0.5 rounded-md bg-tint-1">
-              <Text className="text-xs text-foreground">Rodzic</Text>
+              <Text className="text-foreground" style={typography.badge}>Rodzic</Text>
             </View>
           )}
           {member.isChild && (
             <View className="px-2 py-0.5 rounded-md bg-tint-1 ">
-              <Text className="text-xs text-foreground">Dziecko</Text>
+              <Text className="text-foreground" style={typography.badge}>Dziecko</Text>
             </View>
           )}
           {!member.hasAccount && (
             <View className="px-2 py-0.5 rounded-md bg-tint-1">
-              <Text className="text-xs text-foreground">Bez konta</Text>
+              <Text className="text-foreground" style={typography.badge}>Bez konta</Text>
             </View>
           )}
         </View>
@@ -409,7 +410,9 @@ export default function FamilyMemberProfileScreen({
             })
           }
         >
-          <Text className="font-bold text-foreground">Zobacz badania</Text>
+          <Text className="text-foreground" style={typography["list.title"]}>
+            Zobacz badania
+          </Text>
         </Pressable>
         <Pressable
           className="bg-surface border border-border rounded-xl flex-1 p-4"
@@ -421,7 +424,9 @@ export default function FamilyMemberProfileScreen({
             })
           }
         >
-          <Text className="font-bold text-foreground">Zobacz leki</Text>
+          <Text className="text-foreground" style={typography["list.title"]}>
+            Zobacz leki
+          </Text>
         </Pressable>
       </View>
       <View className="mt-4">
@@ -431,7 +436,10 @@ export default function FamilyMemberProfileScreen({
       {guardians.length > 0 && (
         <View className="mt-4">
           <View>
-            <Text className="font-semibold text-muted-foreground mb-2">
+            <Text
+              className="text-muted-foreground mb-2"
+              style={typography["section.label"]}
+            >
               Opiekunowie
             </Text>
           </View>
@@ -443,12 +451,15 @@ export default function FamilyMemberProfileScreen({
                 onPress={() => chooseGuardianAction(guardian)}
                 className={`p-4 flex flex-row items-center justify-between ${index > 0 ? "border-t border-border" : ""}`}
               >
-                <Text className="text-foreground">
+                <Text
+                  className="text-foreground shrink"
+                  style={typography["list.title"]}
+                >
                   {guardian.firstName} {guardian.lastName}
                 </Text>
                 {guardian.isPrimary && (
                   <View className="px-2 py-0.5 rounded-md bg-tint-1">
-                    <Text className="text-xs text-foreground">Główny</Text>
+                    <Text className="text-foreground" style={typography.badge}>Główny</Text>
                   </View>
                 )}
               </Pressable>
@@ -478,14 +489,17 @@ export default function FamilyMemberProfileScreen({
       {member.isPrimaryGuardianForMe && (
         <View className="mt-4">
           <View>
-            <Text className="font-semibold text-muted-foreground mb-2">
+            <Text
+              className="text-muted-foreground mb-2"
+              style={typography["section.label"]}
+            >
               Urządzenia
             </Text>
           </View>
           <View className="bg-surface border border-border rounded-2xl overflow-hidden">
             {devices.length === 0 ? (
               <View className="p-4">
-                <Text className="text-foreground">
+                <Text className="text-foreground" style={typography.body}>
                   Brak podłączonych urządzeń
                 </Text>
               </View>
@@ -495,12 +509,17 @@ export default function FamilyMemberProfileScreen({
                   key={device.id}
                   className={`p-4 flex flex-row items-center justify-between ${index > 0 ? "border-t border-border" : ""}`}
                 >
-                  <Text className="text-foreground">
+                  <Text
+                    className="text-foreground shrink"
+                    style={typography["body.sm"]}
+                  >
                     Telefon połączony od{" "}
                     {formatDate(formatDateLocal(new Date(device.createdAt)))}
                   </Text>
                   <Pressable onPress={() => confirmDeleteDevice(device.id)}>
-                    <Text className="text-destructive">Odłącz</Text>
+                    <Text className="text-destructive" style={typography.link}>
+                      Odłącz
+                    </Text>
                   </Pressable>
                 </View>
               ))

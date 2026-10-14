@@ -18,6 +18,7 @@ import { setToken } from "../storage/accessToken";
 
 import TextField from "../components/TextField";
 import Button from "../components/Button";
+import { typography } from "../theme";
 
 type Props = {
   onLoginSuccess: () => void;
@@ -79,11 +80,14 @@ export default function LoginScreen({ onLoginSuccess, navigation }: Props) {
           </View>
 
           <View className="px-7">
-            <Text className="text-foreground text-3xl font-bold mb-2">
+            <Text
+              className="text-foreground mb-2"
+              style={typography["title.hero"]}
+            >
               Witaj ponownie
             </Text>
 
-            <Text className="text-ink-3 text-base mb-7">
+            <Text className="text-ink-3 mb-7" style={typography["body.lg"]}>
               Zaloguj się, żeby zobaczyć swoje badania i leki.
             </Text>
 
@@ -107,7 +111,11 @@ export default function LoginScreen({ onLoginSuccess, navigation }: Props) {
               onSubmitEditing={handleLogin}
             />
 
-            {info !== "" && <Text className="text-danger mb-4">{info}</Text>}
+            {info !== "" && (
+              <Text className="text-danger mb-4" style={typography["field.error"]}>
+                {info}
+              </Text>
+            )}
 
             <Button
               title="Zaloguj się"
@@ -117,18 +125,26 @@ export default function LoginScreen({ onLoginSuccess, navigation }: Props) {
               variant="primary"
             />
 
-            <View className="flex-row justify-center mt-5">
-              <Text className="text-ink-3">Nie masz konta? </Text>
+            <View className="flex-row flex-wrap justify-center mt-5">
+              <Text className="text-ink-3" style={typography.body}>
+                Nie masz konta?{" "}
+              </Text>
 
               <Pressable onPress={() => navigation.navigate("Register")}>
-                <Text className="text-link font-semibold">Zarejestruj się</Text>
+                <Text className="text-link" style={typography.link}>
+                  Zarejestruj się
+                </Text>
               </Pressable>
             </View>
-            <View className="flex-row justify-center mt-5">
-              <Text className="text-ink-3">Posiadasz kod od rodziny? </Text>
+            <View className="flex-row flex-wrap justify-center mt-5">
+              <Text className="text-ink-3" style={typography.body}>
+                Posiadasz kod od rodziny?{" "}
+              </Text>
 
               <Pressable onPress={() => navigation.navigate("WyborKodu")}>
-                <Text className="text-link font-semibold">Wpisz kod</Text>
+                <Text className="text-link" style={typography.link}>
+                  Wpisz kod
+                </Text>
               </Pressable>
             </View>
           </View>

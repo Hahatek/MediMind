@@ -4,6 +4,7 @@ import { TodayMedicationIntake } from "../types/MedicationIntakeTypes";
 import { formatTime } from "../utils/dateFormat";
 import { formatDose } from "../utils/medicationForms";
 import { useThemeColor } from "../theme/useThemeColor";
+import { MAX_FONT_SCALE_CONTROLS, typography } from "../theme/typography";
 
 type Props = {
   dose: TodayMedicationIntake;
@@ -27,8 +28,12 @@ export default function TodayDoseRow({ dose, onToggle }: Props) {
   return (
     <View className="flex-row overflow-hidden mb-2 rounded-2xl bg-surface border border-line-2">
       <View className="flex-1 p-4">
-        <Text className="text-foreground text-base">{dose.medicationName}</Text>
-        <Text className="text-muted-foreground text-sm mt-1">{details}</Text>
+        <Text className="text-foreground" style={typography["card.title"]}>
+          {dose.medicationName}
+        </Text>
+        <Text className="text-muted-foreground mt-1" style={typography.meta}>
+          {details}
+        </Text>
       </View>
 
       <Pressable
@@ -43,9 +48,9 @@ export default function TodayDoseRow({ dose, onToggle }: Props) {
       >
         <Icon size={20} color={iconColor} />
         <Text
-          className={`font-semibold ${
-            taken ? "text-primary-foreground" : "text-brand-ink"
-          }`}
+          className={taken ? "text-primary-foreground" : "text-brand-ink"}
+          style={typography["button.md"]}
+          maxFontSizeMultiplier={MAX_FONT_SCALE_CONTROLS}
         >
           {taken ? "Przyjęte" : "Przyjmij"}
         </Text>

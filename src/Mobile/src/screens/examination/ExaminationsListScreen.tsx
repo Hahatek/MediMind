@@ -34,6 +34,7 @@ import ExaminationsCalendarView from "../../components/ExaminationsCalendarView"
 import { FamilyMembership, PersonContext } from "../../types/FamilyTypes";
 import { familyGet } from "../../api/family";
 import { useThemeColor } from "../../theme/useThemeColor";
+import { typography } from "../../theme/typography";
 
 type Props = {
   navigation: NativeStackNavigationProp<ExaminationStack, "ListaBadan">;
@@ -158,7 +159,7 @@ export default function ExaminationsListScreen({ navigation, person }: Props) {
         >
           {isSelected && <Check size={16} color={checkColor} />}
         </View>
-        <Text className="text-foreground">
+        <Text className="text-foreground shrink" style={typography["option.label"]}>
           {p.firstName} {p.lastName}
         </Text>
       </Pressable>
@@ -245,13 +246,16 @@ export default function ExaminationsListScreen({ navigation, person }: Props) {
             loading ? (
               <ActivityIndicator className="mt-8" />
             ) : error ? null : (
-              <Text className="text-muted-foreground text-center mt-8 ">
+              <Text
+                className="text-muted-foreground text-center mt-8 "
+                style={typography.body}
+              >
                 Nie masz jeszcze żadnych badań. Dodaj pierwsze poniżej.
               </Text>
             )
           }
           renderSectionHeader={({ section }) => (
-            <Text className="text-foreground">
+            <Text className="text-foreground" style={typography["section.label"]}>
               {section.title} ({section.data.length})
             </Text>
           )}
@@ -335,17 +339,23 @@ export default function ExaminationsListScreen({ navigation, person }: Props) {
           onPress={() => setFilterOpen(false)}
         >
           <Pressable className="bg-surface rounded-t-2xl p-4 pb-8">
-            <Text className="text-lg font-semibold text-foreground">
+            <Text className="text-foreground" style={typography["title.member"]}>
               Filtr badań
             </Text>
             <View>
-              <Text className="text-xs text-ink-3 mt-4 mb-2">
+              <Text
+                className="text-ink-3 mt-4 mb-2"
+                style={typography["section.label"]}
+              >
                 Ty i osoby pod twoją opieką
               </Text>
               {myPeople.map(renderPersonRow)}
             </View>
             <View>
-              <Text className="text-xs text-ink-3 mt-4 mb-2">
+              <Text
+                className="text-ink-3 mt-4 mb-2"
+                style={typography["section.label"]}
+              >
                 Pozostali członkowie rodziny
               </Text>
               {otherPeople.map(renderPersonRow)}

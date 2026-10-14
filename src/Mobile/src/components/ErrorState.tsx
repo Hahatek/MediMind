@@ -1,5 +1,6 @@
 import { View, Text } from "react-native";
 import Button from "./Button";
+import { typography } from "../theme/typography";
 
 type ErrorStateProps = {
   message: string;
@@ -11,7 +12,9 @@ type ErrorStateProps = {
 export default function ErrorState({ message, onRetry }: ErrorStateProps) {
   return (
     <View className="m-4 p-4 rounded-xl border border-danger-line bg-danger-bg">
-      <Text className="text-danger-ink">{message}</Text>
+      <Text className="text-danger-ink" style={typography.body}>
+        {message}
+      </Text>
       {onRetry && (
         <View className="mt-3 self-start">
           <Button

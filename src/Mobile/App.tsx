@@ -6,14 +6,17 @@ import AppStack from "./src/navigation/AppStack";
 import { Text, View } from "react-native";
 import { StatusBar } from "expo-status-bar";
 import { refreshTokens, setSessionExpiredHandler } from "./src/api/client";
-import { useNavigationTheme } from "./src/theme";
+import { fontAssets, typography, useNavigationTheme } from "./src/theme";
 import { SafeAreaProvider } from "react-native-safe-area-context";
+import { useFonts } from "expo-font";
 
 type SessionStatus = "loading" | "loggedIn" | "loggedOut";
 
 export default function App() {
   const navigationTheme = useNavigationTheme();
   const [status, setStatus] = useState<SessionStatus>("loading");
+  // Bez załadowanych plików Manrope RN po cichu używa fontu systemowego.
+  const [fontsLoaded, fontError] = useFonts(fontAssets);
 
   useEffect(() => {
     async function restoreSession() {
@@ -36,6 +39,11 @@ export default function App() {
     };
   }, []);
 
+  // Czekamy na fonty (przy błędzie ładowania i tak pokazujemy aplikację).
+  if (!fontsLoaded && !fontError) {
+    return null;
+  }
+
   return (
     <SafeAreaProvider>
       <NavigationContainer theme={navigationTheme}>
@@ -50,7 +58,9 @@ export default function App() {
           <AppStack onLogout={() => setStatus("loggedOut")} />
         )}
         {status === "loading" && (
-          <Text className="text-foreground">SIABADABABA</Text>
+          <Text className="text-foreground" style={typography.body}>
+            SIABADABABA
+          </Text>
         )}
       </NavigationContainer>
     </SafeAreaProvider>

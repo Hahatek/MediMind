@@ -32,7 +32,7 @@ import {
   getExaminationDisplayStatus,
   getUpcomingExaminations,
 } from "../utils/examinationDisplayStatus";
-import { getExamStatusStyle, useThemeColor } from "../theme";
+import { getExamStatusStyle, typography, useThemeColor } from "../theme";
 
 type Props = {
   navigation: CompositeNavigationProp<
@@ -101,10 +101,16 @@ export default function HomeScreen({ navigation }: Props) {
       <ScrollView>
         <View className="mt-8">
           <View className="mt-6">
-            <Text className="text-muted-foreground text-base">
+            <Text
+              className="text-muted-foreground"
+              style={typography.body}
+            >
               Dzień dobry,
             </Text>
-            <Text className="text-foreground text-3xl font-bold">
+            <Text
+              className="text-foreground"
+              style={typography["title.greeting"]}
+            >
               {nameUser}
             </Text>
           </View>
@@ -116,24 +122,32 @@ export default function HomeScreen({ navigation }: Props) {
             onPress={() => openDetailsExamination(nextExam.id)}
           >
             <View className="flex flex-row justify-between">
-              <Text className="text-white">Najbliższe badanie</Text>
+              <Text className="text-white" style={typography.eyebrow}>
+                Najbliższe badanie
+              </Text>
               {nextStyle && (
                 <View className={`px-3 py-1 }`}>
-                  <Text className="text-white">{nextStyle.label}</Text>
+                  <Text className="text-white" style={typography.badge}>
+                    {nextStyle.label}
+                  </Text>
                 </View>
               )}
             </View>
-            <Text className="text-white text-[32px] font-bold">
+            <Text className="text-white" style={typography["title.detail"]}>
               {nextExam.name}
             </Text>
             <View className="flex flex-row gap-4 mt-4">
               <View className="flex flex-row gap-2">
                 <Calendar color={"#ffffff"} />
-                <Text className="text-white">{nextExam.date}</Text>
+                <Text className="text-white" style={typography.meta}>
+                  {nextExam.date}
+                </Text>
               </View>
               <View className="flex flex-row gap-2">
                 <Clock color={"#ffffff"} />
-                <Text className="text-white">{nextExam.time}</Text>
+                <Text className="text-white" style={typography.meta}>
+                  {nextExam.time}
+                </Text>
               </View>
             </View>
           </Pressable>
@@ -146,7 +160,12 @@ export default function HomeScreen({ navigation }: Props) {
           <View className="flex flex-row justify-between items-center p-4">
             <View className="flex flex-row items-center">
               <UserRoundGroup color="#087B8C" size={22} />
-              <Text className="pl-4 text-foreground">Moja rodzina</Text>
+              <Text
+                className="pl-4 text-foreground"
+                style={typography["list.title"]}
+              >
+                Moja rodzina
+              </Text>
             </View>
             <ChevronRight color={chevronColor} />
           </View>
@@ -154,15 +173,19 @@ export default function HomeScreen({ navigation }: Props) {
 
         <View className="mt-8">
           <View className="flex flex-row justify-between mb-4">
-            <Text className="text-foreground">Badania nadchodzące</Text>
+            <Text className="text-foreground shrink" style={typography["section.label"]}>
+              Badania nadchodzące
+            </Text>
             <Pressable onPress={() => navigation.navigate("Badania")}>
-              <Text className="text-primary">Wszystkie</Text>
+              <Text className="text-primary" style={typography.link}>
+                Wszystkie
+              </Text>
             </Pressable>
           </View>
           {loading && examinationsRespons.length === 0 ? (
             <ActivityIndicator className="mt-8" />
           ) : upcoming.length === 0 ? (
-            <Text className="text-muted-foreground">
+            <Text className="text-muted-foreground" style={typography.body}>
               Brak nadchodzących badań
             </Text>
           ) : (

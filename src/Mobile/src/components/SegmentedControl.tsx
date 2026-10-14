@@ -1,4 +1,5 @@
 import { Pressable, View, Text } from "react-native";
+import { typography } from "../theme/typography";
 
 type SegmentOption = { value: string; label: string };
 
@@ -24,9 +25,8 @@ export default function SegmentedControl({
             onPress={() => onChange(option.value)}
           >
             <Text
-              className={
-                isActive ? "text-brand-ink font-semibold" : "text-ink-3"
-              }
+              className={isActive ? "text-brand-ink" : "text-ink-3"}
+              style={typography.segment}
             >
               {option.label}
             </Text>

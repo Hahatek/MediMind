@@ -12,6 +12,7 @@ import { saveRefreshToken } from "../storage/tokenStorage";
 import { ClaimProfileRequest } from "../types/AuthTypes";
 import CodeInput from "../components/CodeInput";
 import { RouteProp } from "@react-navigation/native";
+import { typography } from "../theme";
 
 type Props = {
   onLoginSuccess: () => void;
@@ -99,20 +100,28 @@ export default function AccessCodeLoginScreen({
       className="flex flex-1 m-4"
       edges={["bottom", "left", "right"]}
     >
-      <Text className="text-ink-3">{info.description}</Text>
+      <Text className="text-ink-3" style={typography.body}>
+        {info.description}
+      </Text>
 
       <View className="mt-6">
         <CodeInput value={code} onChange={setCode} />
-        {error && <Text className="text-danger mt-1">{error}</Text>}
+        {error && (
+          <Text className="text-danger mt-1" style={typography["field.error"]}>
+            {error}
+          </Text>
+        )}
       </View>
 
       <View className="bg-surface border border-border rounded-2xl p-4 gap-2 mt-4">
         <View className="self-start rounded-full px-3 py-1 bg-tint-1">
-          <Text className="text-sm text-foreground font-medium">
+          <Text className="text-foreground" style={typography.badge}>
             {info.badge}
           </Text>
         </View>
-        <Text className="text-ink-3">{info.cardText}</Text>
+        <Text className="text-ink-3" style={typography["body.sm"]}>
+          {info.cardText}
+        </Text>
       </View>
 
       {mode === "claim" && (

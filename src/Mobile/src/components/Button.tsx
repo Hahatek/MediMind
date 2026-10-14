@@ -9,6 +9,11 @@ import {
   Text,
   View,
 } from "react-native";
+import {
+  iconSizes,
+  MAX_FONT_SCALE_CONTROLS,
+  typography,
+} from "../theme/typography";
 
 export type ButtonVariant =
   | "primary"
@@ -245,11 +250,16 @@ export default function Button({
             {loading ? (
               <Spinner head={s.spinnerHead} track={s.spinnerTrack} />
             ) : (
-              IconLeft && <IconLeft size={18} strokeWidth={2} color={s.icon} />
+              IconLeft && (
+                <IconLeft size={iconSizes.button} strokeWidth={2} color={s.icon} />
+              )
             )}
             {displayTitle && (
-              <View>
-                <Text style={[styles.label, { color: s.text }]}>
+              <View style={styles.labelWrap}>
+                <Text
+                  maxFontSizeMultiplier={MAX_FONT_SCALE_CONTROLS}
+                  style={[styles.label, { color: s.text }]}
+                >
                   {displayTitle}
                 </Text>
                 {s.underline && (
@@ -260,7 +270,7 @@ export default function Button({
               </View>
             )}
             {!loading && IconRight && (
-              <IconRight size={18} strokeWidth={2} color={s.icon} />
+              <IconRight size={iconSizes.button} strokeWidth={2} color={s.icon} />
             )}
           </View>
         );
@@ -271,7 +281,9 @@ export default function Button({
 
 const styles = StyleSheet.create({
   container: {
-    height: 48,
+    // minHeight zamiast height: dłuższy tytuł (font o stałej szerokości, skalowanie
+    // systemowe) łamie się do drugiej linii zamiast zostać uciętym.
+    minHeight: 48,
     borderWidth: 1,
     borderRadius: 10,
     flexDirection: "row",
@@ -280,12 +292,13 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     overflow: "hidden",
   },
+  // Pozwala etykiecie zwęzić się obok ikon i zawinąć tekst.
+  labelWrap: {
+    flexShrink: 1,
+  },
   label: {
-    fontSize: 15.5,
-    // Spec: lineHeight 15.5 (CSS `1`), ale w RN Android ucina dolne wydłużenia (y, g, j).
-    lineHeight: 20,
-    fontWeight: "500",
-    letterSpacing: -0.0775,
+    ...typography["button.md"],
+    textAlign: "center",
     textAlignVertical: "center",
     includeFontPadding: false,
   },
@@ -293,7 +306,7 @@ const styles = StyleSheet.create({
     position: "absolute",
     left: 0,
     right: 0,
-    top: 20,
+    bottom: -1, // tuż pod linią tekstu (token nie ma stałego lineHeight)
     height: 1,
   },
 });
