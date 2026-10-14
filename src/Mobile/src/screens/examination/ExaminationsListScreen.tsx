@@ -251,7 +251,7 @@ export default function ExaminationsListScreen({ navigation, person }: Props) {
             )
           }
           renderSectionHeader={({ section }) => (
-            <Text className="dark:text-foreground">
+            <Text className="text-foreground">
               {section.title} ({section.data.length})
             </Text>
           )}

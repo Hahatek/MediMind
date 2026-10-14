@@ -127,7 +127,7 @@ export default function LoginScreen({ onLoginSuccess, navigation }: Props) {
             <View className="flex-row justify-center mt-5">
               <Text className="text-ink-3">Posiadasz kod od rodziny? </Text>
 
-              <Pressable onPress={() => navigation.navigate("MamKod")}>
+              <Pressable onPress={() => navigation.navigate("WyborKodu")}>
                 <Text className="text-link font-semibold">Wpisz kod</Text>
               </Pressable>
             </View>

@@ -1,5 +1,5 @@
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
-import { Pressable, Text, View } from "react-native";
+import { View, Text } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { AuthStackList } from "../navigation/AuthStack";
 import { useState } from "react";
@@ -10,23 +10,50 @@ import { claimProfile, linkDevice, login } from "../api/auth";
 import { setToken } from "../storage/accessToken";
 import { saveRefreshToken } from "../storage/tokenStorage";
 import { ClaimProfileRequest } from "../types/AuthTypes";
+import CodeInput from "../components/CodeInput";
+import { RouteProp } from "@react-navigation/native";
 
 type Props = {
   onLoginSuccess: () => void;
   navigation: NativeStackNavigationProp<AuthStackList, "MamKod">;
+  route: RouteProp<AuthStackList, "MamKod">;
 };
 
 export default function AccessCodeLoginScreen({
   onLoginSuccess,
   navigation,
+  route,
 }: Props) {
   const [code, setCode] = useState("");
-  const [mode, setMode] = useState<"link" | "claim">("link");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [emailText, setEmailText] = useState("");
   const [passwordText, setPasswordText] = useState("");
   const [confirmPasswordText, setConfirmPasswordText] = useState("");
+
+  const mode = route.params.mode;
+
+  const modeInfo = {
+    link: {
+      description:
+        "Kod widać na telefonie rodzica lub opiekuna, w profilu Twojej osoby.",
+      badge: "Logowanie tego telefonu",
+      cardText:
+        "Telefon zaloguje się na konto tej osoby. Hasło nie jest potrzebne.",
+      button: "Zaloguj",
+      loadingButton: "Logowanie...",
+    },
+    claim: {
+      description:
+        "Opiekun pokaże Ci kod przy przekazaniu profilu. Wpisz go tutaj.",
+      badge: "Przejęcie profilu",
+      cardText:
+        "Profil przejdzie na ten telefon. Ustawisz własny e-mail i hasło.",
+      button: "To mój profil — przejmij",
+      loadingButton: "Przejmowanie...",
+    },
+  };
+  const info = modeInfo[mode];
 
   async function handleSubmit() {
     if (!/^\d{6}$/.test(code)) {
@@ -68,54 +95,28 @@ export default function AccessCodeLoginScreen({
     setLoading(false);
   }
   return (
-    <SafeAreaView className="m-4" edges={["bottom", "left", "right"]}>
-      <TextField
-        keyboardType="number-pad"
-        label="Podaj kod"
-        value={code}
-        maxLength={6}
-        onChangeText={setCode}
-        error={error}
-      />
+    <SafeAreaView
+      className="flex flex-1 m-4"
+      edges={["bottom", "left", "right"]}
+    >
+      <Text className="text-ink-3">{info.description}</Text>
 
-      <View className="flex flex-row gap-4">
-        <Pressable
-          onPress={() => setMode("link")}
-          className={`px-4 py-3 rounded-2xl border ${
-            mode === "link"
-              ? "bg-primary border-primary"
-              : "border-input-border"
-          }`}
-        >
-          <Text
-            className={
-              mode === "link" ? "text-primary-foreground" : "text-foreground"
-            }
-          >
-            Połącz konto z telefonem
-          </Text>
-        </Pressable>
+      <View className="mt-6">
+        <CodeInput value={code} onChange={setCode} />
+        {error && <Text className="text-danger mt-1">{error}</Text>}
+      </View>
 
-        <Pressable
-          onPress={() => setMode("claim")}
-          className={`px-4 py-3 rounded-2xl border ${
-            mode === "claim"
-              ? "bg-primary border-primary"
-              : "border-input-border"
-          }`}
-        >
-          <Text
-            className={
-              mode === "claim" ? "text-primary-foreground" : "text-foreground"
-            }
-          >
-            Załóż konto
+      <View className="bg-surface border border-border rounded-2xl p-4 gap-2 mt-4">
+        <View className="self-start rounded-full px-3 py-1 bg-tint-1">
+          <Text className="text-sm text-foreground font-medium">
+            {info.badge}
           </Text>
-        </Pressable>
+        </View>
+        <Text className="text-ink-3">{info.cardText}</Text>
       </View>
 
       {mode === "claim" && (
-        <View className="gap-4 flex flex-col">
+        <View className="gap-4 mt-4">
           <TextField
             label="Adres e-mail"
             required
@@ -141,12 +142,14 @@ export default function AccessCodeLoginScreen({
         </View>
       )}
 
+      <View className="flex-1" />
+
       <Button
-        title="Dołącz"
+        title={info.button}
         variant="primary"
         onPress={handleSubmit}
         loading={loading}
-        loadingTitle="Dołączanie..."
+        loadingTitle={info.loadingButton}
       />
     </SafeAreaView>
   );
