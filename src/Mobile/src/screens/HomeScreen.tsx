@@ -1,5 +1,11 @@
 import { useCallback, useEffect, useState } from "react";
-import { ActivityIndicator, Pressable, Text, View } from "react-native";
+import {
+  ActivityIndicator,
+  Pressable,
+  ScrollView,
+  Text,
+  View,
+} from "react-native";
 import { getMe } from "../api/user";
 import { endSession } from "../api/auth";
 import Button from "../components/Button";
@@ -26,7 +32,7 @@ import {
   getExaminationDisplayStatus,
   getUpcomingExaminations,
 } from "../utils/examinationDisplayStatus";
-import { getExamStatusStyle } from "../theme";
+import { getExamStatusStyle, useThemeColor } from "../theme";
 
 type Props = {
   navigation: CompositeNavigationProp<
@@ -49,6 +55,8 @@ export default function HomeScreen({ navigation }: Props) {
   const nextStyle = nextExam
     ? getExamStatusStyle(getExaminationDisplayStatus(nextExam, day))
     : null;
+
+  const chevronColor = useThemeColor("--ink-4");
 
   useEffect(() => {
     async function load() {
@@ -86,82 +94,95 @@ export default function HomeScreen({ navigation }: Props) {
   }
 
   return (
-    <SafeAreaView className="flex flex-1 bg-screen m-4 ">
-      <View className="mt-8">
-        <Text className="text-foreground">Dzień Dobry</Text>
-        <Text className="text-muted-foreground">{nameUser}</Text>
-      </View>
-
-      {nextExam && (
-        <Pressable
-          className="bg-primary border rounded-2xl p-5 mt-8"
-          onPress={() => openDetailsExamination(nextExam.id)}
-        >
-          <View className="flex flex-row justify-between">
-            <Text className="text-foreground">Najbliższe badanie</Text>
-            {nextStyle && (
-              <View className={`px-3 py-1 }`}>
-                <Text className="text-foreground">{nextStyle.label}</Text>
-              </View>
-            )}
+    <SafeAreaView
+      className="flex-1 bg-screen m-4"
+      edges={["bottom", "left", "right"]}
+    >
+      <ScrollView>
+        <View className="mt-8">
+          <View className="mt-6">
+            <Text className="text-muted-foreground text-base">
+              Dzień dobry,
+            </Text>
+            <Text className="text-foreground text-3xl font-bold">
+              {nameUser}
+            </Text>
           </View>
-          <Text className="text-white text-2xl">{nextExam.name}</Text>
-          <View className="flex flex-row gap-4">
-            <View className="flex flex-row gap-2">
-              <Calendar />
-              <Text>{nextExam.date}</Text>
+        </View>
+
+        {nextExam && (
+          <Pressable
+            className="bg-primary rounded-2xl p-5 mt-8"
+            onPress={() => openDetailsExamination(nextExam.id)}
+          >
+            <View className="flex flex-row justify-between">
+              <Text className="text-white">Najbliższe badanie</Text>
+              {nextStyle && (
+                <View className={`px-3 py-1 }`}>
+                  <Text className="text-white">{nextStyle.label}</Text>
+                </View>
+              )}
             </View>
-            <View className="flex flex-row gap-2">
-              <Clock />
-              <Text>{nextExam.time}</Text>
+            <Text className="text-white text-[32px] font-bold">
+              {nextExam.name}
+            </Text>
+            <View className="flex flex-row gap-4 mt-4">
+              <View className="flex flex-row gap-2">
+                <Calendar color={"#ffffff"} />
+                <Text className="text-white">{nextExam.date}</Text>
+              </View>
+              <View className="flex flex-row gap-2">
+                <Clock color={"#ffffff"} />
+                <Text className="text-white">{nextExam.time}</Text>
+              </View>
             </View>
+          </Pressable>
+        )}
+
+        <Pressable
+          className="bg-surface w-full border border-border rounded-xl mt-8"
+          onPress={() => navigation.navigate("Rodzina")}
+        >
+          <View className="flex flex-row justify-between items-center p-4">
+            <View className="flex flex-row items-center">
+              <UserRoundGroup color="#087B8C" size={22} />
+              <Text className="pl-4 text-foreground">Moja rodzina</Text>
+            </View>
+            <ChevronRight color={chevronColor} />
           </View>
         </Pressable>
-      )}
 
-      <Pressable
-        className="bg-surface w-full border border-border rounded-xl mt-8"
-        onPress={() => navigation.navigate("Rodzina")}
-      >
-        <View className="flex flex-row justify-between items-center p-4">
-          <View className="flex flex-row items-center">
-            <UserRoundGroup color="#087B8C" size={22} />
-            <Text className="pl-4 text-foreground">Moja rodzina</Text>
-          </View>
-          <ChevronRight />
-        </View>
-      </Pressable>
-
-      <View className="mt-8">
-        <View className="flex flex-row justify-between mb-4">
-          <Text className="text-foreground">Badania nadchodzące</Text>
-          <Pressable onPress={() => navigation.navigate("Badania")}>
-            <Text className="text-primary">Wszystkie</Text>
-          </Pressable>
-        </View>
-        {loading && examinationsRespons.length === 0 ? (
-          <ActivityIndicator className="mt-8" />
-        ) : upcoming.length === 0 ? (
-          <Text className="text-muted-foreground">
-            Brak nadchodzących badań
-          </Text>
-        ) : (
-          upcoming.slice(0, 3).map((item) => (
-            <Pressable
-              key={item.id}
-              onPress={() => openDetailsExamination(item.id)}
-            >
-              <ExaminationCard
-                name={item.name}
-                date={item.date}
-                color={item.color}
-                status={getExaminationDisplayStatus(item, day)}
-                time={item.time}
-              />
+        <View className="mt-8">
+          <View className="flex flex-row justify-between mb-4">
+            <Text className="text-foreground">Badania nadchodzące</Text>
+            <Pressable onPress={() => navigation.navigate("Badania")}>
+              <Text className="text-primary">Wszystkie</Text>
             </Pressable>
-          ))
-        )}
-      </View>
+          </View>
+          {loading && examinationsRespons.length === 0 ? (
+            <ActivityIndicator className="mt-8" />
+          ) : upcoming.length === 0 ? (
+            <Text className="text-muted-foreground">
+              Brak nadchodzących badań
+            </Text>
+          ) : (
+            upcoming.slice(0, 3).map((item) => (
+              <Pressable
+                key={item.id}
+                onPress={() => openDetailsExamination(item.id)}
+              >
+                <ExaminationCard
+                  name={item.name}
+                  date={item.date}
+                  color={item.color}
+                  status={getExaminationDisplayStatus(item, day)}
+                  time={item.time}
+                />
+              </Pressable>
+            ))
+          )}
+        </View>
+      </ScrollView>
     </SafeAreaView>
   );
 }

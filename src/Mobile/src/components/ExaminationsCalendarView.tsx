@@ -130,7 +130,7 @@ export default function ExaminationsCalendarView({
       />
       {selectedDate && (
         <View className="flex-row items-center justify-between mx-2 mt-2">
-          <Text className="ml-4 dark:text-foreground">{formatDate(selectedDate)}</Text>
+          <Text className="ml-4 text-foreground">{formatDate(selectedDate)}</Text>
           <Button
             title="Pokaż cały miesiąc"
             iconLeft={X}

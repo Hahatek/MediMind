@@ -83,8 +83,7 @@ export default function ExaminationDetailsScreen({ navigation, route }: Props) {
   const day = new Date();
 
   const brandColor = useThemeColor("--brand");
-  const warnColor = useThemeColor("--warn-ink");
-
+  const color = useThemeColor("--foreground");
   const dataExamination = useCallback(async () => {
     setLoading(true);
     setError(null);
@@ -133,7 +132,10 @@ export default function ExaminationDetailsScreen({ navigation, route }: Props) {
     } catch (e) {
       Alert.alert(
         "Błąd",
-        getErrorMessage(e, "Nie udało się potwierdzić odbycia terminu badania."),
+        getErrorMessage(
+          e,
+          "Nie udało się potwierdzić odbycia terminu badania.",
+        ),
       );
     } finally {
       setConfirming(false);
@@ -171,7 +173,10 @@ export default function ExaminationDetailsScreen({ navigation, route }: Props) {
   const statusStyle = getExamStatusStyle(displayStatus);
 
   return (
-    <SafeAreaView className="flex-1 bg-screen" edges={["bottom", "left", "right"]}>
+    <SafeAreaView
+      className="flex-1 bg-screen"
+      edges={["bottom", "left", "right"]}
+    >
       <ScrollView
         className="flex-1 px-4 pt-4"
         contentContainerStyle={{ paddingBottom: 16 }}
@@ -181,7 +186,9 @@ export default function ExaminationDetailsScreen({ navigation, route }: Props) {
           <Text className="text-foreground text-2xl font-bold flex-1 mr-3">
             {examinationData.name}
           </Text>
-          <View className={`px-3 py-1 rounded-full mt-1 ${statusStyle.container}`}>
+          <View
+            className={`px-3 py-1 rounded-full mt-1 ${statusStyle.container}`}
+          >
             <Text className={`text-xs font-medium ${statusStyle.text}`}>
               {statusStyle.label}
             </Text>
@@ -212,7 +219,9 @@ export default function ExaminationDetailsScreen({ navigation, route }: Props) {
               <Repeat size={20} color={brandColor} />
             </View>
             <View className="flex-1">
-              <Text className="text-ink-3 text-xs mb-0.5">Badanie cykliczne</Text>
+              <Text className="text-ink-3 text-xs mb-0.5">
+                Badanie cykliczne
+              </Text>
               <Text className="text-foreground font-semibold text-sm">
                 {capitalize(formatCycleInterval(examinationData.cycleInterval))}
               </Text>
@@ -229,14 +238,12 @@ export default function ExaminationDetailsScreen({ navigation, route }: Props) {
 
         {/* Przygotowanie */}
         {examinationData.preparation && (
-          <View className="rounded-xl bg-warn-bg border border-warn-line p-4 mb-3">
+          <View className="rounded-xl bg-surface border border-border p-4 mb-3">
             <View className="flex flex-row items-center gap-2 mb-2">
-              <Info size={16} color={warnColor} />
-              <Text className="text-warn-ink font-semibold text-sm">
-                Przygotowanie
-              </Text>
+              <Info size={16} color={color} />
+              <Text className="text-foreground">Przygotowanie</Text>
             </View>
-            <Text className="text-warn-ink text-sm leading-5">
+            <Text className="text-foreground">
               {examinationData.preparation}
             </Text>
           </View>

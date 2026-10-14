@@ -81,7 +81,7 @@ export default function FamilyInviteScreen({ navigation, route }: Props) {
             ))}
           </View>
           <View>
-            <Text className="dark:text-foreground">
+            <Text className="text-foreground">
               Kod wygaśnie: {new Date(invite.expiresAt).toLocaleString()}
             </Text>
           </View>

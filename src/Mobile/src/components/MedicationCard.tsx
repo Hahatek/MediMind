@@ -49,8 +49,8 @@ export default function MedicationCard({
           <Text className="text-foreground pb-2">
             {strength ? `${strength} ${form}` : form}
           </Text>
-          {notes ? <Text className="dark:text-foreground">{notes}</Text> : null}
-          <Text className="dark:text-foreground">{times}</Text>
+          {notes ? <Text className="text-foreground">{notes}</Text> : null}
+          <Text className="text-foreground">{times}</Text>
         </View>
       </View>
       <View>
@@ -63,7 +63,7 @@ export default function MedicationCard({
             <PencilIcon
               color={colorScheme === "dark" ? foreground : undefined}
             />
-            <Text className="dark:text-foreground">Edytuj</Text>
+            <Text className="text-foreground">Edytuj</Text>
           </Pressable>
         )}
       </View>
