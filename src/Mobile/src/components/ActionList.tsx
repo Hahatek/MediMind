@@ -1,6 +1,7 @@
 import { ChevronRight, LucideIcon } from "lucide-react-native";
 import { View, Pressable, Text } from "react-native";
 import { useThemeColor } from "../theme/useThemeColor";
+import { iconSizes, typography } from "../theme/typography";
 
 export type ActionItem = {
   key: string;
@@ -34,9 +35,10 @@ export default function ActionList({ actions }: ActionListProps) {
             onPress={action.onPress}
             className={`flex flex-row items-center gap-3 px-4 py-4 ${index > 0 ? "border-t border-border" : ""}`}
           >
-            <Icon size={20} color={action.danger ? dangerColor : iconColor} />
+            <Icon size={iconSizes.listRow} color={action.danger ? dangerColor : iconColor} />
             <Text
               className={`flex flex-1 ${action.danger ? "text-danger" : "text-foreground"}`}
+              style={typography["list.title"]}
             >
               {action.label}
             </Text>

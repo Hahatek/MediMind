@@ -5,6 +5,7 @@ import { endSession } from "../api/auth";
 import ThemeSelector from "../components/ThemeSelector";
 import Button from "../components/Button";
 import { LogOut } from "lucide-react-native";
+import { typography } from "../theme";
 
 type Props = {
   onLogout: () => void;
@@ -30,8 +31,12 @@ export default function UserScreen({ onLogout }: Props) {
 
   return (
     <View className="flex-1 items-center justify-center bg-screen">
-      <Text className="text-muted-foreground">{nameUser}</Text>
-      <Text className="text-muted-foreground">{emailUser}</Text>
+      <Text className="text-muted-foreground" style={typography["title.profile"]}>
+        {nameUser}
+      </Text>
+      <Text className="text-muted-foreground" style={typography.meta}>
+        {emailUser}
+      </Text>
 
       <View className="w-64 mt-6">
         <ThemeSelector />

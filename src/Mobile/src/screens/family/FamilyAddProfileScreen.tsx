@@ -10,6 +10,7 @@ import { CreateManagedProfile } from "../../types/FamilyTypes";
 import { Text, View } from "react-native";
 import PickerField from "../../components/PickerField";
 import Button from "../../components/Button";
+import { typography } from "../../theme/typography";
 
 type Props = {
   navigation: NativeStackNavigationProp<HomeStackList, "DodajProfil">;
@@ -101,7 +102,12 @@ export default function FamilyAddProfileScreen({ navigation, route }: Props) {
           loadingTitle="Dodawanie..."
         />
         {error && (
-          <Text className="font-bold text-destructive mt-4">{error}</Text>
+          <Text
+            className="text-destructive mt-4"
+            style={typography["field.error"]}
+          >
+            {error}
+          </Text>
         )}
       </View>
     </SafeAreaView>

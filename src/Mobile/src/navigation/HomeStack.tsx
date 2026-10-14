@@ -9,6 +9,7 @@ import FamilyMemberProfileScreen from "../screens/family/FamilyMemberProfileScre
 import ExaminationsStack from "./ExaminationsStack";
 import MedicationsStack from "./MedicationsStack";
 import { PersonContext } from "../types/FamilyTypes";
+import { stackScreenOptions } from "./stackScreenOptions";
 
 type Props = { onLogout: () => void };
 
@@ -33,7 +34,7 @@ const Stack = createNativeStackNavigator<HomeStackList>();
 
 function HomeStack({ onLogout }: Props) {
   return (
-    <Stack.Navigator screenOptions={{ headerShown: true }}>
+    <Stack.Navigator screenOptions={stackScreenOptions}>
       <Stack.Screen
         name="StronaGlowna"
         options={{ title: "Strona główna", headerShown: false }}

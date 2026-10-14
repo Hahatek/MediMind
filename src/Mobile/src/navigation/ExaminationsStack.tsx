@@ -4,6 +4,7 @@ import ExaminationAddScreen from "../screens/examination/ExaminationAddScreen";
 import ExaminationDetailsScreen from "../screens/examination/ExaminationDetailsScreen";
 import ExaminationEditScreen from "../screens/examination/ExaminationEditScreen";
 import { PersonContext } from "../types/FamilyTypes";
+import { stackScreenOptions } from "./stackScreenOptions";
 
 type Props = {
   person?: PersonContext;
@@ -19,7 +20,7 @@ export type ExaminationStack = {
 const Stack = createNativeStackNavigator<ExaminationStack>();
 function ExaminationsStack({ person }: Props) {
   return (
-    <Stack.Navigator screenOptions={{ headerShown: true }}>
+    <Stack.Navigator screenOptions={stackScreenOptions}>
       <Stack.Screen
         name="ListaBadan"
         options={{ title: person ? `Badania ${person.firstName}` : "Badania" }}

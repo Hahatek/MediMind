@@ -23,6 +23,7 @@ import {
 import { formatDose } from "../../utils/medicationForms";
 import { timeOfDayLabels } from "../../utils/medicationTime";
 import { useThemeColor } from "../../theme/useThemeColor";
+import { typography } from "../../theme/typography";
 import ErrorState from "../../components/ErrorState";
 import Button from "../../components/Button";
 import { MedicationStack } from "../../navigation/MedicationsStack";
@@ -59,7 +60,7 @@ function DetailField({
   return (
     <View className="flex-row items-center gap-3 mb-3">
       <Icon size={20} color={iconColor} />
-      <Text className="text-foreground flex-1">
+      <Text className="text-foreground flex-1" style={typography.body}>
         {label}: {value || emptyText}
       </Text>
     </View>
@@ -181,7 +182,9 @@ export default function MedicationDetailsScreen({
   if (loading) {
     return (
       <SafeAreaView className="flex-1" edges={["bottom", "left", "right"]}>
-        <Text className="text-foreground m-4">Ładowanie...</Text>
+        <Text className="text-foreground m-4" style={typography.body}>
+          Ładowanie...
+        </Text>
       </SafeAreaView>
     );
   }
@@ -212,11 +215,11 @@ export default function MedicationDetailsScreen({
       className="flex-1 bg-screen p-4"
       edges={["bottom", "left", "right"]}
     >
-      <Text className="text-foreground text-xl font-semibold mb-1">
+      <Text className="text-foreground mb-1" style={typography["title.detail"]}>
         {medication.name}
       </Text>
       {medication.discontinuedOn && (
-        <Text className="text-danger mb-3">
+        <Text className="text-danger mb-3" style={typography.meta}>
           Odstawiony od {formatDate(medication.discontinuedOn)}
         </Text>
       )}
@@ -241,16 +244,21 @@ export default function MedicationDetailsScreen({
         />
       </View>
 
-      <Text className="text-foreground font-semibold text-sm mt-4 mb-2">
+      <Text
+        className="text-foreground mt-4 mb-2"
+        style={typography["section.label"]}
+      >
         Pory przyjmowania
       </Text>
       {sortedSchedules.length === 0 ? (
-        <Text className="text-muted-foreground">Brak pór przyjmowania</Text>
+        <Text className="text-muted-foreground" style={typography.body}>
+          Brak pór przyjmowania
+        </Text>
       ) : (
         sortedSchedules.map((schedule) => (
           <View key={schedule.id} className="flex-row items-center gap-3 mb-2">
             <Clock size={20} color={iconColor} />
-            <Text className="text-foreground">
+            <Text className="text-foreground" style={typography.body}>
               {scheduleLabel(schedule)} ·{" "}
               {formatDose(schedule.amount, medication.form)}
             </Text>

@@ -3,6 +3,7 @@ import LoginScreen from "../screens/LoginScreen";
 import RegisterScreen from "../screens/RegisterScreen";
 import AccessCodeLoginScreen from "../screens/AccessCodeLoginScreen";
 import AccessCodeChoiceScreen from "../screens/AccessCodeChoiceScreen";
+import { stackScreenOptions } from "./stackScreenOptions";
 
 type Props = {
   onLoginSuccess: () => void;
@@ -20,7 +21,9 @@ const Stack = createNativeStackNavigator<AuthStackList>();
 
 function AuthStack({ onLoginSuccess, onRegisterSuccess }: Props) {
   return (
-    <Stack.Navigator screenOptions={{ headerShown: false }}>
+    <Stack.Navigator
+      screenOptions={{ ...stackScreenOptions, headerShown: false }}
+    >
       <Stack.Screen name="Login">
         {({ navigation }) => (
           <LoginScreen

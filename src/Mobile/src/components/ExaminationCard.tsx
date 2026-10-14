@@ -4,6 +4,7 @@ import { formatDate, formatTime } from "../utils/dateFormat";
 import { ExaminationDisplayStatus } from "../utils/examinationDisplayStatus";
 import { getExamStatusStyle } from "../theme/examStatus";
 import { useThemeColor } from "../theme/useThemeColor";
+import { MAX_FONT_SCALE_CONTROLS, typography } from "../theme/typography";
 
 type ExaminationCardProps = {
   name: string;
@@ -41,23 +42,28 @@ export default function ExaminationCard({
         />
         <View className="pl-4">
           {ownerName && (
-            <Text className="text-lg text-ink-2 uppercase tracking-wider mb-1">
+            <Text className="text-ink-2 mb-1" style={typography["section.label"]}>
               {ownerName}
             </Text>
           )}
           <View className="flex flex-row justify-between items-center pb-2">
-            <Text className="text-foreground font-semibold text-base flex-1 mr-2">
+            <Text
+              className="text-foreground flex-1 mr-2"
+              style={typography["list.title"]}
+            >
               {name}
             </Text>
             {style && (
               <View className={`px-3 py-1 rounded-full ${style.container}`}>
-                <Text className={`text-xs ${style.text}`}>{style.label}</Text>
+                <Text className={style.text} style={typography.badge}>
+                  {style.label}
+                </Text>
               </View>
             )}
           </View>
           <View className="flex flex-row items-center gap-2 pb-1">
             <Calendar size={16} color={iconColor} />
-            <Text className="text-ink-3 text-sm">
+            <Text className="text-ink-3" style={typography.meta}>
               {formatDate(date)}
               {time && ` o godzinie ${formatTime(time)}`}
             </Text>
@@ -65,7 +71,9 @@ export default function ExaminationCard({
           {location && (
             <View className="flex flex-row items-center gap-2 pb-1">
               <MapPin size={16} color={iconColor} />
-              <Text className="text-ink-3 text-sm">{location}</Text>
+              <Text className="text-ink-3" style={typography.meta}>
+                {location}
+              </Text>
             </View>
           )}
         </View>
@@ -77,14 +85,26 @@ export default function ExaminationCard({
             onPress={onEdit}
           >
             <PencilIcon size={16} color={iconColor} />
-            <Text className="text-ink-3">Edytuj</Text>
+            <Text
+              className="text-ink-3"
+              style={typography["button.md"]}
+              maxFontSizeMultiplier={MAX_FONT_SCALE_CONTROLS}
+            >
+              Edytuj
+            </Text>
           </Pressable>
           <Pressable
             className="flex flex-row items-center w-1/2 justify-center h-12 gap-2"
             onPress={onDelete}
           >
             <Trash size={16} color={dangerColor} />
-            <Text className="text-danger">Usuń</Text>
+            <Text
+              className="text-danger"
+              style={typography["button.md"]}
+              maxFontSizeMultiplier={MAX_FONT_SCALE_CONTROLS}
+            >
+              Usuń
+            </Text>
           </Pressable>
         </View>
       )}

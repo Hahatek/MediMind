@@ -4,6 +4,7 @@ import MedicationDetailsScreen from "../screens/medication/MedicationDetailsScre
 import MedicationAddScreen from "../screens/medication/MedicationAddScreen";
 import MedicationEditScreen from "../screens/medication/MedicationEditScreen";
 import { PersonContext } from "../types/FamilyTypes";
+import { stackScreenOptions } from "./stackScreenOptions";
 
 type Props = {
   person?: PersonContext;
@@ -19,7 +20,7 @@ export type MedicationStack = {
 const Stack = createNativeStackNavigator<MedicationStack>();
 function MedicationsStack({ person }: Props) {
   return (
-    <Stack.Navigator screenOptions={{ headerShown: true }}>
+    <Stack.Navigator screenOptions={stackScreenOptions}>
       <Stack.Screen
         name="ListaLekow"
         options={{ title: person ? `Leki ${person.firstName}` : "Leki" }}

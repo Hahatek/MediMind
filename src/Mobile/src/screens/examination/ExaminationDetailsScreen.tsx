@@ -29,6 +29,7 @@ import { getExaminationDisplayStatus } from "../../utils/examinationDisplayStatu
 import { getExamStatusStyle } from "../../theme/examStatus";
 import { formatDate, formatTime } from "../../utils/dateFormat";
 import { useThemeColor } from "../../theme/useThemeColor";
+import { typography } from "../../theme/typography";
 
 type Props = {
   navigation: NativeStackNavigationProp<ExaminationStack, "SzczegolyBadania">;
@@ -64,8 +65,10 @@ function DetailRow({
       className={`flex flex-row items-center px-4 py-3 gap-3 ${!last ? "border-b border-line-2" : ""}`}
     >
       <Icon size={18} color={iconColor} />
-      <Text className="text-ink-3 text-sm flex-1">{label}</Text>
-      <Text className="text-foreground font-semibold text-sm">
+      <Text className="text-ink-3 flex-1" style={typography.meta}>
+        {label}
+      </Text>
+      <Text className="text-foreground shrink" style={typography["row.label"]}>
         {value ?? "brak"}
       </Text>
     </View>
@@ -152,7 +155,9 @@ export default function ExaminationDetailsScreen({ navigation, route }: Props) {
   if (loading) {
     return (
       <SafeAreaView className="flex-1" edges={["bottom", "left", "right"]}>
-        <Text className="text-foreground p-4">Ładowanie...</Text>
+        <Text className="text-foreground p-4" style={typography.body}>
+          Ładowanie...
+        </Text>
       </SafeAreaView>
     );
   }
@@ -183,13 +188,16 @@ export default function ExaminationDetailsScreen({ navigation, route }: Props) {
       >
         {/* Tytuł + status */}
         <View className="flex flex-row justify-between items-start mb-4">
-          <Text className="text-foreground text-2xl font-bold flex-1 mr-3">
+          <Text
+            className="text-foreground flex-1 mr-3"
+            style={typography["title.detail"]}
+          >
             {examinationData.name}
           </Text>
           <View
             className={`px-3 py-1 rounded-full mt-1 ${statusStyle.container}`}
           >
-            <Text className={`text-xs font-medium ${statusStyle.text}`}>
+            <Text className={statusStyle.text} style={typography.badge}>
               {statusStyle.label}
             </Text>
           </View>
@@ -198,15 +206,25 @@ export default function ExaminationDetailsScreen({ navigation, route }: Props) {
         {/* Data i godzina */}
         <View className="rounded-xl bg-surface border border-line-2 flex flex-row mb-3 overflow-hidden">
           <View className="flex-1 p-4">
-            <Text className="text-ink-3 text-xs mb-1">Data</Text>
-            <Text className="text-foreground font-bold text-base">
+            <Text className="text-ink-3 mb-1" style={typography.caption}>
+              Data
+            </Text>
+            <Text
+              className="text-foreground"
+              style={typography["detail.dateTime"]}
+            >
               {formatDate(examinationData.date)}
             </Text>
           </View>
           <View className="w-px bg-line-2" />
           <View className="flex-1 p-4">
-            <Text className="text-ink-3 text-xs mb-1">Godzina</Text>
-            <Text className="text-foreground font-bold text-base">
+            <Text className="text-ink-3 mb-1" style={typography.caption}>
+              Godzina
+            </Text>
+            <Text
+              className="text-foreground"
+              style={typography["detail.dateTime"]}
+            >
               {examinationData.time ? formatTime(examinationData.time) : "—"}
             </Text>
           </View>
@@ -219,13 +237,13 @@ export default function ExaminationDetailsScreen({ navigation, route }: Props) {
               <Repeat size={20} color={brandColor} />
             </View>
             <View className="flex-1">
-              <Text className="text-ink-3 text-xs mb-0.5">
+              <Text className="text-ink-3 mb-0.5" style={typography.caption}>
                 Badanie cykliczne
               </Text>
-              <Text className="text-foreground font-semibold text-sm">
+              <Text className="text-foreground" style={typography["row.label"]}>
                 {capitalize(formatCycleInterval(examinationData.cycleInterval))}
               </Text>
-              <Text className="text-ink-3 text-xs mt-0.5">
+              <Text className="text-ink-3 mt-0.5" style={typography.caption}>
                 Następne:{" "}
                 {getNextDate(
                   examinationData.date,
@@ -241,9 +259,11 @@ export default function ExaminationDetailsScreen({ navigation, route }: Props) {
           <View className="rounded-xl bg-surface border border-border p-4 mb-3">
             <View className="flex flex-row items-center gap-2 mb-2">
               <Info size={16} color={color} />
-              <Text className="text-foreground">Przygotowanie</Text>
+              <Text className="text-foreground" style={typography["row.label"]}>
+                Przygotowanie
+              </Text>
             </View>
-            <Text className="text-foreground">
+            <Text className="text-foreground" style={typography["body.sm"]}>
               {examinationData.preparation}
             </Text>
           </View>

@@ -12,6 +12,7 @@ import { useFocusEffect } from "@react-navigation/native";
 import { timeOfDayLabels } from "../utils/medicationTime";
 import TodayDoseRow from "./TodayDoseRow";
 import ErrorState from "./ErrorState";
+import { typography } from "../theme/typography";
 
 type Props = {
   userId?: string;
@@ -92,7 +93,10 @@ export default function MedicationTodayView({ userId, canManage }: Props) {
       keyExtractor={(item) => item.medicationScheduleId}
       className="flex-1 m-2"
       renderSectionHeader={({ section }) => (
-        <Text className="uppercase text-xs font-semibold text-muted-foreground mt-4 mb-2">
+        <Text
+          className="text-muted-foreground mt-4 mb-2"
+          style={typography["section.label"]}
+        >
           {section.title} ({section.data.length})
         </Text>
       )}
@@ -102,7 +106,10 @@ export default function MedicationTodayView({ userId, canManage }: Props) {
         ) : error ? (
           <ErrorState message={error} onRetry={load} />
         ) : (
-          <Text className="text-muted-foreground text-center mt-8">
+          <Text
+            className="text-muted-foreground text-center mt-8"
+            style={typography.body}
+          >
             Nie masz dziś zaplanowanych dawek.
           </Text>
         )

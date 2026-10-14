@@ -5,6 +5,7 @@ import DateTimePicker, {
 } from "@react-native-community/datetimepicker";
 import { Calendar, Clock } from "lucide-react-native";
 import { useThemeColor } from "../theme/useThemeColor";
+import { typography } from "../theme/typography";
 import {
   formatDate,
   formatDateLocal,
@@ -58,7 +59,10 @@ export default function PickerField({
 
   return (
     <View className="mb-4 w-full">
-      <Text className="text-foreground font-semibold text-sm mb-1">
+      <Text
+        className="text-foreground mb-1"
+        style={typography["field.label"]}
+      >
         {label}
         {required && <Text className="text-danger"> *</Text>}
       </Text>
@@ -68,12 +72,19 @@ export default function PickerField({
         accessibilityLabel={label}
         className={`flex-row justify-between items-center rounded-2xl px-4 py-3 bg-input border ${error ? "border-danger" : "border-line-2"}`}
       >
-        <Text className={displayValue ? "text-foreground" : "text-placeholder"}>
+        <Text
+          className={displayValue ? "text-foreground" : "text-placeholder"}
+          style={typography["input.text"]}
+        >
           {displayValue ?? placeholder ?? (mode === "date" ? "Wybierz datę" : "Wybierz godzinę")}
         </Text>
         <Icon size={18} color={iconColor} />
       </Pressable>
-      {error && <Text className="text-danger mt-1">{error}</Text>}
+      {error && (
+        <Text className="text-danger mt-1" style={typography["field.error"]}>
+          {error}
+        </Text>
+      )}
 
       {show && (
         <DateTimePicker

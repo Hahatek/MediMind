@@ -11,6 +11,7 @@ import ErrorState from "../../components/ErrorState";
 import PickerField from "../../components/PickerField";
 import TextField from "../../components/TextField";
 import { getErrorMessage } from "../../utils/errorMessage";
+import { typography } from "../../theme/typography";
 
 type Props = {
   navigation: NativeStackNavigationProp<ExaminationStack, "EdytujBadanie">;
@@ -101,7 +102,9 @@ export default function ExaminationEditScreen({ navigation, route }: Props) {
   if (loading) {
     return (
       <SafeAreaView className="flex-1" edges={["bottom", "left", "right"]}>
-        <Text className="text-foreground">Ładowanie...</Text>
+        <Text className="text-foreground" style={typography.body}>
+          Ładowanie...
+        </Text>
       </SafeAreaView>
     );
   }
@@ -173,7 +176,11 @@ export default function ExaminationEditScreen({ navigation, route }: Props) {
           loading={saving}
         />
       </View>
-      {saveError && <Text className="text-danger mt-2">{saveError}</Text>}
+      {saveError && (
+        <Text className="text-danger mt-2" style={typography["field.error"]}>
+          {saveError}
+        </Text>
+      )}
     </SafeAreaView>
   );
 }

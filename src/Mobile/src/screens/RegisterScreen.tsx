@@ -16,6 +16,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import TextField from "../components/TextField";
 import PickerField from "../components/PickerField";
 import Button from "../components/Button";
+import { typography } from "../theme";
 
 type Props = {
   onRegisterSuccess: () => void;
@@ -79,7 +80,9 @@ export default function RegisterScreen({
             resizeMode="contain"
           />
         </View>
-        <Text className="text-foreground">Zarejestruj się do aplikacji</Text>
+        <Text className="text-foreground" style={typography["title.page"]}>
+          Zarejestruj się do aplikacji
+        </Text>
         <TextField label="Imię" required value={name} onChangeText={setName} />
         <TextField
           label="Nazwisko"
@@ -119,7 +122,9 @@ export default function RegisterScreen({
           onChangeText={setRepeatPasswordText}
         />
         {info !== "" && (
-          <Text className="font-bold text-destructive">{info}</Text>
+          <Text className="text-destructive" style={typography["field.error"]}>
+            {info}
+          </Text>
         )}
 
         <View className="flex flex-col gap-2">
@@ -129,11 +134,16 @@ export default function RegisterScreen({
             loading={loading}
             onPress={handleRegister}
           />
-          <View className="flex-row justify-center mt-5">
-            <Text className="text-ink-3">Masz konto?</Text>
+          <View className="flex-row flex-wrap justify-center mt-5">
+            <Text className="text-ink-3" style={typography.body}>
+              Masz konto?
+            </Text>
 
             <Pressable onPress={() => navigation.navigate("Login")}>
-              <Text className="text-link font-semibold"> Zaloguj się</Text>
+              <Text className="text-link" style={typography.link}>
+                {" "}
+                Zaloguj się
+              </Text>
             </Pressable>
           </View>
         </View>

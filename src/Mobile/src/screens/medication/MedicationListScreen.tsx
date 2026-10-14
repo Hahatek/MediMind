@@ -22,6 +22,7 @@ import { pluralize } from "../../utils/pluralize";
 import SegmentedControl from "../../components/SegmentedControl";
 import MedicationTodayView from "../../components/MedicationTodayView";
 import { PersonContext } from "../../types/FamilyTypes";
+import { typography } from "../../theme/typography";
 
 type Props = {
   navigation: NativeStackNavigationProp<MedicationStack, "ListaLekow">;
@@ -85,14 +86,20 @@ export default function MedicationListScreen({ navigation, person }: Props) {
                 loading ? (
                   <ActivityIndicator className="mt-8" />
                 ) : error ? null : (
-                  <Text className="text-muted-foreground text-center mt-8">
+                  <Text
+                    className="text-muted-foreground text-center mt-8"
+                    style={typography.body}
+                  >
                     Nie masz podanych leków
                   </Text>
                 )
               }
               ListHeaderComponent={
                 medicationResponse.length ? (
-                  <Text className="text-muted-foreground text-xs">
+                  <Text
+                    className="text-muted-foreground"
+                    style={typography["section.label"]}
+                  >
                     Przyjmujesz {medicationResponse.length}{" "}
                     {pluralize(
                       medicationResponse.length,

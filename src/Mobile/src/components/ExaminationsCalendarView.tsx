@@ -1,5 +1,5 @@
 import { Calendar, LocaleConfig } from "react-native-calendars";
-import { useThemeColor } from "../theme";
+import { fonts, typography, useThemeColor } from "../theme";
 import { ExaminationResponse } from "../types/ExaminationTypes";
 import { useState } from "react";
 import { formatDate, formatDateLocal } from "../utils/dateFormat";
@@ -113,6 +113,14 @@ export default function ExaminationsCalendarView({
     selectedDayBackgroundColor: brand,
     selectedDayTextColor: onBrand,
     selectedDotColor: onBrand,
+    // Typografia: nazwa miesiąca = card.title; dni tylko font aplikacji (rozmiar domyślny biblioteki).
+    textMonthFontFamily: typography["card.title"].fontFamily,
+    textMonthFontSize: typography["card.title"].fontSize,
+    textMonthFontWeight: "normal" as const,
+    textDayFontFamily: fonts.regular,
+    textDayFontWeight: "normal" as const,
+    textDayHeaderFontFamily: fonts.regular,
+    textDayHeaderFontWeight: "normal" as const,
   };
 
   return (
@@ -130,7 +138,9 @@ export default function ExaminationsCalendarView({
       />
       {selectedDate && (
         <View className="flex-row items-center justify-between mx-2 mt-2">
-          <Text className="ml-4 text-foreground">{formatDate(selectedDate)}</Text>
+          <Text className="ml-4 text-foreground shrink" style={typography.meta}>
+            {formatDate(selectedDate)}
+          </Text>
           <Button
             title="Pokaż cały miesiąc"
             iconLeft={X}

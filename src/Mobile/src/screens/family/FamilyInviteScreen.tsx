@@ -9,6 +9,7 @@ import { inviteAccept, inviteCancel, inviteCreate } from "../../api/family";
 import { getErrorMessage } from "../../utils/errorMessage";
 import ErrorState from "../../components/ErrorState";
 import Button from "../../components/Button";
+import { typography } from "../../theme/typography";
 
 type Props = {
   navigation: NativeStackNavigationProp<HomeStackList, "Zaproszenie">;
@@ -74,14 +75,14 @@ export default function FamilyInviteScreen({ navigation, route }: Props) {
                 key={index}
                 className="flex flex-1 h-16 bg-tint-1 rounded-xl items-center justify-center"
               >
-                <Text className="text-3xl font-semibold text-foreground">
+                <Text className="text-foreground" style={typography["code.digit"]}>
                   {digit}
                 </Text>
               </View>
             ))}
           </View>
           <View>
-            <Text className="text-foreground">
+            <Text className="text-foreground" style={typography.caption}>
               Kod wygaśnie: {new Date(invite.expiresAt).toLocaleString()}
             </Text>
           </View>

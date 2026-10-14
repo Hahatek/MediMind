@@ -1,5 +1,6 @@
 import { useRef } from "react";
 import { TextInput, Pressable, View, Text } from "react-native";
+import { typography } from "../theme/typography";
 
 type Props = {
   value: string;
@@ -16,7 +17,7 @@ export default function CodeInput({ value, onChange }: Props) {
             key={index}
             className={`flex flex-1 h-16 bg-tint-1 rounded-xl items-center justify-center ${index === value.length ? "border-2 border-primary" : ""}`}
           >
-            <Text className="text-3xl font-semibold text-foreground">
+            <Text className="text-foreground" style={typography["code.digit"]}>
               {value[index]}
             </Text>
           </View>

@@ -1,7 +1,7 @@
 import { View, Text, Pressable } from "react-native";
 import { PencilIcon } from "lucide-react-native";
 import { useColorScheme } from "nativewind";
-import { useThemeColor } from "../theme";
+import { MAX_FONT_SCALE_CONTROLS, typography, useThemeColor } from "../theme";
 import { MedicationScheduleResponse } from "../types/MedicationScheduleTypes";
 import { formatTime } from "../utils/dateFormat";
 import { timeOfDayLabels } from "../utils/medicationTime";
@@ -44,13 +44,21 @@ export default function MedicationCard({
       <View className="relative p-4 pl-8">
         <View className="pl-4">
           <View className="flex flex-row justify-between pb-2">
-            <Text className="text-foreground">{name}</Text>
+            <Text className="text-foreground" style={typography["card.title"]}>
+              {name}
+            </Text>
           </View>
-          <Text className="text-foreground pb-2">
+          <Text className="text-foreground pb-2" style={typography.meta}>
             {strength ? `${strength} ${form}` : form}
           </Text>
-          {notes ? <Text className="text-foreground">{notes}</Text> : null}
-          <Text className="text-foreground">{times}</Text>
+          {notes ? (
+            <Text className="text-foreground" style={typography.meta}>
+              {notes}
+            </Text>
+          ) : null}
+          <Text className="text-foreground" style={typography.meta}>
+            {times}
+          </Text>
         </View>
       </View>
       <View>
@@ -63,7 +71,13 @@ export default function MedicationCard({
             <PencilIcon
               color={colorScheme === "dark" ? foreground : undefined}
             />
-            <Text className="text-foreground">Edytuj</Text>
+            <Text
+              className="text-foreground"
+              style={typography["button.md"]}
+              maxFontSizeMultiplier={MAX_FONT_SCALE_CONTROLS}
+            >
+              Edytuj
+            </Text>
           </Pressable>
         )}
       </View>

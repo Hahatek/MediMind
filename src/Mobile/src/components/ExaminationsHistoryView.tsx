@@ -1,6 +1,7 @@
 import { FlatList, Text, Pressable } from "react-native";
 import { ExaminationResponse } from "../types/ExaminationTypes";
 import ExaminationCard from "./ExaminationCard";
+import { typography } from "../theme/typography";
 import {
   examinationSectionByStatus,
   getExaminationDisplayStatus,
@@ -37,7 +38,10 @@ export default function ExaminationsHistoryView({
       data={historyExaminations}
       keyExtractor={(item) => item.id.toString()}
       ListEmptyComponent={
-        <Text className="text-muted-foreground text-center mt-8">
+        <Text
+          className="text-muted-foreground text-center mt-8"
+          style={typography.body}
+        >
           Nie masz jeszcze zakończonych badań.
         </Text>
       }

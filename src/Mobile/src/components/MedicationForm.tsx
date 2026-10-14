@@ -13,6 +13,7 @@ import { pluralize } from "../utils/pluralize";
 import { getErrorMessage } from "../utils/errorMessage";
 
 import { MedicationTime } from "../types/EnumTypes";
+import { typography } from "../theme/typography";
 
 // To, co formularz oddaje ekranowi. Pasuje do CreateMedication (dodawanie),
 // a id pory pozwala ekranowi edycji odróżnić pory istniejące od nowych.
@@ -200,7 +201,10 @@ export default function MedicationForm({ onSubmit, initialValues }: Props) {
           onChangeText={setStrength}
         />
 
-        <Text className="text-foreground font-semibold text-sm mb-1">
+        <Text
+          className="text-foreground mb-1"
+          style={typography["field.label"]}
+        >
           Postać
         </Text>
 
@@ -222,6 +226,7 @@ export default function MedicationForm({ onSubmit, initialValues }: Props) {
                     ? "text-primary-foreground"
                     : "text-foreground"
                 }
+                style={typography["option.label"]}
               >
                 {option.one}
               </Text>
@@ -243,6 +248,7 @@ export default function MedicationForm({ onSubmit, initialValues }: Props) {
                   ? "text-primary-foreground"
                   : "text-foreground"
               }
+              style={typography["option.label"]}
             >
               Inna
             </Text>
@@ -259,7 +265,10 @@ export default function MedicationForm({ onSubmit, initialValues }: Props) {
           />
         )}
 
-        <Text className="text-foreground font-semibold text-sm mb-1">
+        <Text
+          className="text-foreground mb-1"
+          style={typography["field.label"]}
+        >
           Pory przyjmowania
         </Text>
 
@@ -293,7 +302,10 @@ export default function MedicationForm({ onSubmit, initialValues }: Props) {
               />
 
               {amount !== null && (
-                <Text className="text-muted-foreground text-sm mb-2">
+                <Text
+                  className="text-muted-foreground mb-2"
+                  style={typography.caption}
+                >
                   {schedule.amount}{" "}
                   {formOption
                     ? pluralize(
@@ -334,7 +346,11 @@ export default function MedicationForm({ onSubmit, initialValues }: Props) {
       </ScrollView>
 
       <View className="p-4">
-        {error && <Text className="text-danger mb-2">{error}</Text>}
+        {error && (
+          <Text className="text-danger mb-2" style={typography["field.error"]}>
+            {error}
+          </Text>
+        )}
 
         <Button
           title="Zapisz"
