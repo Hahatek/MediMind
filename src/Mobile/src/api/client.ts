@@ -8,7 +8,7 @@ import {
 } from "../storage/tokenStorage";
 import { refreshSession } from "./auth";
 
-const BASE_URL = "http://192.168.1.131:5003";
+const BASE_URL = process.env.EXPO_PUBLIC_API_URL;
 
 type RetryConfig = InternalAxiosRequestConfig & { _retry?: boolean };
 
