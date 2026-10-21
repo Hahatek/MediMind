@@ -54,6 +54,7 @@ builder.Services.Configure<GoogleCalendarOptions>(
 
 builder.Services.AddScoped<IGoogleCalendarService, GoogleCalendarService>();
 builder.Services.AddScoped<IFamilyAccessService, FamilyAccessService>();
+builder.Services.AddScoped<IReminderPlanner, ReminderPlanner>();
 builder.Services.AddScoped<IAccessService, AccessService>();
 builder.Services.AddScoped<IGoogleFitService, GoogleFitService>();
 

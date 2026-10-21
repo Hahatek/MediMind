@@ -27,7 +27,11 @@ import ErrorState from "../../components/ErrorState";
 import Button from "../../components/Button";
 import { getExaminationDisplayStatus } from "../../utils/examinationDisplayStatus";
 import { getExamStatusStyle } from "../../theme/examStatus";
-import { formatDate, formatTime } from "../../utils/dateFormat";
+import {
+  formatDate,
+  formatDateLocal,
+  formatTime,
+} from "../../utils/dateFormat";
 import { useThemeColor } from "../../theme/useThemeColor";
 import { typography } from "../../theme/typography";
 
@@ -42,10 +46,14 @@ function capitalize(str: string) {
 
 function getNextDate(dateStr: string, cycleIntervalMonths: number): string {
   const [year, month, day] = dateStr.split("-").map(Number);
-  const d = new Date(year, month - 1 + cycleIntervalMonths, day);
-  return formatDate(
-    `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`,
-  );
+  const target = new Date(year, month - 1 + cycleIntervalMonths, 1);
+  const daysInTargetMonth = new Date(
+    target.getFullYear(),
+    target.getMonth() + 1,
+    0,
+  ).getDate();
+  target.setDate(Math.min(day, daysInTargetMonth));
+  return formatDate(formatDateLocal(target));
 }
 
 function DetailRow({

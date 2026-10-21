@@ -17,7 +17,7 @@ public class ExaminationController : ControllerBase
 
     private readonly AppDbContext _context;
     private readonly IGoogleCalendarService _googleCalendarService;
-    private readonly IFamilyAccessService _familyAccessService; // tylko HideExamination (bez zmian w MVP)
+    private readonly IFamilyAccessService _familyAccessService; 
     private readonly IAccessService _accessService;
 
     public ExaminationController(AppDbContext context, IGoogleCalendarService googleCalendarService,
@@ -41,7 +41,13 @@ public class ExaminationController : ControllerBase
         {
             return denied;
         }
-
+        
+        var cycleError = ValidateCycle(dto.IsCyclic, dto.CycleInterval);
+        if (cycleError != null)
+        {
+            return BadRequest(cycleError);
+        }
+        
         var examination = new Examination
         {
             Id = Guid.NewGuid(),
@@ -53,14 +59,14 @@ public class ExaminationController : ControllerBase
             Location = dto.Location,
             Status = dto.Status,
             IsCyclic = dto.IsCyclic,
-            CycleInterval = dto.CycleInterval,
+            CycleInterval = dto.IsCyclic ? dto.CycleInterval : null,
             Preparation = dto.Preparation,
             Color = dto.Color,
             Icon = dto.Icon,
             Doctor = dto.Doctor
         };
 
-        var today = DateOnly.FromDateTime(DateTime.UtcNow);
+        var today = PolandClock.Today();
         
         if (examination.Date > today && examination.Status == ExaminationsStatus.Completed)
         {
@@ -153,6 +159,12 @@ public class ExaminationController : ControllerBase
         {
             return denied;
         }
+        
+        var cycleError = ValidateCycle(dto.IsCyclic, dto.CycleInterval);
+        if (cycleError != null)
+        {
+            return BadRequest(cycleError);
+        }
 
         if (dto.Status.HasValue
             && dto.Status.Value != examination.Status
@@ -172,7 +184,7 @@ public class ExaminationController : ControllerBase
             examination.Status = dto.Status.Value;
         }
         examination.IsCyclic = dto.IsCyclic;
-        examination.CycleInterval = dto.CycleInterval;
+        examination.CycleInterval = dto.IsCyclic ? dto.CycleInterval : null;
         examination.Preparation = dto.Preparation;
         examination.Color = dto.Color;
         examination.Icon = dto.Icon;
@@ -203,6 +215,8 @@ public class ExaminationController : ControllerBase
         {
             return denied;
         }
+        
+        
 
         if (dto.Status.HasValue
             && dto.Status.Value != examination.Status
@@ -211,14 +225,23 @@ public class ExaminationController : ControllerBase
             return BadRequest("Status 'Completed' można ustawić tylko przez potwierdzenie odbycia badania");
         }
  
+        var newIsCyclic = dto.IsCyclic ?? examination.IsCyclic;
+        var newCycleInterval = newIsCyclic ? (dto.CycleInterval ?? examination.CycleInterval) : null;
+            
+        var cycleError = ValidateCycle(newIsCyclic, newCycleInterval);
+        if (cycleError != null)
+        {
+            return BadRequest(cycleError);
+        }
+        
         if (dto.Name is not null) examination.Name = dto.Name;
         if (dto.Date.HasValue) examination.Date = dto.Date.Value;
         if (dto.Time.HasValue) examination.Time = dto.Time.Value;
         if (dto.Description is not null) examination.Description = dto.Description;
         if (dto.Location is not null) examination.Location = dto.Location;
         if (dto.Status.HasValue) examination.Status = dto.Status.Value;
-        if (dto.IsCyclic.HasValue) examination.IsCyclic = dto.IsCyclic.Value;
-        if (dto.CycleInterval.HasValue) examination.CycleInterval = dto.CycleInterval.Value;
+        examination.IsCyclic = newIsCyclic;
+        examination.CycleInterval = newCycleInterval;
         if (dto.Preparation is not null) examination.Preparation = dto.Preparation;
         if (dto.Color is not null) examination.Color = dto.Color;
         if (dto.Icon is not null) examination.Icon = dto.Icon;
@@ -325,7 +348,7 @@ public class ExaminationController : ControllerBase
         {
             return denied;
         }
-        var today = DateOnly.FromDateTime(DateTime.UtcNow);
+        var today = PolandClock.Today();
         
         if (examination.Date > today)
         {
@@ -368,6 +391,25 @@ public class ExaminationController : ControllerBase
         await _context.SaveChangesAsync();
         
         return Ok(ToResponseDto(examination));
+    }
+
+    private static string? ValidateCycle(bool isCyclic, int? cycleInterval)
+    {
+        if (!isCyclic)
+        {
+            return null;
+        }
+
+        if (cycleInterval == null)
+        {
+            return "Podaj, co ile miesięcy powtarza się badanie";
+        }
+
+        if (cycleInterval < 1 || cycleInterval > 120)
+        {
+            return "Odstęp musi wynosić od 1 do 120 miesięcy";
+        }
+        return null;
     }
     
     private static ResponseExaminationDto ToResponseDto(Examination e)

@@ -141,19 +141,11 @@ public class GoogleCalendarService : IGoogleCalendarService
 
             var endDateTime = startDateTime.AddMinutes(30);
 
-            List<string>? recurrence = null;
-            if (examination.IsCyclic)
-            {
-                var interval = examination.CycleInterval ?? 1;
-                recurrence = new List<string> { $"RRULE:FREQ=MONTHLY;INTERVAL={interval}" };
-            }
-            
             var newEvent = new Event
             {
                 Summary = examination.Name,
                 Description = examination.Description,
                 Location = examination.Location,
-                Recurrence =  recurrence ,
 
                 Start = new EventDateTime
                 {
@@ -210,19 +202,11 @@ public class GoogleCalendarService : IGoogleCalendarService
 
             var endDateTime = startDateTime.AddMinutes(30);
 
-            List<string>? recurrence = null;
-            if (examination.IsCyclic)
-            {
-                var interval = examination.CycleInterval ?? 1;
-                recurrence = new List<string> { $"RRULE:FREQ=MONTHLY;INTERVAL={interval}" };
-            }
-
             var newEvent = new Event
             {
                 Summary = examination.Name,
                 Description = examination.Description,
                 Location = examination.Location,
-                Recurrence = recurrence,
 
                 Start = new EventDateTime
                 {
