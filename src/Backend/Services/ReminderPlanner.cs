@@ -6,8 +6,6 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Backend.Services;
 
-// Jedyne miejsce z regułami „komu, kiedy i po co” przypominać. Kanał dostarczenia
-// (lokalnie na telefonie albo push) wybiera się dopiero na podstawie tej listy.
 public class ReminderPlanner : IReminderPlanner
 {
     private const int EarlyNoticeDaysBefore = 7;
@@ -33,8 +31,7 @@ public class ReminderPlanner : IReminderPlanner
             .OrderBy(i => i.FireAt)
             .ToList();
     }
-
-    // Kampania A: zapowiedź 7 dni przed o 9:00 + przypomnienie tuż przed badaniem.
+    
     private async Task<List<ReminderItemDto>> UpcomingExamsAsync(Guid userId, DateTime from, DateTime until)
     {
         var firstDate = DateOnly.FromDateTime(from);
