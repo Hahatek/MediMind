@@ -16,6 +16,8 @@ public class TokenService : ITokenService
     private readonly AppDbContext _context;
     private readonly JwtSettings _jwtSettings;
     
+    public const string DeviceIdClaim = "device_id";
+    
     public TokenService(AppDbContext context, JwtSettings jwtSettings)
     {
         _context = context;
@@ -23,13 +25,13 @@ public class TokenService : ITokenService
 
     }
     
-    public string GenerateToken(User user)
+    public string GenerateToken(User user, Guid deviceId)
     {
-        // Token niesie tylko tożsamość osoby (User.Id). Bez Email — ten sam kształt tokenu
-        // dla sesji z kontem i bez konta (UserDevice); email jest w /users/me.
+       
         var claims = new List<Claim> {
             new Claim(ClaimTypes.NameIdentifier, user.Id.ToString() ),
             new Claim(ClaimTypes.Role, user.Role.ToString()),
+            new Claim(DeviceIdClaim, deviceId.ToString()),
         };
         
         var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_jwtSettings.Key));

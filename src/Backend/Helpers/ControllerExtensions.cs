@@ -13,7 +13,7 @@ public static class ControllerExtensions
         {
             throw new UnauthorizedAccessException("Brak poprawnego UserId w tokenie");
         }
-        
+
         return userId;
     }
 
@@ -28,4 +28,17 @@ public static class ControllerExtensions
 
         return role;
     }
+
+    public static Guid GetDeviceId(this ControllerBase controller)
+    {
+        var deviceClaim = controller.User.FindFirst(TokenService.DeviceIdClaim)?.Value;
+
+        if (deviceClaim == null || !Guid.TryParse(deviceClaim, out var deviceId))
+        {
+            throw new UnauthorizedAccessException("Brak poprawnego DeviceId w tokenie");
+        }
+        
+        return deviceId;
+    }
+
 }

@@ -188,6 +188,14 @@ public class AppDbContext : DbContext
         modelBuilder.Entity<UserDevice>()
             .HasIndex(d => d.UserId);
 
+        modelBuilder.Entity<UserDevice>()
+            .Property(d => d.LocalUntil)
+            .HasColumnType("timestamp without time zone");
+
+        modelBuilder.Entity<UserDevice>()
+            .Property(d => d.TimeZone)
+            .HasMaxLength(64);
+
         // Każdy RefreshToken należy do urządzenia. Odwołanie urządzenia unieważnia cały łańcuch jego tokenów.
         modelBuilder.Entity<RefreshToken>()
             .HasOne(rt => rt.Device)

@@ -3,19 +3,23 @@ import "./global.css";
 import { NavigationContainer } from "@react-navigation/native";
 import AuthStack from "./src/navigation/AuthStack";
 import AppStack from "./src/navigation/AppStack";
-import { Text, View } from "react-native";
+import { Text, View, AppState } from "react-native";
 import { StatusBar } from "expo-status-bar";
 import { refreshTokens, setSessionExpiredHandler } from "./src/api/client";
 import { fontAssets, typography, useNavigationTheme } from "./src/theme";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { useFonts } from "expo-font";
-
+import {
+  setupNotificationChannels,
+  ensureNotificationPermission,
+} from "./src/notifications/setup";
+import * as Notification from "expo-notifications";
+import { syncReminders } from "./src/notifications/sync";
 type SessionStatus = "loading" | "loggedIn" | "loggedOut";
 
 export default function App() {
   const navigationTheme = useNavigationTheme();
   const [status, setStatus] = useState<SessionStatus>("loading");
-  // Bez załadowanych plików Manrope RN po cichu używa fontu systemowego.
   const [fontsLoaded, fontError] = useFonts(fontAssets);
 
   useEffect(() => {
@@ -27,7 +31,7 @@ export default function App() {
         setStatus("loggedOut");
       }
     }
-
+    setupNotificationChannels();
     restoreSession();
   }, []);
 
@@ -38,6 +42,31 @@ export default function App() {
       setSessionExpiredHandler(null);
     };
   }, []);
+
+  useEffect(() => {
+    if (status === "loggedOut") {
+      Notification.cancelAllScheduledNotificationsAsync();
+      return;
+    }
+    if (status !== "loggedIn") return;
+
+    async function prepareNotifications() {
+      await ensureNotificationPermission();
+      await syncReminders();
+    }
+    prepareNotifications().catch((e) =>
+      console.warn("Synchronizacja przypomnień nie powiodła się", e),
+    );
+
+    const subscription = AppState.addEventListener("change", (state) => {
+      if (state === "active") {
+        syncReminders().catch((e) =>
+          console.warn("Synchronizacja przypomnień nie powiodła się", e),
+        );
+      }
+    });
+    return () => subscription.remove();
+  }, [status]);
 
   // Czekamy na fonty (przy błędzie ładowania i tak pokazujemy aplikację).
   if (!fontsLoaded && !fontError) {

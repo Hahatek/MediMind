@@ -4,7 +4,7 @@ namespace Backend.Helpers;
 
 public interface ITokenService
 {
-    string GenerateToken(User user);
+    string GenerateToken(User user, Guid deviceId);
     Task<(RefreshToken Entity, string RawToken)> GenerateRefreshTokenAsync(Guid userId, Guid deviceId);
     string HashRefreshToken(string rawToken);
 }

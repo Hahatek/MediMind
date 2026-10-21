@@ -110,7 +110,7 @@ public class AuthController : ControllerBase
             throw;
         }
 
-        var token = _tokenService.GenerateToken(user);
+        var token = _tokenService.GenerateToken(user, userDevice.Id);
         var (_, rawRefreshToken) = await _tokenService.GenerateRefreshTokenAsync(user.Id, userDevice.Id);
 
         return Ok(new AuthResponseDto { Token = token, RefreshToken = rawRefreshToken});
@@ -143,7 +143,7 @@ public class AuthController : ControllerBase
         
         _context.UserDevices.Add(userDevice);
         
-        var token = _tokenService.GenerateToken(user);
+        var token = _tokenService.GenerateToken(user, userDevice.Id);
         var (_, rawRefreshToken) = await _tokenService.GenerateRefreshTokenAsync(user.Id, userDevice.Id);
 
         return Ok(new AuthResponseDto { Token = token, RefreshToken = rawRefreshToken });
@@ -179,7 +179,7 @@ public class AuthController : ControllerBase
 
         await _context.SaveChangesAsync();
 
-        var token = _tokenService.GenerateToken(user);
+        var token = _tokenService.GenerateToken(user, existingToken.DeviceId);
         var (_, rawRefreshToken) = await _tokenService.GenerateRefreshTokenAsync(user.Id, existingToken.DeviceId);
 
         return Ok(new AuthResponseDto { Token = token, RefreshToken = rawRefreshToken });
@@ -241,7 +241,7 @@ public class AuthController : ControllerBase
         };
         
         _context.UserDevices.Add(userDevice);
-        var token  = _tokenService.GenerateToken(user);
+        var token  = _tokenService.GenerateToken(user, userDevice.Id);
         var (_, refreshToken) = await _tokenService.GenerateRefreshTokenAsync(user.Id, userDevice.Id);
 
         await transaction.CommitAsync();
@@ -331,7 +331,7 @@ public class AuthController : ControllerBase
             throw;
         }
         
-        var token  = _tokenService.GenerateToken(user);
+        var token  = _tokenService.GenerateToken(user, userDevice.Id);
         var (_, refreshToken) = await _tokenService.GenerateRefreshTokenAsync(user.Id, userDevice.Id);
 
         await transaction.CommitAsync();
