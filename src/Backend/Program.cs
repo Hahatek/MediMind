@@ -68,7 +68,6 @@ builder.Services.AddSingleton(accessCodeOptions);
 builder.Services.AddScoped<IAccessCodeService, AccessCodeService>();
 builder.Services.AddScoped<IFamilyInviteService, FamilyInviteService>();
 
-// Limit prób użycia kodu: okno 1 minuty, po przekroczeniu -> 429.
 builder.Services.AddRateLimiter(options =>
 {
     options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;

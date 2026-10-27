@@ -7,6 +7,9 @@ export const CHANNELS = {
   family: "rodzina",
 } as const;
 
+export const DOSE_CATEGORY = "dose";
+export const TAKEN_ACTION = "taken";
+
 Notification.setNotificationHandler({
   handleNotification: async () => ({
     shouldShowBanner: true,
@@ -54,4 +57,14 @@ export async function ensureNotificationPermission(): Promise<boolean> {
 
   const requested = await Notification.requestPermissionsAsync();
   return requested.granted;
+}
+
+export async function setupNotificationCategoris() {
+  await Notification.setNotificationCategoryAsync(DOSE_CATEGORY, [
+    {
+      identifier: TAKEN_ACTION,
+      buttonTitle: "Przyjąłem",
+      options: { opensAppToForeground: true },
+    },
+  ]);
 }

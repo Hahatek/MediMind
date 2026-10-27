@@ -161,6 +161,9 @@ namespace Backend.Migrations
                     b.Property<string>("Preparation")
                         .HasColumnType("text");
 
+                    b.Property<Guid?>("SeriesId")
+                        .HasColumnType("uuid");
+
                     b.Property<int>("Status")
                         .HasColumnType("integer");
 

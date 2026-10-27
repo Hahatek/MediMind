@@ -15,6 +15,7 @@ const DAY_MS = 24 * HOUR_MS;
 
 export const PREPARATION_WINDOW_MS = 1 * HOUR_MS;
 export const UPCOMING_WINDOW_MS = 3 * DAY_MS;
+export const SKIP_AFTER_DAYS = 7;
 
 export function getExaminationDateTime(examination: ExaminationResponse): Date {
   const [year, month, day] = examination.date.split("-").map(Number);
@@ -93,4 +94,18 @@ export function getUpcomingExaminations(
         getExaminationDateTime(b).getTime(),
     );
   return upcomingExaminations;
+}
+
+export function canSkipExamination(
+  examination: ExaminationResponse,
+  now: Date,
+): boolean {
+  const [year, month, day] = examination.date.split("-").map(Number);
+  const skipAllowFrom = new Date(year, month - 1, day + SKIP_AFTER_DAYS);
+
+  if (now >= skipAllowFrom) {
+    return true;
+  }
+
+  return false;
 }

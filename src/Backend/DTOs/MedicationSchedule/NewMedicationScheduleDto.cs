@@ -7,6 +7,8 @@ namespace Backend.DTOs.MedicationSchedule;
 public class NewMedicationScheduleDto
 {
     [EnumDataType(typeof(MedicationTime))] public MedicationTime TimeOfDay { get; set; }
+    [Required]
+
     public TimeOnly? Time { get; set; }
     [Range(0.01, 1000)] public decimal Amount { get; set; } = 1;
 }

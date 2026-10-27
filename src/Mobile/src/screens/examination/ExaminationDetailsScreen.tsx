@@ -4,6 +4,7 @@ import {
   examinationComplete,
   examinationDelete,
   examinationGetOne,
+  examinationSkip,
 } from "../../api/examination";
 import { ExaminationResponse } from "../../types/ExaminationTypes";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
@@ -12,7 +13,9 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { RouteProp, useFocusEffect } from "@react-navigation/native";
 import {
   Building2,
+  CalendarPlus,
   CircleCheck,
+  CircleSlash,
   Flag,
   LucideIcon,
   Info,
@@ -25,7 +28,10 @@ import { formatCycleInterval } from "../../utils/cycleInterval";
 import { getErrorMessage } from "../../utils/errorMessage";
 import ErrorState from "../../components/ErrorState";
 import Button from "../../components/Button";
-import { getExaminationDisplayStatus } from "../../utils/examinationDisplayStatus";
+import {
+  canSkipExamination,
+  getExaminationDisplayStatus,
+} from "../../utils/examinationDisplayStatus";
 import { getExamStatusStyle } from "../../theme/examStatus";
 import {
   formatDate,
@@ -90,6 +96,7 @@ export default function ExaminationDetailsScreen({ navigation, route }: Props) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [confirming, setConfirming] = useState(false);
+  const [skipping, setSkipping] = useState(false);
 
   const day = new Date();
 
@@ -160,6 +167,32 @@ export default function ExaminationDetailsScreen({ navigation, route }: Props) {
     ]);
   }
 
+  async function handleSkipExamination() {
+    setSkipping(true);
+    try {
+      const response = await examinationSkip(route.params.examinationId);
+      setExaminationData(response);
+    } catch (e) {
+      Alert.alert(
+        "Błąd",
+        getErrorMessage(e, "Nie udało się oznaczyć badania jako ominiętego."),
+      );
+    } finally {
+      setSkipping(false);
+    }
+  }
+
+  function handleSkip() {
+    Alert.alert(
+      "Ominięte badanie",
+      "Czy na pewno oznaczyć badanie jako ominięte?",
+      [
+        { text: "Anuluj", style: "cancel" },
+        { text: "Tak", style: "default", onPress: handleSkipExamination },
+      ],
+    );
+  }
+
   if (loading) {
     return (
       <SafeAreaView className="flex-1" edges={["bottom", "left", "right"]}>
@@ -184,6 +217,7 @@ export default function ExaminationDetailsScreen({ navigation, route }: Props) {
 
   const displayStatus = getExaminationDisplayStatus(examinationData, day);
   const statusStyle = getExamStatusStyle(displayStatus);
+  const canSkip = canSkipExamination(examinationData, day);
 
   return (
     <SafeAreaView
@@ -302,12 +336,42 @@ export default function ExaminationDetailsScreen({ navigation, route }: Props) {
       {canManage && (
         <View className="px-4 pt-2 pb-2 gap-2">
           {displayStatus === "awaitingConfirmation" && (
+            <View className="flex flex-row justify-between gap-2">
+              <View className="flex-1">
+                <Button
+                  title="Potwierdź odbycie badania"
+                  onPress={handleConfirm}
+                  loading={confirming}
+                  loadingTitle="Potwierdzanie..."
+                  iconLeft={CircleCheck}
+                  disabled={skipping}
+                />
+              </View>
+              {canSkip && (
+                <View className="flex-1">
+                  <Button
+                    title="Oznacz jako ominięte"
+                    onPress={handleSkip}
+                    loading={skipping}
+                    loadingTitle="Zapisywanie..."
+                    iconLeft={CircleSlash}
+                    variant="neutral"
+                    disabled={confirming}
+                  />
+                </View>
+              )}
+            </View>
+          )}
+          {examinationData.isCyclic && examinationData.seriesId && (
             <Button
-              title="Potwierdź odbycie badania"
-              onPress={handleConfirm}
-              loading={confirming}
-              loadingTitle="Potwierdzanie..."
-              iconLeft={CircleCheck}
+              title="Zaplanuj kolejny termin"
+              onPress={() =>
+                navigation.navigate("DodajBadanie", {
+                  previous: examinationData,
+                })
+              }
+              iconLeft={CalendarPlus}
+              variant="neutral"
             />
           )}
           <View className="flex flex-row gap-2">

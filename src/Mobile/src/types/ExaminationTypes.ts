@@ -9,6 +9,7 @@ export interface CreateExamination {
   status?: ExaminationsStatus; // backend domyślnie: Pending
   isCyclic: boolean;
   cycleInterval?: number | null;
+  seriesId?: string | null; // kolejny termin istniejącej serii
   preparation?: string | null;
   color?: string | null;
   icon?: string | null;
@@ -57,6 +58,7 @@ export interface ExaminationResponse {
   status: ExaminationsStatus;
   isCyclic: boolean;
   cycleInterval?: number | null;
+  seriesId?: string | null;
   preparation?: string | null;
   color?: string | null;
   icon?: string | null;

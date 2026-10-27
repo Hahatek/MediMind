@@ -1,4 +1,5 @@
 import instance from "./client";
+import { requestReminderSync } from "../notifications/sync";
 import {
   CreateMedicationIntake,
   MedicationIntakeResponse,
@@ -19,10 +20,12 @@ export async function medicationIntakeCreate(intake: CreateMedicationIntake) {
     "/api/medicationintake",
     intake,
   );
+  requestReminderSync();
   return response.data;
 }
 
 // Cofnięcie potwierdzenia — dawka wraca do Pending
 export async function medicationIntakeDelete(intakeId: string) {
   await instance.delete(`/api/medicationintake/${intakeId}`);
+  requestReminderSync();
 }

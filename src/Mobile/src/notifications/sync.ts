@@ -1,7 +1,7 @@
 import * as Notification from "expo-notifications";
 import { reminderPlanGet, reminderSync } from "../api/reminder";
 import { ReminderItem } from "../types/ReminderTypes";
-import { CHANNELS } from "./setup";
+import { CHANNELS, DOSE_CATEGORY } from "./setup";
 
 function paseWallClock(value: string): Date {
   const [datePart, timePart] = value.split("T");
@@ -14,7 +14,12 @@ function paseWallClock(value: string): Date {
 async function scheduleItem(item: ReminderItem) {
   await Notification.scheduleNotificationAsync({
     identifier: item.key,
-    content: { title: item.title, body: item.body, data: { key: item.key } },
+    content: {
+      title: item.title,
+      body: item.body,
+      data: { key: item.key },
+      categoryIdentifier: item.category === "meds" ? DOSE_CATEGORY : undefined,
+    },
     trigger: {
       type: Notification.SchedulableTriggerInputTypes.DATE,
       date: paseWallClock(item.fireAt),

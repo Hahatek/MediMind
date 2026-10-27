@@ -4,6 +4,7 @@ import ExaminationAddScreen from "../screens/examination/ExaminationAddScreen";
 import ExaminationDetailsScreen from "../screens/examination/ExaminationDetailsScreen";
 import ExaminationEditScreen from "../screens/examination/ExaminationEditScreen";
 import { PersonContext } from "../types/FamilyTypes";
+import { ExaminationResponse } from "../types/ExaminationTypes";
 import { stackScreenOptions } from "./stackScreenOptions";
 
 type Props = {
@@ -12,7 +13,7 @@ type Props = {
 
 export type ExaminationStack = {
   ListaBadan: undefined;
-  DodajBadanie: undefined;
+  DodajBadanie: { previous?: ExaminationResponse } | undefined;
   SzczegolyBadania: { examinationId: string; canManage: boolean };
   EdytujBadanie: { examinationId: string };
 };
@@ -37,8 +38,12 @@ function ExaminationsStack({ person }: Props) {
             : "Dodaj badanie",
         }}
       >
-        {({ navigation }) => (
-          <ExaminationAddScreen navigation={navigation} person={person} />
+        {({ navigation, route }) => (
+          <ExaminationAddScreen
+            navigation={navigation}
+            route={route}
+            person={person}
+          />
         )}
       </Stack.Screen>
       <Stack.Screen

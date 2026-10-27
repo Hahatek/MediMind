@@ -9,8 +9,6 @@ using Backend.Services;
 
 namespace Backend.Controllers;
 
-// Plan przypomnień dla telefonu, z którego przyszło zapytanie (DeviceId z tokenu).
-// Telefon planuje je lokalnie, sprawdza w systemie, co się udało, i odsyła horyzont przez /sync.
 [Authorize]
 [ApiController]
 [Route("api/reminders")]
@@ -18,7 +16,6 @@ public class RemindersController : ControllerBase
 {
     private static readonly TimeSpan PlanWindow = TimeSpan.FromDays(14);
     private const string DefaultTimeZone = "Europe/Warsaw";
-    // iOS pozwala na 64 zaplanowane powiadomienia; zostawiamy zapas.
     private const int MaxItems = 60;
 
     private readonly AppDbContext _context;
@@ -98,7 +95,6 @@ public class RemindersController : ControllerBase
         return NoContent();
     }
 
-    // Token żyje 15 minut także po odwołaniu urządzenia, więc stan sprawdzamy w bazie.
     private async Task<UserDevice?> GetActiveDeviceAsync()
     {
         var userId = this.GetUserId();

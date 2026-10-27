@@ -64,6 +64,14 @@ export async function examinationComplete(examinationId: string) {
   return response.data;
 }
 
+export async function examinationSkip(examinationId: string) {
+  const response = await instance.post<ExaminationResponse>(
+    `/api/examination/${examinationId}/skip`,
+  );
+  requestReminderSync();
+  return response.data;
+}
+
 export async function examinationDelete(examinationId: string) {
   await instance.delete(`/api/examination/${examinationId}`);
   requestReminderSync();

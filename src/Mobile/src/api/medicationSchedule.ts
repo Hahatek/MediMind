@@ -1,4 +1,5 @@
 import instance from "./client";
+import { requestReminderSync } from "../notifications/sync";
 import {
   CreateMedicationSchedule,
   MedicationScheduleResponse,
@@ -21,6 +22,7 @@ export async function medicationScheduleCreate(
     "/api/medicationschedule",
     schedule,
   );
+  requestReminderSync();
   return response.data;
 }
 
@@ -32,10 +34,12 @@ export async function medicationSchedulePut(
     `/api/medicationschedule/${scheduleId}`,
     schedule,
   );
+  requestReminderSync();
   return response.data;
 }
 
 // Pora z historią przyjęć zwraca 409
 export async function medicationScheduleDelete(scheduleId: string) {
   await instance.delete(`/api/medicationschedule/${scheduleId}`);
+  requestReminderSync();
 }
