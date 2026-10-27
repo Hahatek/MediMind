@@ -12,9 +12,11 @@ import { useFonts } from "expo-font";
 import {
   setupNotificationChannels,
   ensureNotificationPermission,
+  setupNotificationCategoris,
 } from "./src/notifications/setup";
 import * as Notification from "expo-notifications";
 import { syncReminders } from "./src/notifications/sync";
+import { handleNotificationResponse } from "./src/notifications/actions";
 type SessionStatus = "loading" | "loggedIn" | "loggedOut";
 
 export default function App() {
@@ -32,6 +34,7 @@ export default function App() {
       }
     }
     setupNotificationChannels();
+    setupNotificationCategoris();
     restoreSession();
   }, []);
 
@@ -65,7 +68,30 @@ export default function App() {
         );
       }
     });
-    return () => subscription.remove();
+
+    async function onResponse(response: Notification.NotificationResponse) {
+      try {
+        await handleNotificationResponse(response);
+      } catch (e) {
+        console.warn("Nie udało się zapisać dawki", e);
+      } finally {
+        Notification.clearLastNotificationResponse();
+      }
+    }
+
+    const last = Notification.getLastNotificationResponse();
+
+    if (last) {
+      onResponse(last);
+    }
+
+    const responseSubscription =
+      Notification.addNotificationResponseReceivedListener(onResponse);
+
+    return () => {
+      subscription.remove();
+      responseSubscription.remove();
+    };
   }, [status]);
 
   // Czekamy na fonty (przy błędzie ładowania i tak pokazujemy aplikację).

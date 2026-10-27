@@ -14,6 +14,7 @@ public class Examination
     public ExaminationsStatus Status { get; set; }
     public bool IsCyclic { get; set; }
     public int? CycleInterval { get; set; }
+    public Guid? SeriesId { get; set; }
     public string? Preparation { get; set; }
     public string? Color { get; set; }
     public string? Icon { get; set; }

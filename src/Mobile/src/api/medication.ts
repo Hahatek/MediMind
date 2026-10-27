@@ -1,4 +1,5 @@
 import instance from "./client";
+import { requestReminderSync } from "../notifications/sync";
 import {
   CreateMedication,
   DiscontinueMedication,
@@ -31,6 +32,7 @@ export async function medicationCreate(medication: CreateMedication) {
     "/api/medication",
     medication,
   );
+  requestReminderSync();
   return response.data;
 }
 
@@ -42,6 +44,7 @@ export async function medicationPut(
     `/api/medication/${medicationId}`,
     medication,
   );
+  requestReminderSync();
   return response.data;
 }
 
@@ -53,6 +56,7 @@ export async function medicationPatch(
     `/api/medication/${medicationId}`,
     medication,
   );
+  requestReminderSync();
   return response.data;
 }
 
@@ -65,6 +69,7 @@ export async function medicationDiscontinue(
     `/api/medication/${medicationId}/discontinue`,
     body,
   );
+  requestReminderSync();
   return response.data;
 }
 
@@ -73,10 +78,12 @@ export async function medicationResume(medicationId: string) {
   const response = await instance.post<MedicationResponse>(
     `/api/medication/${medicationId}/resume`,
   );
+  requestReminderSync();
   return response.data;
 }
 
 // Tylko dla pomyłek: lek z historią przyjęć zwraca 409 (trzeba go odstawić)
 export async function medicationDelete(medicationId: string) {
   await instance.delete(`/api/medication/${medicationId}`);
+  requestReminderSync();
 }

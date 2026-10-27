@@ -19,7 +19,8 @@ public class ExaminationController : ControllerBase
     private readonly IGoogleCalendarService _googleCalendarService;
     private readonly IFamilyAccessService _familyAccessService; 
     private readonly IAccessService _accessService;
-
+    private const int SkipAfterDays = 7;
+    
     public ExaminationController(AppDbContext context, IGoogleCalendarService googleCalendarService,
         IFamilyAccessService familyAccessService, IAccessService accessService)
     {
@@ -48,9 +49,35 @@ public class ExaminationController : ControllerBase
             return BadRequest(cycleError);
         }
         
+        var id = Guid.NewGuid();
+        Guid? seriesId = null;
+
+        if (dto.SeriesId != null)
+        {
+            if (!dto.IsCyclic)
+            {
+                return BadRequest("Kolejny termin serii musi być badaniem cyklicznym");
+            }
+            
+            var seriesExists = await _context.Examinations
+                .AnyAsync(e => e.SeriesId == dto.SeriesId && e.UserId == targetUserId);
+
+            if (!seriesExists)
+            {
+                return BadRequest("Nie znaleziono serii badań");
+            }
+            
+            seriesId = dto.SeriesId;
+        }
+        else if (dto.IsCyclic)
+        {
+            seriesId = id;
+        }
+        
+        
         var examination = new Examination
         {
-            Id = Guid.NewGuid(),
+            Id = id,
             UserId = targetUserId,
             Date = dto.Date,
             Time = dto.Time,
@@ -63,7 +90,8 @@ public class ExaminationController : ControllerBase
             Preparation = dto.Preparation,
             Color = dto.Color,
             Icon = dto.Icon,
-            Doctor = dto.Doctor
+            Doctor = dto.Doctor,
+            SeriesId = seriesId
         };
 
         var today = PolandClock.Today();
@@ -71,6 +99,11 @@ public class ExaminationController : ControllerBase
         if (examination.Date > today && examination.Status == ExaminationsStatus.Completed)
         {
             return BadRequest("Nie można potwierdzić badania, które jeszcze się nie odbyło");
+        }
+
+        if (examination.Status == ExaminationsStatus.Skipped)
+        {
+            return BadRequest("Nie można dodać ominiętego badania");
         }
         
         if (dto.Status == ExaminationsStatus.Completed)
@@ -173,6 +206,12 @@ public class ExaminationController : ControllerBase
             return BadRequest("Status 'Completed' można ustawić tylko przez potwierdzenie odbycia badania");
         }
 
+        if (dto.Status.HasValue
+            && dto.Status.Value != examination.Status
+            && (dto.Status.Value == ExaminationsStatus.Skipped || examination.Status == ExaminationsStatus.Skipped))
+        {
+            return BadRequest("Status 'Skipped' można ustawić tylko przez oznaczenia badania jako omiętego");
+        }
 
         examination.Name = dto.Name;
         examination.Date = dto.Date;
@@ -185,6 +224,10 @@ public class ExaminationController : ControllerBase
         }
         examination.IsCyclic = dto.IsCyclic;
         examination.CycleInterval = dto.IsCyclic ? dto.CycleInterval : null;
+        if (examination.IsCyclic && examination.SeriesId == null)
+        {
+            examination.SeriesId = examination.Id;
+        }
         examination.Preparation = dto.Preparation;
         examination.Color = dto.Color;
         examination.Icon = dto.Icon;
@@ -215,8 +258,6 @@ public class ExaminationController : ControllerBase
         {
             return denied;
         }
-        
-        
 
         if (dto.Status.HasValue
             && dto.Status.Value != examination.Status
@@ -225,6 +266,13 @@ public class ExaminationController : ControllerBase
             return BadRequest("Status 'Completed' można ustawić tylko przez potwierdzenie odbycia badania");
         }
  
+        if (dto.Status.HasValue
+            && dto.Status.Value != examination.Status
+            && (dto.Status.Value == ExaminationsStatus.Skipped || examination.Status == ExaminationsStatus.Skipped))
+        {
+            return BadRequest("Status 'Skipped' można ustawić tylko przez oznaczenia badania jako omiętego");
+        }
+        
         var newIsCyclic = dto.IsCyclic ?? examination.IsCyclic;
         var newCycleInterval = newIsCyclic ? (dto.CycleInterval ?? examination.CycleInterval) : null;
             
@@ -242,6 +290,10 @@ public class ExaminationController : ControllerBase
         if (dto.Status.HasValue) examination.Status = dto.Status.Value;
         examination.IsCyclic = newIsCyclic;
         examination.CycleInterval = newCycleInterval;
+        if (examination.IsCyclic && examination.SeriesId == null)
+        {
+            examination.SeriesId = examination.Id;
+        }
         if (dto.Preparation is not null) examination.Preparation = dto.Preparation;
         if (dto.Color is not null) examination.Color = dto.Color;
         if (dto.Icon is not null) examination.Icon = dto.Icon;
@@ -368,6 +420,50 @@ public class ExaminationController : ControllerBase
         return (Ok(ToResponseDto(examination)));
     }
 
+    [HttpPost("{id}/skip")]
+    public async Task<ActionResult<ResponseExaminationDto>> SkipExamination(Guid id)
+    {
+        var userId = this.GetUserId();
+        
+        var examination = await _context.Examinations
+            .FirstOrDefaultAsync(e => e.Id == id);
+
+        if (examination == null)
+        {
+            return NotFound($"Nie znaleziono badania o id {id}");
+        }
+
+        var denied = await this.CheckCanManageAsync(_accessService, userId, examination.UserId, "Nie znaleziono badania");
+        if (denied != null)
+        {
+            return denied;
+        }
+        var today = PolandClock.Today();
+        var skipAllowedFrom = examination.Date.AddDays(SkipAfterDays);
+
+        if (skipAllowedFrom > today)
+        {
+            return BadRequest($"Badanie można oznaczyć jako ominięte dopiero {SkipAfterDays} dni po terminie");
+        }
+
+        if (examination.Status == ExaminationsStatus.Completed)
+        {
+            return BadRequest("Badanie jest zakończone, nie możesz zmienić status na ominięte");
+        }
+        
+        if (examination.Status == ExaminationsStatus.Skipped)
+        {
+            return (Ok(ToResponseDto(examination)));
+        }
+        
+        examination.Status = ExaminationsStatus.Skipped;
+        
+        await _context.SaveChangesAsync();
+
+        return (Ok(ToResponseDto(examination)));
+    }
+
+    
     [HttpDelete("{id}/hide/{hiddenForUserId}")]
     public async Task<IActionResult> UnhideExamination(Guid id, Guid hiddenForUserId)
     {
@@ -426,6 +522,7 @@ public class ExaminationController : ControllerBase
             Status = e.Status,
             IsCyclic = e.IsCyclic,
             CycleInterval = e.CycleInterval,
+            SeriesId = e.SeriesId,
             Preparation = e.Preparation,
             Color = e.Color,
             Icon = e.Icon,

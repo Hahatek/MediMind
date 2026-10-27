@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Text, View, Pressable, TextInput, Switch } from "react-native";
 import { examinationCreate } from "../../api/examination";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import { RouteProp } from "@react-navigation/native";
 import { ExaminationStack } from "../../navigation/ExaminationsStack";
 import { ChevronLeft, ChevronRight, Plus } from "lucide-react-native";
 import { CreateExamination } from "../../types/ExaminationTypes";
@@ -11,6 +12,7 @@ import { examColors } from "../../theme/examColors";
 import {
   CycleUnit,
   cycleUnitLabels,
+  fromMonths,
   parseCycleValue,
   toMonths,
 } from "../../utils/cycleInterval";
@@ -23,6 +25,7 @@ import { typography } from "../../theme/typography";
 
 type Props = {
   navigation: NativeStackNavigationProp<ExaminationStack, "DodajBadanie">;
+  route: RouteProp<ExaminationStack, "DodajBadanie">;
   person?: PersonContext;
 };
 
@@ -31,23 +34,45 @@ const cycleUnits = [
   { value: "years", label: cycleUnitLabels.years },
 ] as const satisfies readonly { value: CycleUnit; label: string }[];
 
-export default function ExaminationAddScreen({ navigation, person }: Props) {
+export default function ExaminationAddScreen({
+  navigation,
+  route,
+  person,
+}: Props) {
+  // "Zaplanuj kolejny termin": formularz wypełniony danymi poprzedniego badania z serii (bez daty i godziny)
+  const previous = route.params?.previous;
+  const previousCycle =
+    previous?.cycleInterval != null ? fromMonths(previous.cycleInterval) : null;
+
   const [step, setStep] = useState<1 | 2>(1);
-  const [nameTextExamination, setNameTextExamination] = useState("");
+  const [nameTextExamination, setNameTextExamination] = useState(
+    previous?.name ?? "",
+  );
   const [dateExamination, setDateExamination] = useState("");
   const [timeExamination, setTimeExamination] = useState("");
-  const [locationExamination, setLocationExamination] = useState("");
-  const [doctorExamination, setDoctorExamination] = useState("");
-  const [preparationExamination, setPreparationExamination] = useState("");
-  const [isCyclicExamination, setIsCyclicExamination] = useState(false);
-  const [cycleIntervalExamination, setCycleIntervalExamination] = useState("");
-  const [cycleUnitExamination, setCycleUnitExamination] =
-    useState<CycleUnit>("months");
+  const [locationExamination, setLocationExamination] = useState(
+    previous?.location ?? "",
+  );
+  const [doctorExamination, setDoctorExamination] = useState(
+    previous?.doctor ?? "",
+  );
+  const [preparationExamination, setPreparationExamination] = useState(
+    previous?.preparation ?? "",
+  );
+  const [isCyclicExamination, setIsCyclicExamination] = useState(
+    previous?.isCyclic ?? false,
+  );
+  const [cycleIntervalExamination, setCycleIntervalExamination] = useState(
+    previousCycle ? String(previousCycle.value) : "",
+  );
+  const [cycleUnitExamination, setCycleUnitExamination] = useState<CycleUnit>(
+    previousCycle?.unit ?? "months",
+  );
   const [info, setInfo] = useState("");
   const [loading, setLoading] = useState(false);
   const [colorPickForExamination, setColorPickForExamination] = useState<
     string | null
-  >(null);
+  >(previous?.color ?? null);
 
   async function handleCreateExamination() {
     const cycleValue = parseCycleValue(cycleIntervalExamination);
@@ -65,6 +90,7 @@ export default function ExaminationAddScreen({ navigation, person }: Props) {
           ? toMonths(cycleValue, cycleUnitExamination)
           : null,
       forUserId: person?.userId,
+      seriesId: previous?.seriesId ?? null,
     };
     setInfo("");
     setLoading(true);

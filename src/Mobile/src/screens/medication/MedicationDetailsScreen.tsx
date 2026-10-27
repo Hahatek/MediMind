@@ -67,7 +67,6 @@ function DetailField({
   );
 }
 
-// Stare pory mogą nie mieć godziny — wtedy pokazujemy porę dnia.
 function scheduleLabel(schedule: MedicationScheduleResponse) {
   return schedule.time
     ? formatTime(schedule.time)
@@ -258,10 +257,17 @@ export default function MedicationDetailsScreen({
         sortedSchedules.map((schedule) => (
           <View key={schedule.id} className="flex-row items-center gap-3 mb-2">
             <Clock size={20} color={iconColor} />
-            <Text className="text-foreground" style={typography.body}>
-              {scheduleLabel(schedule)} ·{" "}
-              {formatDose(schedule.amount, medication.form)}
-            </Text>
+            <View>
+              <Text className="text-foreground" style={typography.body}>
+                {scheduleLabel(schedule)} ·{" "}
+                {formatDose(schedule.amount, medication.form)}
+              </Text>
+              {!schedule.time && (
+                <Text className="text-muted-foreground" style={typography.body}>
+                  Brak powiadomienia, ponieważ nie ma daty przyjęcia leku
+                </Text>
+              )}
+            </View>
           </View>
         ))
       )}
