@@ -33,18 +33,67 @@ public class ReminderPlanner : IReminderPlanner
         var canConfirm = AgeCategoryCalculator.Calculate(user.BirthDate, PolandClock.Today()) != AgeCategory.Child;
         
         var items = new List<ReminderItemDto>();
-        items.AddRange(await ExamReminderAsync(userId, from, until, canConfirm));
-        items.AddRange(await MedicationReminderAsync(userId, from, until));
 
-        if (canConfirm)
+        foreach (var (subjectId, name) in await SubjectsAsync(userId))
         {
-            items.AddRange(await BookingReminderAsync(userId, from, until));
-        }
-        
+            var subjectItems = new List<ReminderItemDto>();
+            subjectItems.AddRange(await ExamReminderAsync(subjectId, from, until, canConfirm));
+            subjectItems.AddRange(await MedicationReminderAsync(subjectId, from, until));
+
+            if (canConfirm)
+            {
+                subjectItems.AddRange(await BookingReminderAsync(subjectId, from, until));
+            }
+
+            if (name != null)
+            {
+                foreach (var item in subjectItems)
+                {
+                    item.Title = $"{name}: {item.Title}";
+                }
+            }
+            
+            items.AddRange(subjectItems);
+            
+        }        
         return items
             .Where(i => i.FireAt > from && i.FireAt < until)
             .OrderBy(i => i.FireAt)
             .ToList();
+    }
+
+    private async Task<List<(Guid UserId, string? Name)>> SubjectsAsync(Guid recipentId)
+    {
+        var today = PolandClock.Today();
+        var now = DateTime.UtcNow;
+        
+        var wards = await _context.Guardianships
+            .Where(g => g.GuardianUserId == recipentId)
+            .Select(g => new
+            {
+                g.WardUserId,
+                g.WardUser.FirstName,
+                g.WardUser.BirthDate,
+                HasActiveDevice = _context.UserDevices.Any(d =>
+                    d.UserId == g.WardUserId
+                    && d.RevokedAt == null
+                    && _context.RefreshTokens.Any(t =>
+                        t.DeviceId == d.Id && t.RevokedAt == null && t.ExpiresAt > now)),
+            })
+            .ToListAsync();
+        
+        var subjects = new List<(Guid UserId, string? Name)> {(recipentId, null)};
+
+        foreach (var ward in wards)
+        {
+            var category = AgeCategoryCalculator.Calculate(ward.BirthDate, today);
+            if (category == AgeCategory.Child || (category == AgeCategory.Senior && !ward.HasActiveDevice))
+            {
+                subjects.Add((ward.WardUserId, ward.FirstName));
+            }
+        }
+
+        return subjects;
     }
     
     private async Task<List<ReminderItemDto>> ExamReminderAsync(Guid userId, DateTime from, DateTime until, bool canConfirm)
