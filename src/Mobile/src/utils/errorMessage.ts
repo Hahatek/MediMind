@@ -18,10 +18,18 @@ export function getErrorMessage(e: unknown, fallback: string): string {
     return data;
   }
 
-  if (status === 400) return "Niepoprawne dane. Sprawdź formularz.";
-  if (status === 403) return "Nie masz dostępu do tego badania.";
-  if (status === 404) return "Nie znaleziono badania. Mogło zostać usunięte.";
-  if (status >= 500) return "Błąd serwera. Spróbuj ponownie za chwilę.";
+  if (status === 400) {
+    return "Niepoprawne dane. Sprawdź formularz.";
+  }
+  if (status === 403) {
+    return "Nie masz do tego dostępu.";
+  }
+  if (status === 404) {
+    return "Nie znaleziono. Mogło zostać usunięte.";
+  }
+  if (status >= 500) {
+    return "Błąd serwera. Spróbuj ponownie za chwilę.";
+  }
 
   return fallback;
 }
