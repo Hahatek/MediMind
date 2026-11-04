@@ -24,6 +24,7 @@
     --on-brand: #ffffff;
     --on-brand-soft: #a9d6de;
     --on-brand-dim: #8fc7d2;
+    --brand-pressed: #00434f; /* przycisk primary wciśnięty */
     /* Powierzchnie i tła */
     --surface: #ffffff;
     --screen: #f3fcfe;
@@ -35,6 +36,7 @@
     --tint-2: #e3f2f6;
     --tint-3: #c9ebf4;
     --tint-4: #e6f1f4;
+    --tint-1-pressed: #c2e1ea; /* przycisk secondary wciśnięty */
     /* Tekst */
     --ink-1: #001f26;
     --ink-2: #00252e;
@@ -57,6 +59,8 @@
     --danger-bg: #fbeae8;
     --danger-line: #f0ccc8;
     --danger-ink: #660008;
+    --danger-fill: #a8372f; /* tło przycisku danger (biały tekst) */
+    --danger-fill-pressed: #7c2520;
     /* Ostrzeżenie */
     --warn: #f0b655;
     --warn-solid: #ffdf20;
@@ -118,6 +122,11 @@
       --ink-8: #7d8aa0;
       --line-1: #1f2a3f;
       --line-3: #232e45;
+      /* Przyciski: wciśnięte + tło danger (--danger tutaj to jasny róż do tekstu) */
+      --brand-pressed: #2f5a96;
+      --tint-1-pressed: #18243b;
+      --danger-fill: #c2413a;
+      --danger-fill-pressed: #9c312b;
       /* --- Nieużywane w kodzie — wartości z poprzedniego motywu --- */
       --chrome: #063a45;
       --brand-deep: #08434f;
