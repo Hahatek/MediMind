@@ -1,7 +1,8 @@
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import ExaminationsStack, { ExaminationStack } from "./ExaminationsStack";
-import { ClipboardPlus, Home, Pill, User } from "lucide-react-native";
+import { ClipboardPlus, Home, Pill, Sparkles, User } from "lucide-react-native";
 import UserScreen from "../screens/UserScreen";
+import KlaraScreen from "../screens/klara/KlaraScreen";
 import MedicationsStack from "./MedicationsStack";
 import HomeStack from "./HomeStack";
 import { useColorScheme } from "nativewind";
@@ -24,12 +25,12 @@ export type AppStackList = {
   Badania: NavigatorScreenParams<ExaminationStack> | undefined;
   Profil: undefined;
   Leki: undefined;
+  Klara: undefined;
 };
 
 const Tab = createBottomTabNavigator<AppStackList>();
 
 const TAB_BAR_EXTRA_BOTTOM = 8;
-// Domyślne 49 + miejsce na ikonę 24 i etykietę 12/15 (także przy skali 1.3×).
 const TAB_BAR_BASE_HEIGHT = 54;
 
 function AppStack({ onLogout }: Props) {
@@ -42,13 +43,14 @@ function AppStack({ onLogout }: Props) {
 
   return (
     <Tab.Navigator
+      initialRouteName="Home"
+      backBehavior="initialRoute"
       screenOptions={{
         headerShown: false,
         tabBarActiveTintColor: dark ? brandInk : "#178E9D",
         tabBarInactiveTintColor: dark ? inkMuted : "#999999",
         popToTopOnBlur: true,
-        // Dodatkowy odstęp pod ikonami/etykietami. Wysokość = domyślne 49 + safe area + extra,
-        // inaczej większy paddingBottom ścisnąłby zawartość paska.
+
         tabBarStyle: {
           height: TAB_BAR_BASE_HEIGHT + insets.bottom + TAB_BAR_EXTRA_BOTTOM,
           paddingBottom: insets.bottom + TAB_BAR_EXTRA_BOTTOM,
@@ -67,14 +69,14 @@ function AppStack({ onLogout }: Props) {
       }}
     >
       <Tab.Screen
-        name="Home"
+        name="Leki"
         options={{
           tabBarIcon: ({ color }) => (
-            <Home color={color} size={iconSizes.bottomNav} />
+            <Pill color={color} size={iconSizes.bottomNav} />
           ),
         }}
       >
-        {() => <HomeStack onLogout={onLogout} />}
+        {() => <MedicationsStack />}
       </Tab.Screen>
       <Tab.Screen
         name="Badania"
@@ -87,15 +89,24 @@ function AppStack({ onLogout }: Props) {
         {() => <ExaminationsStack />}
       </Tab.Screen>
       <Tab.Screen
-        name="Leki"
+        name="Home"
         options={{
           tabBarIcon: ({ color }) => (
-            <Pill color={color} size={iconSizes.bottomNav} />
+            <Home color={color} size={iconSizes.bottomNav} />
           ),
         }}
       >
-        {() => <MedicationsStack />}
+        {() => <HomeStack onLogout={onLogout} />}
       </Tab.Screen>
+      <Tab.Screen
+        name="Klara"
+        component={KlaraScreen}
+        options={{
+          tabBarIcon: ({ color }) => (
+            <Sparkles color={color} size={iconSizes.bottomNav} />
+          ),
+        }}
+      />
       <Tab.Screen
         name="Profil"
         options={{

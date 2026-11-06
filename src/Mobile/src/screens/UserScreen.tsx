@@ -6,7 +6,6 @@ import ThemeSelector from "../components/ThemeSelector";
 import Button from "../components/Button";
 import { LogOut } from "lucide-react-native";
 import { typography } from "../theme";
-import { runSpikeC } from "../ai/spike";
 
 type Props = {
   onLogout: () => void;
@@ -15,7 +14,6 @@ type Props = {
 export default function UserScreen({ onLogout }: Props) {
   const [nameUser, setNameUser] = useState("");
   const [emailUser, setEmailUser] = useState("");
-  const [spikeLoading, setSpikeLoading] = useState(false);
 
   useEffect(() => {
     async function load() {
@@ -29,15 +27,6 @@ export default function UserScreen({ onLogout }: Props) {
   async function handleLogout() {
     await endSession();
     onLogout();
-  }
-
-  async function handleSpike() {
-    setSpikeLoading(true);
-    try {
-      await runSpikeC();
-    } finally {
-      setSpikeLoading(false);
-    }
   }
 
   return (
@@ -59,16 +48,6 @@ export default function UserScreen({ onLogout }: Props) {
           variant="danger"
           iconLeft={LogOut}
           onPress={handleLogout}
-        />
-      </View>
-
-      <View className="w-64 mt-4">
-        <Button
-          title="Test Klary"
-          variant="secondary"
-          loading={spikeLoading}
-          loadingTitle="Klara myśli..."
-          onPress={handleSpike}
         />
       </View>
     </View>
