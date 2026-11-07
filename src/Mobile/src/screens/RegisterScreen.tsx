@@ -6,6 +6,7 @@ import {
   Pressable,
   Image,
   ScrollView,
+  KeyboardAvoidingView,
 } from "react-native";
 import { register } from "../api/auth";
 import { saveRefreshToken } from "../storage/tokenStorage";
@@ -67,87 +68,89 @@ export default function RegisterScreen({
 
   return (
     <SafeAreaView className="flex-1 justify-center p-4 bg-screen ">
-      <ScrollView
-        className="flex-1"
-        keyboardShouldPersistTaps="handled"
-        contentContainerStyle={{ flexGrow: 1 }}
-        showsVerticalScrollIndicator={false}
-      >
-        <View className="items-center">
-          <Image
-            source={require("../../assets/RegisterLoginPhoto.png")}
-            className="w-[400px] h-[400px]"
-            resizeMode="contain"
-          />
-        </View>
-        <Text className="text-foreground" style={typography["title.page"]}>
-          Zarejestruj się do aplikacji
-        </Text>
-        <TextField label="Imię" required value={name} onChangeText={setName} />
-        <TextField
-          label="Nazwisko"
-          required
-          value={lastName}
-          onChangeText={setLastName}
-        />
-        <TextField
-          label="Adres e-mail"
-          required
-          keyboardType="email-address"
-          autoCapitalize="none"
-          value={emailText}
-          onChangeText={setEmailText}
-        />
-        <PickerField
-          label="Data urodzenia"
-          mode="date"
-          required
-          value={brithDay}
-          onChange={setBrithDay}
-          minimumDate={new Date(1900, 0, 1)}
-          maximumDate={new Date()}
-        />
-        <TextField
-          label="Hasło"
-          required
-          secureTextEntry
-          value={passowrdText}
-          onChangeText={setPasswordText}
-        />
-        <TextField
-          label="Powtórz Hasło"
-          required
-          secureTextEntry
-          value={confirmPasswordText}
-          onChangeText={setRepeatPasswordText}
-        />
-        {info !== "" && (
-          <Text className="text-destructive" style={typography["field.error"]}>
-            {info}
-          </Text>
-        )}
-
-        <View className="flex flex-col gap-2">
-          <Button
-            title="Zarejestruj się"
-            loadingTitle="Tworzenie konta..."
-            loading={loading}
-            onPress={handleRegister}
-          />
-          <View className="flex-row flex-wrap justify-center mt-5">
-            <Text className="text-ink-3" style={typography.body}>
-              Masz konto?
-            </Text>
-
-            <Pressable onPress={() => navigation.navigate("Login")}>
-              <Text className="text-link" style={typography.link}>
-                {" "}
-                Zaloguj się
-              </Text>
-            </Pressable>
+      <KeyboardAvoidingView behavior="padding" className="flex-1">
+        <ScrollView
+          className="flex-1"
+          keyboardShouldPersistTaps="handled"
+          contentContainerStyle={{ flexGrow: 1 }}
+          showsVerticalScrollIndicator={false}
+        >
+          <View className="items-center">
+            <Image
+              source={require("../../assets/RegisterLoginPhoto.png")}
+              className="w-[400px] h-[400px]"
+              resizeMode="contain"
+            />
           </View>
-        </View>
-      </ScrollView>
+          <Text className="text-foreground" style={typography["title.page"]}>
+            Zarejestruj się do aplikacji
+          </Text>
+          <TextField label="Imię" required value={name} onChangeText={setName} />
+          <TextField
+            label="Nazwisko"
+            required
+            value={lastName}
+            onChangeText={setLastName}
+          />
+          <TextField
+            label="Adres e-mail"
+            required
+            keyboardType="email-address"
+            autoCapitalize="none"
+            value={emailText}
+            onChangeText={setEmailText}
+          />
+          <PickerField
+            label="Data urodzenia"
+            mode="date"
+            required
+            value={brithDay}
+            onChange={setBrithDay}
+            minimumDate={new Date(1900, 0, 1)}
+            maximumDate={new Date()}
+          />
+          <TextField
+            label="Hasło"
+            required
+            secureTextEntry
+            value={passowrdText}
+            onChangeText={setPasswordText}
+          />
+          <TextField
+            label="Powtórz Hasło"
+            required
+            secureTextEntry
+            value={confirmPasswordText}
+            onChangeText={setRepeatPasswordText}
+          />
+          {info !== "" && (
+            <Text className="text-destructive" style={typography["field.error"]}>
+              {info}
+            </Text>
+          )}
+
+          <View className="flex flex-col gap-2">
+            <Button
+              title="Zarejestruj się"
+              loadingTitle="Tworzenie konta..."
+              loading={loading}
+              onPress={handleRegister}
+            />
+            <View className="flex-row flex-wrap justify-center mt-5">
+              <Text className="text-ink-3" style={typography.body}>
+                Masz konto?
+              </Text>
+
+              <Pressable onPress={() => navigation.navigate("Login")}>
+                <Text className="text-link" style={typography.link}>
+                  {" "}
+                  Zaloguj się
+                </Text>
+              </Pressable>
+            </View>
+          </View>
+        </ScrollView>
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 }
