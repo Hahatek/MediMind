@@ -4,17 +4,25 @@ import {
   Manrope_500Medium,
   Manrope_600SemiBold,
 } from "@expo-google-fonts/manrope";
+import {
+  JetBrainsMono_500Medium,
+  JetBrainsMono_600SemiBold,
+} from "@expo-google-fonts/jetbrains-mono";
 
 export const fontAssets = {
   "Manrope-Regular": Manrope_400Regular,
   "Manrope-Medium": Manrope_500Medium,
   "Manrope-SemiBold": Manrope_600SemiBold,
+  "JetBrainsMono-Medium": JetBrainsMono_500Medium,
+  "JetBrainsMono-SemiBold": JetBrainsMono_600SemiBold,
 };
 
 export const fonts = {
   regular: "Manrope-Regular",
   medium: "Manrope-Medium",
   semibold: "Manrope-SemiBold",
+  monoMedium: "JetBrainsMono-Medium",
+  monoSemibold: "JetBrainsMono-SemiBold",
 } as const;
 
 export const typography = {
