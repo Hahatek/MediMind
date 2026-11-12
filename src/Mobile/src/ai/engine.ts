@@ -8,7 +8,7 @@ import {
   type LanguageModelMiddleware,
   type ModelMessage,
 } from "ai";
-import { badania, loadFamily } from "./tools";
+import { badania, leki, loadFamily } from "./tools";
 import { formatDate, formatDateLocal } from "../utils/dateFormat";
 
 const MODEL_URL =
@@ -21,8 +21,12 @@ const modelFile = new File(modelDir, MODEL_FILE_NAME);
 
 let model: LlamaLanguageModel | null = null;
 
+// const SYSTEM_PROMPT =
+//   "Jesteś Klara, asystentka zdrowia w aplikacji MediMind. Odpowiadasz po polsku, krótko i prostym językiem. Nie stawiasz diagnoz i nie podajesz dawek leków. W sprawach leczenia zawsze odsyłasz do lekarza.";
+
 const SYSTEM_PROMPT =
-  "Jesteś Klara, asystentka zdrowia w aplikacji MediMind. Odpowiadasz po polsku, krótko i prostym językiem. Nie stawiasz diagnoz i nie podajesz dawek leków. W sprawach leczenia zawsze odsyłasz do lekarza.";
+  "Jesteś Klara, asystentka zdrowia w aplikacji MediMind. Odpowiadasz po polsku, krótko i prostym językiem. Nie stawiasz diagnoz. Możesz odczytać leki i dawki z planu użytkownika, ale nie doradzasz, jakie leki brać ani ile, i nie zmieniasz dawek. W sprawach leczenia zawsze odsyłasz do lekarza.";
+
 
 const naprawSchemat: LanguageModelMiddleware = {
   specificationVersion: "v3",
@@ -99,7 +103,7 @@ export async function askKlara(
     model: wrapLanguageModel({ model: model!, middleware: naprawSchemat }),
     system: `${SYSTEM_PROMPT} Dzisiaj jest ${formatDate(formatDateLocal(new Date()))}.${oRodzinie}`,
     messages,
-    tools: { badania },
+    tools: { badania, leki },
     stopWhen: stepCountIs(3),
   });
 
