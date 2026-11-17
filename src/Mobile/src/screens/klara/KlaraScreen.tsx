@@ -4,7 +4,13 @@ import { useFocusEffect } from "@react-navigation/native";
 import { useKeepAwake } from "expo-keep-awake";
 import type { BottomTabScreenProps } from "@react-navigation/bottom-tabs";
 import type { ModelMessage } from "ai";
-import { askKlara, downloadModel, isModelReady, loadModel, unloadModel } from "../../ai/engine";
+import {
+  askKlara,
+  downloadModel,
+  isModelReady,
+  loadModel,
+  unloadModel,
+} from "../../ai/engine";
 import { getMe } from "../../api/user";
 import type { AppStackList } from "../../navigation/AppStack";
 import { typography } from "../../theme";
@@ -13,6 +19,13 @@ import KlaraIntro from "./KlaraIntro";
 import KlaraDownload from "./KlaraDownload";
 import KlaraChat from "./KlaraChat";
 import type { Message } from "./KlaraMessage";
+import {
+  examinationComplete,
+  examinationCreate,
+  examinationSkip,
+} from "../../api/examination";
+import { medicationIntakeCreate } from "../../api/medicationIntake";
+import { medicationCreate } from "../../api/medication";
 
 type Props = BottomTabScreenProps<AppStackList, "Klara">;
 
@@ -24,7 +37,9 @@ function KeepScreenOn() {
 }
 
 export default function KlaraScreen({ navigation }: Props) {
-  const [status, setStatus] = useState<Status>(isModelReady() ? "waking" : "missing");
+  const [status, setStatus] = useState<Status>(
+    isModelReady() ? "waking" : "missing",
+  );
   const [percent, setPercent] = useState(0);
   const [userName, setUserName] = useState("");
   const [messages, setMessages] = useState<Message[]>([]);
@@ -86,46 +101,187 @@ export default function KlaraScreen({ navigation }: Props) {
     setMessages(history);
     setBusy(true);
 
-    const modelMessages = history.slice(-10).map(
-      (m): ModelMessage => ({
-        role: m.from === "me" ? "user" : "assistant",
-        content: m.text,
-      }),
-    );
+    const modelMessages = history.slice(-10).map((m): ModelMessage => ({
+      role: m.from === "me" ? "user" : "assistant",
+      content: m.text,
+    }));
 
     try {
-      await askKlara(modelMessages, (partial) => {
-        setMessages([...history, { id: klaraId, from: "klara", text: partial }]);
+      const odp = await askKlara(modelMessages, (partial) => {
+        setMessages([
+          ...history,
+          { id: klaraId, from: "klara", text: partial },
+        ]);
       });
+      if (odp.proposal || odp.marking || odp.dose || odp.medication) {
+        setMessages([
+          ...history,
+          {
+            id: klaraId,
+            from: "klara",
+            text: odp.text,
+            proposal: odp.proposal ?? undefined,
+            marking: odp.marking ?? undefined,
+            dose: odp.dose ?? undefined,
+            medication: odp.medication ?? undefined,
+          },
+        ]);
+      }
     } catch (e) {
       console.log("Błąd Klary:", e);
       setMessages([
         ...history,
-        { id: klaraId, from: "klara", text: "Coś poszło nie tak. Spróbuj jeszcze raz." },
+        {
+          id: klaraId,
+          from: "klara",
+          text: "Coś poszło nie tak. Spróbuj jeszcze raz.",
+        },
       ]);
     } finally {
       setBusy(false);
     }
   }
 
-  function handleAdd(id: string) {
-    setMessages(messages.map((m) => (m.id === id ? { ...m, confirmed: true } : m)));
+  async function handleAdd(id: string) {
+    const message = messages.find((m) => m.id === id);
+
+    if (message?.medication) {
+      const { ownerName, ...nowyLek } = message.medication;
+      try {
+        await medicationCreate(nowyLek);
+        setMessages(
+          messages.map((m) => (m.id === id ? { ...m, confirmed: true } : m)),
+        );
+      } catch (e) {
+        console.log("Błąd dodawania leku:", e);
+        setMessages([
+          ...messages,
+          {
+            id: String(Date.now()),
+            from: "klara",
+            text: "Nie udało się dodać leku. Spróbuj jeszcze raz.",
+          },
+        ]);
+      }
+      return;
+    }
+
+    if (message?.dose) {
+      try {
+        await medicationIntakeCreate({
+          medicationScheduleId: message.dose.intake.medicationScheduleId,
+          date: message.dose.date,
+          status: message.dose.status,
+        });
+        setMessages(
+          messages.map((m) => (m.id === id ? { ...m, confirmed: true } : m)),
+        );
+      } catch (e) {
+        console.log("Błąd zapisu dawki:", e);
+        setMessages([
+          ...messages,
+          {
+            id: String(Date.now()),
+            from: "klara",
+            text: "Nie udało się zapisać dawki. Spróbuj jeszcze raz.",
+          },
+        ]);
+      }
+      return;
+    }
+
+    if (message?.marking) {
+      try {
+        if (message.marking.akcja === "wykonane") {
+          await examinationComplete(message.marking.examination.id);
+        } else {
+          await examinationSkip(message.marking.examination.id);
+        }
+        setMessages(
+          messages.map((m) => (m.id === id ? { ...m, confirmed: true } : m)),
+        );
+      } catch (e) {
+        console.log("Błąd oznaczania badania:", e);
+        setMessages([
+          ...messages,
+          {
+            id: String(Date.now()),
+            from: "klara",
+            text: "Nie udało się zapisać. Spróbuj jeszcze raz.",
+          },
+        ]);
+      }
+      return;
+    }
+
+    if (!message?.proposal) {
+      return;
+    }
+
+    try {
+      await examinationCreate({
+        name: message.proposal.name,
+        date: message.proposal.date,
+        time: message.proposal.time,
+        isCyclic: !!message.proposal.cycleInterval,
+        cycleInterval: message.proposal.cycleInterval ?? null,
+        forUserId: message.proposal.forUserId,
+      });
+      setMessages(
+        messages.map((m) => (m.id === id ? { ...m, confirmed: true } : m)),
+      );
+    } catch (e) {
+      console.log("Błąd dodawania badania:", e);
+      setMessages([
+        ...messages,
+        {
+          id: String(Date.now()),
+          from: "klara",
+          text: "Nie udało się dodać badania. Spróbuj jeszcze raz.",
+        },
+      ]);
+    }
   }
 
   function handleFix(id: string) {
-    setMessages(messages.map((m) => (m.id === id ? { ...m, proposal: undefined } : m)));
+    setMessages([
+      ...messages.map((m) =>
+        m.id === id
+          ? {
+              ...m,
+              proposal: undefined,
+              marking: undefined,
+              dose: undefined,
+              medication: undefined,
+            }
+          : m,
+      ),
+      {
+        id: String(Date.now()),
+        from: "klara",
+        text: "Jasne, co mam poprawić?",
+      },
+    ]);
   }
 
   return (
     <View className="flex-1 bg-screen">
       <KlaraHeader
-        subtitle={status === "ready" ? "Na tym telefonie · bez internetu" : "Asystentka MediMind"}
+        subtitle={
+          status === "ready"
+            ? "Na tym telefonie · bez internetu"
+            : "Asystentka MediMind"
+        }
       />
 
       {status === "missing" && <KlaraIntro onDownload={handleDownload} />}
 
       {(status === "downloading" || status === "error") && (
-        <KlaraDownload percent={percent} failed={status === "error"} onRetry={handleDownload} />
+        <KlaraDownload
+          percent={percent}
+          failed={status === "error"}
+          onRetry={handleDownload}
+        />
       )}
 
       {status === "downloading" && <KeepScreenOn />}

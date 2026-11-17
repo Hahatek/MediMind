@@ -8,8 +8,21 @@ import {
   type LanguageModelMiddleware,
   type ModelMessage,
 } from "ai";
-import { badania, leki, loadFamily } from "./tools";
-import { formatDate, formatDateLocal } from "../utils/dateFormat";
+import {
+  badania,
+  dodajBadanie,
+  leki,
+  loadFamily,
+  takePropozycja,
+  oznaczBadanie,
+  takeOznaczenie,
+  potwierdzDawke,
+  takeDawka,
+  dodajLek,
+  takeLek,
+  pomoc,
+} from "./tools";
+import { formatDateLocal } from "../utils/dateFormat";
 
 const MODEL_URL =
   "https://huggingface.co/unsloth/gemma-4-E2B-it-GGUF/resolve/main/gemma-4-E2B-it-Q4_K_M.gguf";
@@ -25,8 +38,17 @@ let model: LlamaLanguageModel | null = null;
 //   "Jesteś Klara, asystentka zdrowia w aplikacji MediMind. Odpowiadasz po polsku, krótko i prostym językiem. Nie stawiasz diagnoz i nie podajesz dawek leków. W sprawach leczenia zawsze odsyłasz do lekarza.";
 
 const SYSTEM_PROMPT =
-  "Jesteś Klara, asystentka zdrowia w aplikacji MediMind. Odpowiadasz po polsku, krótko i prostym językiem. Nie stawiasz diagnoz. Możesz odczytać leki i dawki z planu użytkownika, ale nie doradzasz, jakie leki brać ani ile, i nie zmieniasz dawek. W sprawach leczenia zawsze odsyłasz do lekarza.";
+  "Jesteś Klara, asystentka zdrowia w aplikacji MediMind. Odpowiadasz po polsku, krótko i prostym językiem. Nie stawiasz diagnoz. Możesz odczytać leki i dawki z planu użytkownika, ale nie doradzasz, jakie leki brać ani ile, i nie zmieniasz dawek. W sprawach leczenia zawsze odsyłasz do lekarza. Nigdy nie piszesz, że coś dodałaś lub zapisałaś - przygotowujesz tylko kartę, a zapisuje użytkownik przyciskiem Dodaj.";
 
+const DNI = [
+  "niedziela",
+  "poniedziałek",
+  "wtorek",
+  "środa",
+  "czwartek",
+  "piątek",
+  "sobota",
+];
 
 const naprawSchemat: LanguageModelMiddleware = {
   specificationVersion: "v3",
@@ -99,14 +121,46 @@ export async function askKlara(
     ? ` Członkowie rodziny użytkownika: ${imiona}. Gdy nie wiesz, o kogo chodzi, dopytaj.`
     : "";
 
-  const { text } = await generateText({
+  const now = new Date();
+  const dzis = formatDateLocal(now);
+  takePropozycja();
+  takeOznaczenie();
+  takeDawka();
+  takeLek();
+
+  const { text, steps } = await generateText({
     model: wrapLanguageModel({ model: model!, middleware: naprawSchemat }),
-    system: `${SYSTEM_PROMPT} Dzisiaj jest ${formatDate(formatDateLocal(new Date()))}.${oRodzinie}`,
+    system: `${SYSTEM_PROMPT} Dzisiaj jest ${DNI[now.getDay()]}, ${dzis}.${oRodzinie}`,
     messages,
-    tools: { badania, leki },
+    tools: { badania, leki, dodajBadanie, oznaczBadanie, potwierdzDawke, dodajLek, pomoc },
     stopWhen: stepCountIs(3),
   });
 
-  onText(text);
-  return text;
+  console.log(
+    JSON.stringify(
+      steps.map((s) => ({
+        wywolania: s.toolCalls.map((c) => ({
+          narzedzie: c.toolName,
+          dane: c.input,
+        })),
+        wyniki: s.toolResults.map((r) => r.output),
+        bledy: s.content.filter((c) => c.type === "tool-error"),
+        tekst: s.text,
+      })),
+      null,
+      1,
+    ),
+  );
+
+  const odpowiedz =
+    text.trim() || "Nie udało mi się odpowiedzieć. Spróbuj zapytać inaczej.";
+
+  onText(odpowiedz);
+  return {
+    text: odpowiedz,
+    proposal: takePropozycja(),
+    marking: takeOznaczenie(),
+    dose: takeDawka(),
+    medication: takeLek(),
+  };
 }
