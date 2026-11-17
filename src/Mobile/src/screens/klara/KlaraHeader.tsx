@@ -1,14 +1,17 @@
-import { Text, View } from "react-native";
+import { Pressable, Text, View } from "react-native";
+import { Trash2 } from "lucide-react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { typography } from "../../theme";
+import { iconSizes, typography, useThemeColor } from "../../theme";
 import KlaraAvatar from "./KlaraAvatar";
 
 type Props = {
   subtitle: string;
+  onClear?: () => void;
 };
 
-export default function KlaraHeader({ subtitle }: Props) {
+export default function KlaraHeader({ subtitle, onClear }: Props) {
   const insets = useSafeAreaInsets();
+  const onBrand = useThemeColor("--on-brand");
 
   return (
     <View
@@ -24,6 +27,15 @@ export default function KlaraHeader({ subtitle }: Props) {
           {subtitle}
         </Text>
       </View>
+      {onClear && (
+        <Pressable
+          onPress={onClear}
+          hitSlop={12}
+          accessibilityLabel="Wyczyść rozmowę"
+        >
+          <Trash2 color={onBrand} size={iconSizes.button} />
+        </Pressable>
+      )}
     </View>
   );
 }

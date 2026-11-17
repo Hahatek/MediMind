@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import { ActivityIndicator, AppState, Text, View } from "react-native";
+import { ActivityIndicator, Alert, AppState, Text, View } from "react-native";
 import { useFocusEffect } from "@react-navigation/native";
 import { useKeepAwake } from "expo-keep-awake";
 import type { BottomTabScreenProps } from "@react-navigation/bottom-tabs";
@@ -26,10 +26,18 @@ import {
 } from "../../api/examination";
 import { medicationIntakeCreate } from "../../api/medicationIntake";
 import { medicationCreate } from "../../api/medication";
+import { clearHistory, loadHistory, saveHistory } from "../../ai/history";
+import ErrorState from "../../components/ErrorState";
 
 type Props = BottomTabScreenProps<AppStackList, "Klara">;
 
-type Status = "missing" | "downloading" | "error" | "waking" | "ready";
+type Status =
+  | "missing"
+  | "downloading"
+  | "error"
+  | "waking"
+  | "ready"
+  | "loadError";
 
 function KeepScreenOn() {
   useKeepAwake();
@@ -44,6 +52,7 @@ export default function KlaraScreen({ navigation }: Props) {
   const [userName, setUserName] = useState("");
   const [messages, setMessages] = useState<Message[]>([]);
   const [busy, setBusy] = useState(false);
+  const [userId, setUserId] = useState("");
 
   useEffect(() => {
     navigation.setOptions({ tabBarHideOnKeyboard: true });
@@ -53,14 +62,27 @@ export default function KlaraScreen({ navigation }: Props) {
     async function load() {
       const userData = await getMe();
       setUserName(userData.firstName);
+      setMessages(await loadHistory(userData.id));
+      setUserId(userData.id);
     }
     load();
   }, []);
 
+  useEffect(() => {
+    if (userId) {
+      saveHistory(userId, messages);
+    }
+  }, [userId, messages]);
+
   async function wake() {
     setStatus("waking");
-    await loadModel();
-    setStatus("ready");
+    try {
+      await loadModel();
+      setStatus("ready");
+    } catch (e) {
+      console.log("Błąd wczytania modelu:", e);
+      setStatus("loadError");
+    }
   }
 
   useFocusEffect(
@@ -85,11 +107,12 @@ export default function KlaraScreen({ navigation }: Props) {
     setStatus("downloading");
     try {
       await downloadModel(setPercent);
-      await wake();
     } catch (e) {
       console.log("Błąd pobierania modelu:", e);
       setStatus("error");
+      return;
     }
+    await wake();
   }
 
   async function handleSend(text: string) {
@@ -264,6 +287,24 @@ export default function KlaraScreen({ navigation }: Props) {
     ]);
   }
 
+  function handleClear() {
+    Alert.alert(
+      "Wyczyść rozmowę",
+      "Czy na pewno chcesz usunąć całą rozmowę z Klarą?",
+      [
+        { text: "Anuluj", style: "cancel" },
+        {
+          text: "Wyczyść",
+          style: "destructive",
+          onPress: () => {
+            clearHistory(userId);
+            setMessages([]);
+          },
+        },
+      ],
+    );
+  }
+
   return (
     <View className="flex-1 bg-screen">
       <KlaraHeader
@@ -271,6 +312,11 @@ export default function KlaraScreen({ navigation }: Props) {
           status === "ready"
             ? "Na tym telefonie · bez internetu"
             : "Asystentka MediMind"
+        }
+        onClear={
+          status === "ready" && messages.length > 0 && !busy
+            ? handleClear
+            : undefined
         }
       />
 
@@ -293,6 +339,13 @@ export default function KlaraScreen({ navigation }: Props) {
             Klara się budzi…
           </Text>
         </View>
+      )}
+
+      {status === "loadError" && (
+        <ErrorState
+          message="Nie udało się uruchomić Klary. Zamknij inne aplikacje i spróbuj ponownie."
+          onRetry={wake}
+        />
       )}
 
       {status === "ready" && (
