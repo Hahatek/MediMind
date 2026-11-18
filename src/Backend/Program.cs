@@ -30,6 +30,11 @@ if (jwtSettings is null)
     throw new InvalidOperationException("Brak konfiguracji JwtSettings");
 }
 
+if (string.IsNullOrEmpty(jwtSettings.Key))
+{
+    throw new InvalidOperationException("Brak klucza JwtSettings:Key");
+}
+
 builder.Services.AddSingleton(jwtSettings);
 
 builder.Services.AddScoped<ITokenService, TokenService>();

@@ -339,7 +339,7 @@ public class ExaminationController : ControllerBase
     {
         var userId = this.GetUserId();
 
-        if (this.GetUserRole() == RoleUser.Child)
+        if (await _accessService.IsChild(userId))
         {
             return Forbid();
         }

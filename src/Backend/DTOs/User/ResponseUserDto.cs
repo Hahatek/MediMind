@@ -15,4 +15,5 @@ public class ResponseUserDto
     public RoleUser Role { get; set; }
     public BloodType? BloodType { get; set; }
     public string? Avatar { get; set; }
+    public bool IsChild { get; set; }
 }

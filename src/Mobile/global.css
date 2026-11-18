@@ -90,6 +90,7 @@
     --status-closed-fg: #657579;
     --status-urgent-bg: #e71958;
     --status-urgent-fg: #ffffff;
+    --grouped: #eef3f4;
   }
 
   @media (prefers-color-scheme: dark) {
@@ -169,6 +170,7 @@
       --status-closed-fg: #9b8aab;
       --status-urgent-bg: #b01043;
       --status-urgent-fg: #ffe7ee;
+      --grouped: #0f1624;
     }
   }
 }

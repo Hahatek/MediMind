@@ -7,7 +7,8 @@ import { getErrorMessage } from "../../utils/errorMessage";
 import { familyCreateProfile } from "../../api/family";
 import { RouteProp } from "@react-navigation/native";
 import { CreateManagedProfile } from "../../types/FamilyTypes";
-import { Text, View } from "react-native";
+import { ScrollView, Text, View } from "react-native";
+import { Plus } from "lucide-react-native";
 import PickerField from "../../components/PickerField";
 import Button from "../../components/Button";
 import { typography } from "../../theme/typography";
@@ -32,26 +33,20 @@ export default function FamilyAddProfileScreen({ navigation, route }: Props) {
   const [fieldErrors, setFieldErrors] = useState<FieldErros>({});
 
   async function handleCreateNewProfile() {
+    const errors: FieldErros = {};
+    if (!firstNameProfile.trim()) errors.firstName = "Wpisz imię.";
+    if (!lastNameProfile.trim()) errors.lastName = "Wpisz nazwisko.";
+    if (!dateProfile) errors.birthDate = "Wybierz datę urodzenia.";
+    setFieldErrors(errors);
+    if (Object.keys(errors).length > 0) return;
+
     const newProfile: CreateManagedProfile = {
-      firstName: firstNameProfile,
-      lastName: lastNameProfile,
+      firstName: firstNameProfile.trim(),
+      lastName: lastNameProfile.trim(),
       birthDate: dateProfile,
     };
-    if (!firstNameProfile) {
-      setFieldErrors({ firstName: "Podaj imię" });
-      return;
-    }
-    if (!lastNameProfile) {
-      setFieldErrors({ lastName: "Podaj nazwisko" });
-      return;
-    }
-    if (!dateProfile) {
-      setFieldErrors({ birthDate: "Podaj datę urodzenia" });
-      return;
-    }
     setLoading(true);
     setError(null);
-    setFieldErrors({});
     try {
       await familyCreateProfile(route.params.familyId, newProfile);
       navigation.goBack();
@@ -67,49 +62,54 @@ export default function FamilyAddProfileScreen({ navigation, route }: Props) {
       edges={["bottom", "left", "right"]}
       className="flex-1 bg-screen"
     >
-      <View className="flex-1 w-full">
-        <View className="gap-2 w-full mb-6">
-          <TextField
-            label="Imię"
-            placeholder="Jan"
-            required
-            error={fieldErrors.firstName}
-            value={firstNameProfile}
-            onChangeText={setFirstNameProfile}
-          />
-          <TextField
-            label="Nazwisko"
-            placeholder="Kowalski"
-            required
-            error={fieldErrors.lastName}
-            value={lastNameProfile}
-            onChangeText={setLastNameProfile}
-          />
-          <PickerField
-            label="Data urodzenia"
-            mode="date"
-            required
-            error={fieldErrors.birthDate}
-            value={dateProfile}
-            onChange={setDateProfile}
-            maximumDate={new Date()}
-          />
-        </View>
-        <Button
-          title="Dodaj"
-          onPress={() => handleCreateNewProfile()}
-          loading={loading}
-          loadingTitle="Dodawanie..."
+      <ScrollView contentContainerClassName="flex-grow px-4 pt-6 pb-8">
+        <Text className="text-ink-3 mb-6" style={typography["body.sm"]}>
+          Dla osoby, która nie korzysta z telefonu. Będziesz prowadzić jej
+          badania i leki.
+        </Text>
+        <TextField
+          label="Imię"
+          placeholder="Maria"
+          required
+          error={fieldErrors.firstName}
+          value={firstNameProfile}
+          onChangeText={setFirstNameProfile}
+          autoCapitalize="words"
+        />
+        <TextField
+          label="Nazwisko"
+          placeholder="Kowalska"
+          required
+          error={fieldErrors.lastName}
+          value={lastNameProfile}
+          onChangeText={setLastNameProfile}
+          autoCapitalize="words"
+        />
+        <PickerField
+          label="Data urodzenia"
+          mode="date"
+          required
+          error={fieldErrors.birthDate}
+          value={dateProfile}
+          onChange={setDateProfile}
+          maximumDate={new Date()}
         />
         {error && (
-          <Text
-            className="text-destructive mt-4"
-            style={typography["field.error"]}
-          >
+          <Text className="text-destructive" style={typography["field.error"]}>
             {error}
           </Text>
         )}
-      </View>
+        <View className="flex-1" />
+        <View className="mt-6">
+          <Button
+            title="Dodaj"
+            iconLeft={Plus}
+            onPress={handleCreateNewProfile}
+            loading={loading}
+            loadingTitle="Dodawanie..."
+          />
+        </View>
+      </ScrollView>
     </SafeAreaView>
   );
 }

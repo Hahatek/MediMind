@@ -19,6 +19,7 @@ const tokens = {
   "brand-pressed": v("brand-pressed"),
   surface: v("surface"),
   screen: v("screen"),
+  grouped: v("grouped"),
   desk: v("desk"),
   field: v("field"),
   "bg-1": v("bg-1"),

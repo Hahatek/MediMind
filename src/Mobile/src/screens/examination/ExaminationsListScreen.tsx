@@ -33,6 +33,7 @@ import ExaminationsHistoryView from "../../components/ExaminationsHistoryView";
 import ExaminationsCalendarView from "../../components/ExaminationsCalendarView";
 import { FamilyMembership, PersonContext } from "../../types/FamilyTypes";
 import { familyGet } from "../../api/family";
+import { getMe } from "../../api/user";
 import { useThemeColor } from "../../theme/useThemeColor";
 import { typography } from "../../theme/typography";
 
@@ -68,13 +69,14 @@ export default function ExaminationsListScreen({ navigation, person }: Props) {
     return { includeFamily: true };
   }
 
-  let canManage = false;
+  const [isChild, setIsChild] = useState<boolean | null>(null);
 
-  if (person == null) {
-    canManage = true;
-  } else {
-    canManage = person.canManage;
-  }
+  useEffect(() => {
+    if (person) return;
+    getMe().then((me) => setIsChild(me.isChild));
+  }, [person]);
+
+  const canManage = person ? person.canManage : isChild === false;
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -97,7 +99,7 @@ export default function ExaminationsListScreen({ navigation, person }: Props) {
 
   function canManageFor(userId: string): boolean {
     const owner = members.find((m) => m.userId === userId);
-    return person ? canManage : (owner?.canManage ?? true);
+    return person ? canManage : (owner?.canManage ?? canManage);
   }
 
   function handleExaminationDetails(examinationId: string) {
@@ -245,7 +247,7 @@ export default function ExaminationsListScreen({ navigation, person }: Props) {
           ListEmptyComponent={
             loading ? (
               <ActivityIndicator className="mt-8" />
-            ) : error ? null : (
+            ) : error ? undefined : (
               <Text
                 className="text-muted-foreground text-center mt-8 "
                 style={typography.body}

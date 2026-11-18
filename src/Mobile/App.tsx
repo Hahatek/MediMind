@@ -3,10 +3,10 @@ import "./global.css";
 import { NavigationContainer } from "@react-navigation/native";
 import AuthStack from "./src/navigation/AuthStack";
 import AppStack from "./src/navigation/AppStack";
-import { Text, View, AppState } from "react-native";
+import { ActivityIndicator, View, AppState } from "react-native";
 import { StatusBar } from "expo-status-bar";
 import { refreshTokens, setSessionExpiredHandler } from "./src/api/client";
-import { fontAssets, typography, useNavigationTheme } from "./src/theme";
+import { fontAssets, useNavigationTheme } from "./src/theme";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { useFonts } from "expo-font";
 import {
@@ -113,9 +113,7 @@ export default function App() {
           <AppStack onLogout={() => setStatus("loggedOut")} />
         )}
         {status === "loading" && (
-          <Text className="text-foreground" style={typography.body}>
-            SIABADABABA
-          </Text>
+          <ActivityIndicator className="mt-8" />
         )}
       </NavigationContainer>
     </SafeAreaProvider>

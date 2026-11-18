@@ -181,6 +181,7 @@ public class UsersController : ControllerBase
             Role = u.Role,
             BloodType = u.BloodType,
             Avatar = u.Avatar,
+            IsChild = IsChild(u.BirthDate),
         };
     }
 }

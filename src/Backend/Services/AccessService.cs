@@ -44,6 +44,17 @@ public class AccessService : IAccessService
 
     }
 
+    public async Task<bool> IsChild(Guid userId)
+    {
+        
+        var birthDate = await _context.Users
+            .Where(u => u.Id == userId)
+            .Select(u => u.BirthDate)
+            .FirstAsync();
+
+        return AgeCategoryCalculator.Calculate(birthDate, PolandClock.Today()) == AgeCategory.Child;
+    }
+    
     public async Task<bool> CanManage(Guid callerId, Guid targetUserId)
     {
         if (await IsGuardian(callerId, targetUserId))
@@ -55,13 +66,8 @@ public class AccessService : IAccessService
         {
             return false;
         }
-
-        var birthDate = await _context.Users
-            .Where(u => u.Id == callerId)
-            .Select(u => u.BirthDate)
-            .FirstAsync();
-
-        return AgeCategoryCalculator.Calculate(birthDate, PolandClock.Today()) != AgeCategory.Child;
+    
+        return !await IsChild(callerId);    
     }
 
     public async Task<bool> CanRecordIntake(Guid callerId, Guid targetUserId)
@@ -77,9 +83,7 @@ public class AccessService : IAccessService
 
         return false;
     }
-
-    // Wszyscy, których dane caller może czytać — ta sama reguła co CanRead, ale dla list:
-    // ja + członkowie moich rodzin + moi podopieczni.
+    
     public async Task<List<Guid>> GetReadableUserIds(Guid callerId)
     {
         var myFamilyIds = _context.FamilyMemberships

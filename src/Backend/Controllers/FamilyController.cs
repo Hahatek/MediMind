@@ -34,7 +34,7 @@ public class FamilyController : ControllerBase
     {
         var userId = this.GetUserId();
         
-        if (this.GetUserRole() == RoleUser.Child)
+        if (await _accessService.IsChild(userId))
         {
             return Forbid();
         }
@@ -248,7 +248,7 @@ public class FamilyController : ControllerBase
     {
         var userId = this.GetUserId();
 
-        if (this.GetUserRole() == RoleUser.Child)
+        if (await _accessService.IsChild(userId))
         {
             return Forbid();
         }
@@ -266,11 +266,6 @@ public class FamilyController : ControllerBase
             return BadRequest("Właściciel rodziny nie może opuścić bez wcześniejszego przekazanie roli innej osobie");
         }
         
-        var hideRecord = await _context.ExaminationsHide
-            .Where(h => h.HiddenForUserId == userId || h.HiddenByUserId == mebership.UserId)
-            .ToListAsync();
-        
-        _context.ExaminationsHide.RemoveRange(hideRecord);
         _context.FamilyMemberships.Remove(mebership);
         await _context.SaveChangesAsync();
         
@@ -282,7 +277,7 @@ public class FamilyController : ControllerBase
     {
         var userId = this.GetUserId();
 
-        if (this.GetUserRole() == RoleUser.Child)
+        if (await _accessService.IsChild(userId))
         {
             return Forbid();
         }
@@ -299,18 +294,12 @@ public class FamilyController : ControllerBase
             return Forbid();
         }
         
-        var memberUsersIds = await _context.FamilyMemberships
-            .Where(m => m.FamilyId == familyId)
-            .Select(m => m.UserId)
-            .ToListAsync();
-        
-        var hideRecords = await _context.ExaminationsHide
-            .Where(h => memberUsersIds.Contains(h.HiddenForUserId) || memberUsersIds.Contains(h.HiddenByUserId))
-            .ToListAsync();
-        
-        _context.ExaminationsHide.RemoveRange(hideRecords);
-        
         var family = await _context.Families.FirstOrDefaultAsync(f => f.Id == familyId);
+        if (family == null)
+        {
+            return NotFound("Nie znaleziono rodziny");
+        }
+
         _context.Families.Remove(family);
         
         await _context.SaveChangesAsync();
@@ -339,7 +328,7 @@ public class FamilyController : ControllerBase
             return NotFound("Ta osoba nie jest członkiem tej rodziny");
         }
 
-        if (targetMembership.User.Role == RoleUser.Child)
+        if (AgeCategoryCalculator.Calculate(targetMembership.User.BirthDate, PolandClock.Today()) == AgeCategory.Child)
         {
             return BadRequest("Rola Parent może zostać nadana tylko osobie dorosłej");
         }
@@ -395,11 +384,6 @@ public class FamilyController : ControllerBase
 
         if (dto.AlsoLeaveFamily)
         {
-            var hideRecords = await _context.ExaminationsHide
-                .Where(h => h.HiddenForUserId == userId || h.HiddenByUserId == userId)
-                .ToListAsync();
-            _context.ExaminationsHide.RemoveRange(hideRecords);
-
             _context.FamilyMemberships.Remove(callerMembership);
         }
 
@@ -414,7 +398,7 @@ public class FamilyController : ControllerBase
     {
         var callerId = this.GetUserId();
 
-        if (this.GetUserRole() == RoleUser.Child)
+        if (await _accessService.IsChild(callerId))
         {
             return Forbid();
         }

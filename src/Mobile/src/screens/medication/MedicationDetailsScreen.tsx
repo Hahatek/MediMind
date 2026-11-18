@@ -1,4 +1,4 @@
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Alert, Text, View } from "react-native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -36,6 +36,7 @@ import {
   medicationResume,
 } from "../../api/medication";
 import { medicationScheduleGet } from "../../api/medicationSchedule";
+import { getMe } from "../../api/user";
 import { PersonContext } from "../../types/FamilyTypes";
 
 type Props = {
@@ -78,7 +79,14 @@ export default function MedicationDetailsScreen({
   route,
   person,
 }: Props) {
-  const canManage = !person || person.canManage;
+  const [isChild, setIsChild] = useState<boolean | null>(null);
+
+  useEffect(() => {
+    if (person) return;
+    getMe().then((me) => setIsChild(me.isChild));
+  }, [person]);
+
+  const canManage = person ? person.canManage : isChild === false;
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   // Osobno od loading, żeby akcja (odstaw/usuń) nie zamieniała całego ekranu na "Ładowanie..."

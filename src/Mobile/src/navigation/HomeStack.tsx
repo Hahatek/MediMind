@@ -46,7 +46,7 @@ function HomeStack({ onLogout }: Props) {
       </Stack.Screen>
       <Stack.Screen
         name="Zaproszenie"
-        options={{ title: "Zaproszenie do rodziny" }}
+        options={{ title: "Zaproszenie" }}
       >
         {({ navigation, route }) => (
           <FamilyInviteScreen navigation={navigation} route={route} />
@@ -60,7 +60,7 @@ function HomeStack({ onLogout }: Props) {
           <FamilyAcceptInviteScreen navigation={navigation} />
         )}
       </Stack.Screen>
-      <Stack.Screen name="DodajProfil" options={{ title: "Dodaj profil" }}>
+      <Stack.Screen name="DodajProfil" options={{ title: "Profil bez telefonu" }}>
         {({ navigation, route }) => (
           <FamilyAddProfileScreen navigation={navigation} route={route} />
         )}

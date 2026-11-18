@@ -43,6 +43,7 @@ type Props = {
 
 export default function HomeScreen({ navigation }: Props) {
   const [nameUser, setNameUser] = useState("");
+  const [isChild, setIsChild] = useState<boolean | null>(null);
   const [examinationsRespons, setExaminationsRespons] = useState<
     ExaminationResponse[]
   >([]);
@@ -62,6 +63,7 @@ export default function HomeScreen({ navigation }: Props) {
     async function load() {
       const userData = await getMe();
       setNameUser(userData.firstName);
+      setIsChild(userData.isChild);
     }
     load();
   }, []);
@@ -88,7 +90,7 @@ export default function HomeScreen({ navigation }: Props) {
   function openDetailsExamination(examinationId: string) {
     navigation.navigate("Badania", {
       screen: "SzczegolyBadania",
-      params: { examinationId, canManage: true },
+      params: { examinationId, canManage: isChild === false },
       initial: false,
     });
   }

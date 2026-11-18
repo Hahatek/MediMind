@@ -9,8 +9,9 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { MedicationStack } from "../../navigation/MedicationsStack";
 import { MedicationListItem } from "../../types/MedicationTypes";
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { medicationGet } from "../../api/medication";
+import { getMe } from "../../api/user";
 import { getErrorMessage } from "../../utils/errorMessage";
 import { formatDateLocal } from "../../utils/dateFormat";
 import { useFocusEffect } from "@react-navigation/native";
@@ -42,7 +43,14 @@ export default function MedicationListScreen({ navigation, person }: Props) {
   const [error, setError] = useState<string | null>(null);
   const [tab, setTab] = useState("today");
 
-  const canManage = !person || person.canManage;
+  const [isChild, setIsChild] = useState<boolean | null>(null);
+
+  useEffect(() => {
+    if (person) return;
+    getMe().then((me) => setIsChild(me.isChild));
+  }, [person]);
+
+  const canManage = person ? person.canManage : isChild === false;
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -85,7 +93,7 @@ export default function MedicationListScreen({ navigation, person }: Props) {
               ListEmptyComponent={
                 loading ? (
                   <ActivityIndicator className="mt-8" />
-                ) : error ? null : (
+                ) : error ? undefined : (
                   <Text
                     className="text-muted-foreground text-center mt-8"
                     style={typography.body}
@@ -108,7 +116,7 @@ export default function MedicationListScreen({ navigation, person }: Props) {
                       "leków",
                     )}
                   </Text>
-                ) : null
+                ) : undefined
               }
               renderItem={({ item }) => (
                 <Pressable onPress={() => handleMedicationDetails(item.id)}>

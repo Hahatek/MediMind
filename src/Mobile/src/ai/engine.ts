@@ -67,7 +67,7 @@ export function isModelReady() {
 }
 
 export function getModelPath() {
-  return modelFile.uri + "x";
+  return modelFile.uri;
 }
 
 export async function downloadModel(onProgress: (percent: number) => void) {

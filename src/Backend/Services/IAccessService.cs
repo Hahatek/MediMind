@@ -8,5 +8,6 @@ public interface IAccessService
     Task<bool> CanManage(Guid callerId, Guid targetUserId);
     Task<bool> CanRecordIntake(Guid callerId, Guid targetUserId);
     Task<List<Guid>> GetReadableUserIds(Guid callerId);
+    Task<bool> IsChild(Guid userId);
     
 }

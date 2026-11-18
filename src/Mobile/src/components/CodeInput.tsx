@@ -1,5 +1,5 @@
 import { useRef } from "react";
-import { TextInput, Pressable, View, Text } from "react-native";
+import { TextInput, TextInputInstance, Pressable, View, Text } from "react-native";
 import { typography } from "../theme/typography";
 
 type Props = {
@@ -8,7 +8,7 @@ type Props = {
 };
 
 export default function CodeInput({ value, onChange }: Props) {
-  const inputRef = useRef<TextInput>(null);
+  const inputRef = useRef<TextInputInstance>(null);
   return (
     <Pressable onPress={() => inputRef.current?.focus()}>
       <View className="flex flex-row gap-2">

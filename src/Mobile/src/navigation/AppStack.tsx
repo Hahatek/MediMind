@@ -1,10 +1,10 @@
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import ExaminationsStack, { ExaminationStack } from "./ExaminationsStack";
 import { ClipboardPlus, Home, Pill, Sparkles, User } from "lucide-react-native";
-import UserScreen from "../screens/UserScreen";
+import ProfileStack, { ProfileStackList } from "./ProfileStack";
 import KlaraScreen from "../screens/klara/KlaraScreen";
 import MedicationsStack from "./MedicationsStack";
-import HomeStack from "./HomeStack";
+import HomeStack, { HomeStackList } from "./HomeStack";
 import { useColorScheme } from "nativewind";
 import {
   iconSizes,
@@ -21,9 +21,9 @@ type Props = {
 };
 
 export type AppStackList = {
-  Home: undefined;
+  Home: NavigatorScreenParams<HomeStackList> | undefined;
   Badania: NavigatorScreenParams<ExaminationStack> | undefined;
-  Profil: undefined;
+  Profil: NavigatorScreenParams<ProfileStackList> | undefined;
   Leki: undefined;
   Klara: undefined;
 };
@@ -115,7 +115,7 @@ function AppStack({ onLogout }: Props) {
           ),
         }}
       >
-        {() => <UserScreen onLogout={onLogout} />}
+        {() => <ProfileStack onLogout={onLogout} />}
       </Tab.Screen>
     </Tab.Navigator>
   );

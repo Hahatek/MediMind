@@ -34,6 +34,7 @@ export interface UserResponse {
   role: RoleUser;
   bloodType?: BloodType | null;
   avatar?: string | null;
+  isChild: boolean;
 }
 
 export interface CreateAccessCode {
